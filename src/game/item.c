@@ -1,5 +1,6 @@
 #include "game/item.h"
 
+#include "game/item_rarity.h"
 #include "game/anim.h"
 #include "game/background.h"
 #include "game/critter.h"
@@ -311,6 +312,18 @@ void item_generate_inventory(int64_t critter_obj)
         proto_obj = sub_4685A0(BP_BANDAGES);
         if (object_create(proto_obj, loc, &item_obj)) {
             item_transfer(item_obj, critter_obj);
+        }
+    }
+
+    // Apply guaranteed unique drop if this critter's BP is mapped to one.
+    item_rarity_try_boss_drop(critter_obj);
+
+    // Roll rarity for all remaining weapons and armor (skips items already rolled).
+    cnt = obj_field_int32_get(critter_obj, OBJ_F_CRITTER_INVENTORY_NUM);
+    for (idx = 0; idx < cnt; idx++) {
+        item_obj = obj_arrayfield_handle_get(critter_obj, OBJ_F_CRITTER_INVENTORY_LIST_IDX, idx);
+        if (item_obj != OBJ_HANDLE_NULL) {
+            item_rarity_roll(item_obj);
         }
     }
 }
@@ -843,14 +856,28 @@ bool sub_461CA0(int64_t item_obj, int64_t critter_obj, int inventory_location)
 int item_worth(int64_t item_id)
 {
     int worth;
+    ItemRarity rarity;
 
     if (!item_is_identified(item_id)) {
+        return 300;
+    }
+
+    rarity = item_rarity_get(item_id);
+    if (rarity > ITEM_RARITY_COMMON && !item_rarity_is_identified(item_id)) {
         return 300;
     }
 
     worth = obj_field_int32_get(item_id, OBJ_F_ITEM_WORTH);
     if (worth < 2) {
         worth = 2;
+    }
+
+    switch (rarity) {
+    case ITEM_RARITY_UNCOMMON: worth = worth * 2;  break;
+    case ITEM_RARITY_RARE:     worth = worth * 4;  break;
+    case ITEM_RARITY_EPIC:     worth = worth * 8;  break;
+    case ITEM_RARITY_UNIQUE:   worth = worth * 15; break;
+    default: break;
     }
 
     return worth;

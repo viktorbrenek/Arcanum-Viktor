@@ -1,7 +1,9 @@
 #include "game/object.h"
 
 #include <inttypes.h>
+#include <stdio.h>
 
+#include "game/item_rarity.h"
 #include "game/ai.h"
 #include "game/anim.h"
 #include "game/critter.h"
@@ -981,6 +983,14 @@ void object_hover_obj_set(int64_t obj)
 
         if (object_hover_obj != OBJ_HANDLE_NULL) {
             type = obj_field_int32_get(object_hover_obj, OBJ_F_TYPE);
+
+            if (obj_type_is_item(type)) {
+                ItemRarity rarity = item_rarity_get(object_hover_obj);
+                if (rarity > ITEM_RARITY_COMMON) {
+                    object_hover_color = item_rarity_color(rarity);
+                    dword_5E2E94 = true;
+                }
+            }
             if (type != OBJ_TYPE_WALL && type != OBJ_TYPE_PROJECTILE) {
                 if (type >= OBJ_TYPE_PC) {
                     pc_obj = player_get_local_pc_obj();
@@ -3948,6 +3958,22 @@ void object_examine(int64_t obj, int64_t pc_obj, char* buffer)
             strcpy(buffer, name);
         }
         return;
+    }
+
+    // Rarity items: handle name and identification before the generic unidentified check.
+    if (obj_type_is_item(type) && !object_editor) {
+        ItemRarity rarity = item_rarity_get(obj);
+        if (rarity > ITEM_RARITY_COMMON) {
+            name = description_get(obj_field_int32_get(obj, OBJ_F_DESCRIPTION));
+            if (!item_rarity_is_identified(obj)) {
+                if (name != NULL) {
+                    snprintf(buffer, MAX_STRING, "%s (?)", name);
+                }
+            } else if (name != NULL) {
+                item_rarity_generate_name(obj, name, buffer, MAX_STRING);
+            }
+            return;
+        }
     }
 
     // Special case for items - unidentified item name is stored in a separate

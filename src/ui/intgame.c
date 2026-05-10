@@ -16,6 +16,7 @@
 #include "game/hrp.h"
 #include "game/item.h"
 #include "game/item_effect.h"
+#include "game/item_rarity.h"
 #include "game/level.h"
 #include "game/light.h"
 #include "game/magictech.h"
@@ -869,6 +870,9 @@ static UiPrimaryButton intgame_map_button;
 
 // 0x64C538
 static tig_font_handle_t intgame_morph15_orange_font;
+static tig_font_handle_t intgame_morph15_green_font;
+static tig_font_handle_t intgame_morph15_purple_font;
+static tig_font_handle_t intgame_morph15_gold_font;
 
 // 0x64C540
 static UiMessage intgame_message_history[MAX_MESSAGE_HISTORY_ITEMS];
@@ -998,6 +1002,24 @@ bool intgame_init(GameInitInfo* init_info)
     tig_font_create(&font, &intgame_morph15_orange_font);
 
     font.flags = 0;
+    tig_art_interface_id_create(27, 0, 0, 0, &(font.art_id));
+    font.str = NULL;
+    font.color = tig_color_make(100, 220, 100);
+    tig_font_create(&font, &intgame_morph15_green_font);
+
+    font.flags = 0;
+    tig_art_interface_id_create(27, 0, 0, 0, &(font.art_id));
+    font.str = NULL;
+    font.color = tig_color_make(190, 100, 255);
+    tig_font_create(&font, &intgame_morph15_purple_font);
+
+    font.flags = 0;
+    tig_art_interface_id_create(27, 0, 0, 0, &(font.art_id));
+    font.str = NULL;
+    font.color = tig_color_make(255, 180, 50);
+    tig_font_create(&font, &intgame_morph15_gold_font);
+
+    font.flags = 0;
     tig_art_interface_id_create(229, 0, 0, 0, &(font.art_id));
     font.str = NULL;
     font.color = tig_color_make(255, 255, 255);
@@ -1115,6 +1137,9 @@ void intgame_exit(void)
     tig_font_destroy(intgame_morph15_white_font);
     tig_font_destroy(intgame_morph15_blue_font);
     tig_font_destroy(intgame_morph15_orange_font);
+    tig_font_destroy(intgame_morph15_green_font);
+    tig_font_destroy(intgame_morph15_purple_font);
+    tig_font_destroy(intgame_morph15_gold_font);
     tig_font_destroy(intgame_flare12_white_font);
     tig_font_destroy(intgame_flare12_red_font);
     tig_font_destroy(intgame_flare12_blue_font);
@@ -6992,18 +7017,30 @@ void intgame_examine_item(int64_t pc_obj, int64_t item_obj, char* str)
     is_identified = item_is_identified(item_obj);
     complexity = obj_field_int32_get(item_obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY);
 
-    if ((obj_field_int32_get(item_obj, OBJ_F_ITEM_FLAGS) & OIF_HEXED) != 0
-        && is_identified) {
+    {
+        tig_font_handle_t name_font;
+        if ((obj_field_int32_get(item_obj, OBJ_F_ITEM_FLAGS) & OIF_HEXED) != 0 && is_identified) {
+            name_font = intgame_morph15_orange_font;
+        } else {
+            ItemRarity rarity = item_rarity_get(item_obj);
+            if (rarity > ITEM_RARITY_COMMON && !item_rarity_is_identified(item_obj)) {
+                name_font = intgame_morph15_white_font;
+            } else {
+                switch (rarity) {
+                case ITEM_RARITY_UNCOMMON: name_font = intgame_morph15_green_font;  break;
+                case ITEM_RARITY_RARE:     name_font = intgame_morph15_blue_font;   break;
+                case ITEM_RARITY_EPIC:     name_font = intgame_morph15_purple_font; break;
+                case ITEM_RARITY_UNIQUE:   name_font = intgame_morph15_gold_font;   break;
+                default:
+                    name_font = complexity > 0 ? intgame_morph15_blue_font : intgame_morph15_white_font;
+                    break;
+                }
+            }
+        }
         intgame_message_window_write_text(intgame_rotwin_text_frame[intgame_iso_window_type].window_handle,
             str,
             &stru_5C70C8,
-            intgame_morph15_orange_font,
-            MSG_TEXT_HALIGN_LEFT);
-    } else {
-        intgame_message_window_write_text(intgame_rotwin_text_frame[intgame_iso_window_type].window_handle,
-            str,
-            &stru_5C70C8,
-            complexity > 0 ? intgame_morph15_blue_font : intgame_morph15_white_font,
+            name_font,
             MSG_TEXT_HALIGN_LEFT);
     }
 
@@ -7106,34 +7143,56 @@ void intgame_examine_item(int64_t pc_obj, int64_t item_obj, char* str)
             MSG_TEXT_HALIGN_LEFT);
     }
 
-    if (is_identified
-        && (obj_type == OBJ_TYPE_WEAPON
-            || obj_type == OBJ_TYPE_ARMOR
-            || obj_type == OBJ_TYPE_SCROLL)) {
-        if (complexity > 0) {
-            value = item_effective_power(item_obj, pc_obj);
+    {
+        ItemRarity rarity = item_rarity_get(item_obj);
+        if (rarity > ITEM_RARITY_COMMON && item_rarity_is_identified(item_obj)) {
+            char equip_buf[256];
+            item_rarity_format_equipped_stats(item_obj, equip_buf, sizeof(equip_buf));
+            if (equip_buf[0] != '\0') {
+                tig_font_handle_t rarity_font;
+                switch (rarity) {
+                case ITEM_RARITY_UNCOMMON: rarity_font = intgame_morph15_green_font;  break;
+                case ITEM_RARITY_RARE:     rarity_font = intgame_morph15_blue_font;   break;
+                case ITEM_RARITY_EPIC:     rarity_font = intgame_morph15_purple_font; break;
+                case ITEM_RARITY_UNIQUE:   rarity_font = intgame_morph15_gold_font;   break;
+                default:                   rarity_font = intgame_flare12_white_font;  break;
+                }
+                intgame_message_window_write_text(
+                    intgame_rotwin_text_frame[intgame_iso_window_type].window_handle,
+                    equip_buf,
+                    &stru_5C70E8,
+                    rarity_font,
+                    MSG_TEXT_HALIGN_LEFT);
+            }
+        } else if (is_identified
+            && (obj_type == OBJ_TYPE_WEAPON
+                || obj_type == OBJ_TYPE_ARMOR
+                || obj_type == OBJ_TYPE_SCROLL)) {
+            if (complexity > 0) {
+                value = item_effective_power(item_obj, pc_obj);
 
-            mes_file_entry.num = 2; // "Magic power available"
-            mes_get_msg(intgame_mes_file, &mes_file_entry);
+                mes_file_entry.num = 2; // "Magic power available"
+                mes_get_msg(intgame_mes_file, &mes_file_entry);
 
-            sprintf(buffer, "%s: %d%%", mes_file_entry.str, 100 * value / complexity);
-            intgame_message_window_write_text(intgame_rotwin_text_frame[intgame_iso_window_type].window_handle,
-                buffer,
-                &stru_5C70E8,
-                intgame_flare12_white_font,
-                MSG_TEXT_HALIGN_LEFT);
-        } else if (complexity < 0) {
-            value = item_aptitude_crit_failure_chance(item_obj, pc_obj);
+                sprintf(buffer, "%s: %d%%", mes_file_entry.str, 100 * value / complexity);
+                intgame_message_window_write_text(intgame_rotwin_text_frame[intgame_iso_window_type].window_handle,
+                    buffer,
+                    &stru_5C70E8,
+                    intgame_flare12_white_font,
+                    MSG_TEXT_HALIGN_LEFT);
+            } else if (complexity < 0) {
+                value = item_aptitude_crit_failure_chance(item_obj, pc_obj);
 
-            mes_file_entry.num = 3; // "Aptitude adj to chance of critical failure"
-            mes_get_msg(intgame_mes_file, &mes_file_entry);
+                mes_file_entry.num = 3; // "Aptitude adj to chance of critical failure"
+                mes_get_msg(intgame_mes_file, &mes_file_entry);
 
-            sprintf(buffer, "%s: %+d%%", mes_file_entry.str, value);
-            intgame_message_window_write_text(intgame_rotwin_text_frame[intgame_iso_window_type].window_handle,
-                buffer,
-                &stru_5C70E8,
-                intgame_flare12_white_font,
-                MSG_TEXT_HALIGN_LEFT);
+                sprintf(buffer, "%s: %+d%%", mes_file_entry.str, value);
+                intgame_message_window_write_text(intgame_rotwin_text_frame[intgame_iso_window_type].window_handle,
+                    buffer,
+                    &stru_5C70E8,
+                    intgame_flare12_white_font,
+                    MSG_TEXT_HALIGN_LEFT);
+            }
         }
     }
 
@@ -7264,8 +7323,15 @@ void format_weapon_stats(int64_t weapon_obj, char* buffer)
     int max;
     int adj;
 
-    identified = obj_field_int32_get(weapon_obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY) > 0
-        && item_is_identified(weapon_obj);
+    {
+        ItemRarity rarity = item_rarity_get(weapon_obj);
+        if (rarity > ITEM_RARITY_COMMON) {
+            identified = item_rarity_is_identified(weapon_obj);
+        } else {
+            identified = obj_field_int32_get(weapon_obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY) > 0
+                && item_is_identified(weapon_obj);
+        }
+    }
     buffer[0] = '\0';
 
     // D
@@ -7347,8 +7413,15 @@ void format_armor_stats(int64_t armor_obj, char* buffer)
     int value;
     int adj;
 
-    identified = obj_field_int32_get(armor_obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY) > 0
-        && item_is_identified(armor_obj);
+    {
+        ItemRarity rarity = item_rarity_get(armor_obj);
+        if (rarity > ITEM_RARITY_COMMON) {
+            identified = item_rarity_is_identified(armor_obj);
+        } else {
+            identified = obj_field_int32_get(armor_obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY) > 0
+                && item_is_identified(armor_obj);
+        }
+    }
     buffer[0] = '\0';
 
     // AC

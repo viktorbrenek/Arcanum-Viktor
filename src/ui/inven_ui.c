@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "game/item_rarity.h"
 #include "game/ai.h"
 #include "game/critter.h"
 #include "game/dialog.h"
@@ -346,6 +347,9 @@ static int dword_681518[960];
 // 0x682418
 static tig_font_handle_t dword_682418;
 
+// Rarity-colored font handles for item name display (UNCOMMON..UNIQUE).
+static tig_font_handle_t inven_rarity_fonts[ITEM_RARITY_COUNT];
+
 // 0x68241C
 static char byte_68241C[1000];
 
@@ -432,6 +436,13 @@ bool inven_ui_init(GameInitInfo* init_info)
     font.color = tig_color_make(255, 255, 255);
     tig_font_create(&font, &dword_682418);
 
+    // Create one colored font per rarity (same art, different color).
+    for (int r = 0; r < ITEM_RARITY_COUNT; r++) {
+        font.color = item_rarity_color((ItemRarity)r);
+        tig_font_create(&font, &inven_rarity_fonts[r]);
+    }
+    font.color = tig_color_make(255, 255, 255);
+
     tig_art_interface_id_create(229, 0, 0, 0, &(font.art_id));
     tig_font_create(&font, &dword_682C74);
 
@@ -449,6 +460,9 @@ bool inven_ui_init(GameInitInfo* init_info)
 void inven_ui_exit(void)
 {
     tig_font_destroy(dword_682418);
+    for (int r = 0; r < ITEM_RARITY_COUNT; r++) {
+        tig_font_destroy(inven_rarity_fonts[r]);
+    }
     tig_font_destroy(dword_682C74);
     tig_font_destroy(dword_681390);
     tig_font_destroy(dword_68345C);
@@ -1419,6 +1433,12 @@ static inline void inven_ui_message_filter_handle_mouse_idle(int x, int y)
                     sub_578760(qword_681458);
                     break;
                 default:
+                    // Show rarity/affix info in the description area on hover.
+                    if (item_is_item(qword_681458)) {
+                        byte_68241C[0] = '\0';
+                        item_rarity_describe_affixes(qword_681458, byte_68241C,
+                            sizeof(byte_68241C));
+                    }
                     redraw_inven(false);
                     break;
                 }
@@ -3858,6 +3878,7 @@ void sub_578330(int64_t a1, int64_t a2)
         }
     }
 
+    item_rarity_describe_affixes(a1, byte_68241C, sizeof(byte_68241C));
     redraw_inven(false);
 }
 
