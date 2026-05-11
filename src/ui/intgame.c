@@ -51,6 +51,7 @@
 #include "ui/hotkey_ui.h"
 #include "ui/inven_ui.h"
 #include "ui/iso.h"
+#include "ui/item_tooltip.h"
 #include "ui/item_ui.h"
 #include "ui/logbook_ui.h"
 #include "ui/mainmenu_ui.h"
@@ -187,8 +188,8 @@ static void sub_554B00(tig_window_handle_t window_handle, int art_num, int x, in
 static int intgame_item_icon_get(int64_t item_obj);
 static void intgame_examine_item(int64_t pc_obj, int64_t item_obj, char* str);
 static void append_stat(char* buffer, int num, int min, int max, int a5, bool is_modifier);
-static void format_weapon_stats(int64_t weapon_obj, char* buffer);
-static void format_armor_stats(int64_t armor_obj, char* buffer);
+void format_weapon_stats(int64_t weapon_obj, char* buffer);
+void format_armor_stats(int64_t armor_obj, char* buffer);
 static void intgame_examine_scenery(int64_t pc_obj, int64_t scenery_obj, char* str);
 static void intgame_examine_portal(int64_t pc_obj, int64_t portal_obj, char* str);
 static void intgame_examine_container(int64_t pc_obj, int64_t container_obj, char* str);
@@ -1134,6 +1135,7 @@ void intgame_resize(GameResizeInfo* resize_info)
 // 0x54A130
 void intgame_exit(void)
 {
+    item_tooltip_exit();
     tig_font_destroy(intgame_morph15_white_font);
     tig_font_destroy(intgame_morph15_blue_font);
     tig_font_destroy(intgame_morph15_orange_font);
@@ -4185,6 +4187,8 @@ void intgame_message_window_display_skill(int value)
 // 0x550930
 void intgame_message_window_clear_internal(void)
 {
+    item_tooltip_hide();
+
     if (!intgame_iso_interface_created) {
         return;
     }
@@ -4852,8 +4856,8 @@ void sub_551910(TigMessage* msg)
         if (!map_is_clearing_objects()) {
             if (target_pick_at_screen_xy_ex(msg->data.mouse.x, msg->data.mouse.y, &td, qword_5C7280, intgame_fullscreen)) {
                 if (!td.is_loc) {
-                    sub_57CCF0(player_get_local_pc_obj(), td.obj);
                     object_hover_obj_set(td.obj);
+                    sub_57CCF0(player_get_local_pc_obj(), td.obj);
                 }
             } else if (combat_turn_based_is_active()
                 && target_pick_at_screen_xy_ex(msg->data.mouse.x, msg->data.mouse.y, &td, TGT_TILE, intgame_fullscreen)
@@ -6993,6 +6997,7 @@ void intgame_examine_item(int64_t pc_obj, int64_t item_obj, char* str)
 {
     int obj_type;
     int64_t parent_obj;
+
     bool is_identified;
     int complexity;
     MesFileEntry mes_file_entry;
@@ -7277,6 +7282,8 @@ void intgame_examine_item(int64_t pc_obj, int64_t item_obj, char* str)
                 MSG_TEXT_HALIGN_RIGHT);
         }
     }
+
+    item_tooltip_show(item_obj, str);
 }
 
 // 0x555780

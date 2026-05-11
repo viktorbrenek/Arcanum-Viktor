@@ -146,6 +146,11 @@ int item_rarity_adjust_stat(int64_t critter_obj, int stat, int value);
 // buf[0] = '\0' if no stat bonuses.
 void item_rarity_format_equipped_stats(int64_t item_obj, char* buf, int buf_size);
 
+// Tooltip: newline-separated affix bonus list for the ARPG floating tooltip.
+// Each line is e.g. "+7 normal damage" or "+2 STR (equipped)".
+// buf[0] = '\0' if no affixes.
+void item_rarity_format_tooltip_affixes(int64_t item_obj, char* buf, int buf_size);
+
 // UI color per rarity.
 tig_color_t item_rarity_color(ItemRarity rarity);
 

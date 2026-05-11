@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"out/build/windows-x64\" --config Debug)",
+      "Bash(grep -E \"error|warning C4|\\\\.exe$\")",
+      "Bash(grep -E \"error C|warning C4|\\\\.exe$\")",
+      "Bash(cmake --build build --config Release)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\build\" --config Release 2>&1 | Select-Object -Last 25)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Select-Object -Last 30)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Select-Object -Last 20)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Debug 2>&1 | Select-Object -Last 15)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Debug 2>&1 | Select-Object -Last 25)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Debug 2>&1 | Select-Object -Last 10)",
+      "Bash(grep -E \"\\\\.\\(h|c\\)$\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Debug 2>&1 | Select-Object -Last 20)",
+      "Bash(cmake --build out/build/windows-x64 --config Debug --target arcanum-ce)",
+      "PowerShell(Get-Command *)",
+      "PowerShell($cmake = \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\"; Set-Location \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\"; & $cmake --build out/build/windows-x64 --config Debug --target arcanum-ce 2>&1 | Select-Object -Last 50)",
+      "PowerShell($cmake = \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\"; Set-Location \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\"; & $cmake --build out/build/windows-x64 --config Debug --target arcanum-ce 2>&1 | Select-Object -Last 30)",
+      "PowerShell($cmake = \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\"; Set-Location \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\"; & $cmake --build out/build/windows-x64 --config Debug --target arcanum-ce 2>&1 | Select-Object -Last 25)",
+      "PowerShell($cmake = \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\"; Set-Location \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\"; & $cmake --build out/build/windows-x64 --config Debug --target arcanum-ce 2>&1 | Select-Object -Last 15)",
+      "Skill(brain)"
+    ]
+  }
+}

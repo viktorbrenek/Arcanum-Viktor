@@ -278,6 +278,8 @@ set(SRCS
     "src/ui/intgame.h"
     "src/ui/inven_ui.c"
     "src/ui/inven_ui.h"
+    "src/ui/item_tooltip.c"
+    "src/ui/item_tooltip.h"
     "src/ui/iso.c"
     "src/ui/iso.h"
     "src/ui/item_ui.c"

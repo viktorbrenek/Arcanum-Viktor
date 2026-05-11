@@ -1056,3 +1056,50 @@ tig_color_t item_rarity_color(ItemRarity rarity)
     default:                   return tig_color_make(255, 255, 255);  // white
     }
 }
+
+// ---------------------------------------------------------------------------
+// Tooltip affix list
+// ---------------------------------------------------------------------------
+
+void item_rarity_format_tooltip_affixes(int64_t item_obj, char* buf, int buf_size)
+{
+    static const char* stat_names[] = { "STR", "DEX", "CON", "BEA", "INT", "PER", "WIL", "CHA" };
+    ItemRarity rarity = item_rarity_get(item_obj);
+    int pos = 0;
+    int slot;
+
+    buf[0] = '\0';
+
+    for (slot = 0; slot < ITEM_RARITY_MAX_AFFIXES; slot++) {
+        int affix_id;
+        const AffixDef* def;
+
+        if (rarity == ITEM_RARITY_UNIQUE && slot == UNIQUE_ID_SLOT) {
+            continue;
+        }
+
+        affix_id = item_affix_get(item_obj, slot);
+        if (affix_id <= ITEM_AFFIX_NONE || affix_id >= ITEM_AFFIX_COUNT) {
+            continue;
+        }
+
+        def = &affix_table[affix_id];
+
+        if (def->desc != NULL) {
+            pos += snprintf(buf + pos, buf_size - pos, "%s\n", def->desc);
+        } else if (def->equip_stat >= 0
+            && def->equip_stat < (int)(sizeof(stat_names) / sizeof(stat_names[0]))) {
+            pos += snprintf(buf + pos, buf_size - pos, "%+d %s (equipped)\n",
+                def->equip_stat_val, stat_names[def->equip_stat]);
+        }
+
+        if (pos >= buf_size - 1) {
+            break;
+        }
+    }
+
+    // Trim trailing newline.
+    if (pos > 0 && buf[pos - 1] == '\n') {
+        buf[pos - 1] = '\0';
+    }
+}

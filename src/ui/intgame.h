@@ -69,6 +69,9 @@ typedef enum RotatingWindowType {
 
 extern tig_font_handle_t intgame_morph15_white_font;
 
+void format_weapon_stats(int64_t weapon_obj, char* buffer);
+void format_armor_stats(int64_t armor_obj, char* buffer);
+
 bool intgame_init(GameInitInfo* init_info);
 void intgame_reset(void);
 void intgame_resize(GameResizeInfo* resize_info);

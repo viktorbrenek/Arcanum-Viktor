@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "game/item_rarity.h"
+#include "ui/item_tooltip.h"
 #include "game/ai.h"
 #include "game/critter.h"
 #include "game/dialog.h"
@@ -1127,6 +1128,9 @@ void inven_ui_destroy(void)
         return;
     }
 
+    item_tooltip_hide();
+    qword_681458 = OBJ_HANDLE_NULL;
+
     inven_ui_created = false;
     sub_4A53B0(inven_ui_pc_obj, 0);
 
@@ -1421,6 +1425,7 @@ static inline void inven_ui_message_filter_handle_mouse_idle(int x, int y)
         if (v1 != qword_681458) {
             qword_681458 = v1;
             if (qword_681458 != OBJ_HANDLE_NULL) {
+                item_tooltip_show(qword_681458, NULL);
                 sub_57CCF0(inven_ui_pc_obj, qword_681458);
                 switch (inven_ui_mode) {
                 case INVEN_UI_MODE_BARTER:
@@ -1443,6 +1448,7 @@ static inline void inven_ui_message_filter_handle_mouse_idle(int x, int y)
                     break;
                 }
             } else {
+                item_tooltip_hide();
                 byte_68241C[0] = '\0';
                 dword_681440 = -1;
                 redraw_inven(false);
