@@ -151,6 +151,12 @@ void item_rarity_format_equipped_stats(int64_t item_obj, char* buf, int buf_size
 // buf[0] = '\0' if no affixes.
 void item_rarity_format_tooltip_affixes(int64_t item_obj, char* buf, int buf_size);
 
+// Infer display rarity without modifying the object.
+// Returns stored rarity if already rolled; otherwise maps OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY
+// to UNCOMMON/RARE/EPIC for base-game magic weapons and armor.
+// Use only for UI color — never for game logic.
+ItemRarity item_rarity_infer(int64_t item_obj);
+
 // UI color per rarity.
 tig_color_t item_rarity_color(ItemRarity rarity);
 

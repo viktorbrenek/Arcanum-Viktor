@@ -1042,6 +1042,35 @@ void item_rarity_format_equipped_stats(int64_t item_obj, char* buf, int buf_size
 }
 
 // ---------------------------------------------------------------------------
+// Display rarity inference (read-only, never written to object)
+// ---------------------------------------------------------------------------
+
+ItemRarity item_rarity_infer(int64_t item_obj)
+{
+    ItemRarity stored = item_rarity_get(item_obj);
+    if (stored != ITEM_RARITY_NONE) {
+        return stored;
+    }
+
+    int obj_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
+    if (obj_type != OBJ_TYPE_WEAPON && obj_type != OBJ_TYPE_ARMOR) {
+        return ITEM_RARITY_COMMON;
+    }
+
+    int complexity = obj_field_int32_get(item_obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY);
+    if (complexity <= 0) {
+        return ITEM_RARITY_COMMON;
+    }
+    if (complexity <= 25) {
+        return ITEM_RARITY_UNCOMMON;
+    }
+    if (complexity <= 60) {
+        return ITEM_RARITY_RARE;
+    }
+    return ITEM_RARITY_EPIC;
+}
+
+// ---------------------------------------------------------------------------
 // UI color
 // ---------------------------------------------------------------------------
 

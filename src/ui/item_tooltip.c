@@ -147,12 +147,11 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     char subtitle[128];
     char stats_buf[512];
     char affixes_buf[512];
-    char equip_buf[256];
     char value_buf[64];
 
-    bool has_stats, has_affixes, has_equip;
+    bool has_stats, has_affixes;
     int text_w, total_h, y;
-    int name_h, subtitle_h, stats_h, affixes_h, equip_h, value_h;
+    int name_h, subtitle_h, stats_h, affixes_h, value_h;
 
     TigMouseState mouse;
     int screen_w, screen_h, wx, wy;
@@ -195,7 +194,7 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     is_magic   = (rarity > ITEM_RARITY_COMMON);
 
     {
-        int r = (int)rarity;
+        int r = (int)item_rarity_infer(item_obj);
         name_font = tooltip_name_fonts[(r >= 0 && r < ITEM_RARITY_COUNT) ? r : 0];
     }
 
@@ -228,14 +227,6 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
         has_affixes = affixes_buf[0] != '\0';
     }
 
-    // Equipped stat bonuses
-    equip_buf[0] = '\0';
-    has_equip = false;
-    if (is_magic && identified) {
-        item_rarity_format_equipped_stats(item_obj, equip_buf, sizeof(equip_buf));
-        has_equip = equip_buf[0] != '\0';
-    }
-
     // Value
     snprintf(value_buf, sizeof(value_buf), "Value: %d gp", item_worth(item_obj));
 
@@ -246,7 +237,6 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     subtitle_h = measure_h(tooltip_body_font,  subtitle,   text_w);
     stats_h    = has_stats   ? measure_h(tooltip_body_font, stats_buf,   text_w) : 0;
     affixes_h  = has_affixes ? measure_h(tooltip_body_font, affixes_buf, text_w) : 0;
-    equip_h    = has_equip   ? measure_h(tooltip_gold_font, equip_buf,   text_w) : 0;
     value_h    = measure_h(tooltip_body_font, value_buf, text_w);
 
     total_h = TOOLTIP_PADDING * 2
@@ -256,7 +246,6 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
 
     if (has_stats)   total_h += stats_h   + TOOLTIP_GAP + TOOLTIP_DIV_H + TOOLTIP_GAP;
     if (has_affixes) total_h += affixes_h + TOOLTIP_GAP + TOOLTIP_DIV_H + TOOLTIP_GAP;
-    if (has_equip)   total_h += equip_h   + TOOLTIP_GAP + TOOLTIP_DIV_H + TOOLTIP_GAP;
 
     total_h += value_h;
 
@@ -324,13 +313,6 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     if (has_affixes) {
         write_line(tooltip_window, tooltip_body_font, affixes_buf, y, affixes_h);
         y += affixes_h + TOOLTIP_GAP;
-        draw_div(tooltip_window, y);
-        y += TOOLTIP_DIV_H + TOOLTIP_GAP;
-    }
-
-    if (has_equip) {
-        write_line(tooltip_window, tooltip_gold_font, equip_buf, y, equip_h);
-        y += equip_h + TOOLTIP_GAP;
         draw_div(tooltip_window, y);
         y += TOOLTIP_DIV_H + TOOLTIP_GAP;
     }
