@@ -2173,6 +2173,8 @@ void sub_463E20(int64_t obj)
                 && mp_object_create(set.basic_prototype[idx], loc, &item_obj)) {
                 if (!item_transfer(item_obj, obj)) {
                     object_destroy(item_obj);
+                } else if (obj_type == OBJ_TYPE_CONTAINER) {
+                    item_rarity_roll(item_obj);
                 }
             }
         }

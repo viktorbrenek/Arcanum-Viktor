@@ -487,12 +487,12 @@ bool spell_add(int64_t obj, int spell, bool force)
         }
 
         // Check minimum intelligence.
-        if (spell_min_intelligence(spell) > stat_level_get(obj, STAT_INTELLIGENCE)) {
+        if (spell_min_intelligence(spell) > stat_base_get(obj, STAT_INTELLIGENCE)) {
             return false;
         }
 
         // Check minimum willpower.
-        if (spell_min_willpower(spell) > stat_level_get(obj, STAT_WILLPOWER)) {
+        if (spell_min_willpower(spell) > stat_base_get(obj, STAT_WILLPOWER)) {
             return false;
         }
 
