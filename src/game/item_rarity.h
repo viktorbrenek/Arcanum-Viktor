@@ -6,9 +6,10 @@
 #include "tig/color.h"
 
 // OBJ_F_ITEM_PAD_I_1 layout:
-//   bits 0-7  : ItemRarity value
-//   bit  30   : cursed-bound flag (1 = cannot unequip without Remove Curse)
-//   bit  31   : identified flag (1 = identified, 0 = unidentified)
+//   bits  0-7  : ItemRarity value
+//   bits  8-23 : SetId (0 = not a set item; non-zero only when rarity == ITEM_RARITY_SET)
+//   bit   30   : cursed-bound flag (1 = cannot unequip without Remove Curse)
+//   bit   31   : identified flag (1 = identified, 0 = unidentified)
 // Common items are always treated as identified.
 #define ITEM_RARITY_IDENTIFIED_BIT  0x80000000
 #define ITEM_RARITY_CURSED_BOUND_BIT 0x40000000
@@ -21,6 +22,7 @@ typedef enum ItemRarity {
     ITEM_RARITY_EPIC,
     ITEM_RARITY_UNIQUE,
     ITEM_RARITY_CURSED,
+    ITEM_RARITY_SET,
     ITEM_RARITY_COUNT,
 } ItemRarity;
 

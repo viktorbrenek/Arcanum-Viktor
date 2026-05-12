@@ -1,6 +1,7 @@
 #include "game/item.h"
 
 #include "game/item_rarity.h"
+#include "game/item_set.h"
 #include "game/anim.h"
 #include "game/background.h"
 #include "game/critter.h"
@@ -4297,6 +4298,7 @@ void item_equipped(int64_t item_obj, int64_t parent_obj, int inventory_location)
     }
 
     mt_item_notify_wear(item_obj, parent_obj);
+    item_set_on_equip(item_obj, parent_obj);
     item_recalc_light(item_obj, parent_obj);
     object_script_execute(parent_obj, item_obj, OBJ_HANDLE_NULL, SAP_WIELD_ON, 0);
 }
@@ -4434,6 +4436,7 @@ void item_unequipped(int64_t item_obj, int64_t parent_obj, int inventory_locatio
     }
 
     mt_item_notify_unwear(item_obj, parent_obj);
+    item_set_on_unequip(item_obj, parent_obj);
     item_recalc_light(item_obj, parent_obj);
     object_script_execute(parent_obj, item_obj, OBJ_HANDLE_NULL, SAP_WIELD_OFF, 0);
 }

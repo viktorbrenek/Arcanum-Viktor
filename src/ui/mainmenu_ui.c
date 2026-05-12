@@ -13,6 +13,7 @@
 #include "game/hrp.h"
 #include "game/item.h"
 #include "game/item_rarity.h"
+#include "game/item_set.h"
 #include "game/map.h"
 #include "game/mes.h"
 #include "game/obj.h"
@@ -4519,6 +4520,32 @@ void mainmenu_ui_shop_refresh(TigRect* rect)
             int64_t item_obj;
             if (object_create(proto_obj, loc, &item_obj)) {
                 item_rarity_roll_forced(item_obj, test_items[i].rarity);
+                item_rarity_identify(item_obj);
+                item_transfer(item_obj, pc_obj);
+            }
+        }
+    }
+
+    // DEV: Seed set items (3 pieces per set) into PC inventory for set system testing.
+    {
+        static const struct { int bp; SetId set_id; } test_sets[] = {
+            { BP_QUALITY_SWORD,         SET_DREAD_GUARD              },
+            { BP_MACHINED_PLATEMAIL,    SET_DREAD_GUARD              },
+            { BP_GAUNTLETS,             SET_DREAD_GUARD              },
+            { BP_MAGES_DAGGER,          SET_SHROUD_OF_UNSEEN         },
+            { BP_OILED_THIEVES_LEATHER, SET_SHROUD_OF_UNSEEN         },
+            { BP_FANCY_RING,            SET_SHROUD_OF_UNSEEN         },
+            { BP_MAGES_STAFF,           SET_VENDIGROTHIAN_CONFLUENCE },
+            { BP_LEATHER_ARMOUR,        SET_VENDIGROTHIAN_CONFLUENCE },
+            { BP_MEDALLION,             SET_VENDIGROTHIAN_CONFLUENCE },
+        };
+        int64_t loc = obj_field_int64_get(pc_obj, OBJ_F_LOCATION);
+        for (int i = 0; i < (int)(sizeof(test_sets) / sizeof(test_sets[0])); i++) {
+            int64_t proto_obj = sub_4685A0(test_sets[i].bp);
+            int64_t item_obj;
+            if (object_create(proto_obj, loc, &item_obj)) {
+                item_rarity_set(item_obj, ITEM_RARITY_SET);
+                item_set_set(item_obj, test_sets[i].set_id);
                 item_rarity_identify(item_obj);
                 item_transfer(item_obj, pc_obj);
             }

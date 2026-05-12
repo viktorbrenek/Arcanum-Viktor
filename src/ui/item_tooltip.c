@@ -7,15 +7,17 @@
 #include "game/hrp.h"
 #include "game/item.h"
 #include "game/item_rarity.h"
+#include "game/item_set.h"
 #include "game/obj.h"
 #include "game/object.h"
 #include "ui/intgame.h"
+#include "game/player.h"
 #include "tig/color.h"
 #include "tig/font.h"
 #include "tig/mouse.h"
 #include "tig/window.h"
 
-#define TOOLTIP_WIDTH   220
+#define TOOLTIP_WIDTH   260
 #define TOOLTIP_PADDING   6
 #define TOOLTIP_GAP       3
 #define TOOLTIP_DIV_H     1
@@ -130,7 +132,7 @@ static const char* type_label(int obj_type)
 
 static const char* rarity_label(ItemRarity rarity)
 {
-    static const char* names[] = { "", "Common", "Uncommon", "Rare", "Epic", "Unique", "Cursed" };
+    static const char* names[] = { "", "Common", "Uncommon", "Rare", "Epic", "Unique", "Cursed", "Set" };
     if ((int)rarity >= 0 && (int)rarity < ITEM_RARITY_COUNT) {
         return names[rarity];
     }
@@ -147,11 +149,12 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     char subtitle[128];
     char stats_buf[512];
     char affixes_buf[512];
+    char set_buf[512];
     char value_buf[64];
 
-    bool has_stats, has_affixes;
+    bool has_stats, has_affixes, has_set;
     int text_w, total_h, y;
-    int name_h, subtitle_h, stats_h, affixes_h, value_h;
+    int name_h, subtitle_h, stats_h, affixes_h, set_h, value_h;
 
     TigMouseState mouse;
     int screen_w, screen_h, wx, wy;
@@ -227,6 +230,30 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
         has_affixes = affixes_buf[0] != '\0';
     }
 
+    // Set info
+    set_buf[0] = '\0';
+    has_set = false;
+    if (rarity == ITEM_RARITY_SET) {
+        SetId sid = item_set_get(item_obj);
+        if (sid != SET_NONE) {
+            int64_t pc = player_get_local_pc_obj();
+            int equipped = (pc != OBJ_HANDLE_NULL) ? item_set_count_equipped(pc, sid) : 0;
+            int active_tier = (pc != OBJ_HANDLE_NULL) ? item_set_active_tier(pc, sid) : 0;
+            int pos = 0;
+            pos += snprintf(set_buf + pos, sizeof(set_buf) - pos,
+                "%s  (%d/3 equipped)", item_set_name(sid), equipped);
+            for (int t = 1; t <= 2; t++) {
+                const char* bstr = item_set_tier_bonus_str(sid, t);
+                if (bstr && bstr[0] != '\0') {
+                    const char* active_mark = (active_tier >= t) ? " *" : "";
+                    pos += snprintf(set_buf + pos, sizeof(set_buf) - pos,
+                        "\n%s%s", bstr, active_mark);
+                }
+            }
+            has_set = set_buf[0] != '\0';
+        }
+    }
+
     // Value
     snprintf(value_buf, sizeof(value_buf), "Value: %d gp", item_worth(item_obj));
 
@@ -237,6 +264,7 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     subtitle_h = measure_h(tooltip_body_font,  subtitle,   text_w);
     stats_h    = has_stats   ? measure_h(tooltip_body_font, stats_buf,   text_w) : 0;
     affixes_h  = has_affixes ? measure_h(tooltip_body_font, affixes_buf, text_w) : 0;
+    set_h      = has_set     ? measure_h(tooltip_name_fonts[rarity], set_buf, text_w) : 0;
     value_h    = measure_h(tooltip_body_font, value_buf, text_w);
 
     total_h = TOOLTIP_PADDING * 2
@@ -246,6 +274,7 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
 
     if (has_stats)   total_h += stats_h   + TOOLTIP_GAP + TOOLTIP_DIV_H + TOOLTIP_GAP;
     if (has_affixes) total_h += affixes_h + TOOLTIP_GAP + TOOLTIP_DIV_H + TOOLTIP_GAP;
+    if (has_set)     total_h += set_h     + TOOLTIP_GAP + TOOLTIP_DIV_H + TOOLTIP_GAP;
 
     total_h += value_h;
 
@@ -313,6 +342,13 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     if (has_affixes) {
         write_line(tooltip_window, tooltip_body_font, affixes_buf, y, affixes_h);
         y += affixes_h + TOOLTIP_GAP;
+        draw_div(tooltip_window, y);
+        y += TOOLTIP_DIV_H + TOOLTIP_GAP;
+    }
+
+    if (has_set) {
+        write_line(tooltip_window, tooltip_name_fonts[ITEM_RARITY_SET], set_buf, y, set_h);
+        y += set_h + TOOLTIP_GAP;
         draw_div(tooltip_window, y);
         y += TOOLTIP_DIV_H + TOOLTIP_GAP;
     }

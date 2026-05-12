@@ -1,6 +1,7 @@
 #include "game/mt_item.h"
 
 #include "game/item.h"
+#include "game/item_set.h"
 #include "game/magictech.h"
 #include "game/obj.h"
 #include "game/random.h"
@@ -319,6 +320,8 @@ void mt_item_notify_parent_hit(int64_t attacker_obj, CombatContext* combat, int6
             handle_item_event(item_obj, target_obj, attacker_obj, flags);
         }
     }
+
+    item_set_notify_hit_taken(target_obj, attacker_obj);
 }
 
 /**
@@ -477,6 +480,8 @@ void mt_item_notify_target_going_unconscious(int64_t attacker_obj, int64_t targe
             handle_item_event(item_obj, attacker_obj, target_obj, MT_ITEM_TRIG_TARGET_GOING_UNCONSCIOUS);
         }
     }
+
+    item_set_notify_kill(attacker_obj, target_obj);
 }
 
 /**
@@ -506,6 +511,8 @@ void mt_item_notify_parent_dmgs_obj(int64_t attacker_obj, int64_t weapon_obj, in
     } else if (obj_type_is_item(type)) {
         handle_item_event(attacker_obj, target_obj, attacker_obj, MT_ITEM_TRIG_TARGET_HIT);
     }
+
+    item_set_notify_hit(attacker_obj, weapon_obj, target_obj);
 }
 
 /**

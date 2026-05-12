@@ -5,6 +5,7 @@
 
 #include "game/damage_type.h"
 #include "game/item.h"
+#include "game/item_set.h"
 #include "game/obj.h"
 #include "game/object.h"
 #include "game/random.h"
@@ -577,6 +578,20 @@ void item_rarity_roll(int64_t item_obj)
         return;
     }
 
+    // SET: ~0.5% chance (1-in-200) before regular roll.
+    if (random_between(1, 200) == 1) {
+        int set_idx = random_between(1, SET_COUNT - 1);
+        item_rarity_set(item_obj, ITEM_RARITY_SET);
+        item_set_set(item_obj, (SetId)set_idx);
+        item_rarity_identify(item_obj);
+        if (obj_type == OBJ_TYPE_WEAPON) {
+            bake_extra(item_obj, OBJ_F_WEAPON_MAGIC_HIT_ADJ, -1, 5);
+        } else {
+            bake_extra(item_obj, OBJ_F_ARMOR_MAGIC_AC_ADJ, -1, 5);
+        }
+        return;
+    }
+
     rarity = roll_rarity();
     item_rarity_set(item_obj, rarity);
 
@@ -926,7 +941,7 @@ void item_rarity_describe_affixes(int64_t item_obj, char* buf, int buf_size)
     }
 
     static const char* rarity_names[] = {
-        "", "Common", "Uncommon", "Rare", "Epic", "Unique", "Cursed"
+        "", "Common", "Uncommon", "Rare", "Epic", "Unique", "Cursed", "Set"
     };
     pos = (int)strlen(buf);
     pos += snprintf(buf + pos, buf_size - pos, "\n[%s]\n",
@@ -1082,6 +1097,7 @@ tig_color_t item_rarity_color(ItemRarity rarity)
     case ITEM_RARITY_EPIC:     return tig_color_make(190, 100, 255);  // purple
     case ITEM_RARITY_UNIQUE:   return tig_color_make(255, 180,  50);  // gold
     case ITEM_RARITY_CURSED:   return tig_color_make(210,  40,  40);  // dark crimson
+    case ITEM_RARITY_SET:      return tig_color_make( 80, 220, 200);  // teal
     default:                   return tig_color_make(255, 255, 255);  // white
     }
 }

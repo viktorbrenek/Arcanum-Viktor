@@ -817,6 +817,7 @@ static tig_window_handle_t intgame_iso_window = TIG_WINDOW_HANDLE_INVALID;
 
 // 0x64C470
 static tig_font_handle_t intgame_morph15_blue_font;
+static tig_font_handle_t intgame_morph15_teal_font;
 
 // 0x64C474
 static TigVideoBuffer* dword_64C474;
@@ -1021,6 +1022,12 @@ bool intgame_init(GameInitInfo* init_info)
     tig_font_create(&font, &intgame_morph15_gold_font);
 
     font.flags = 0;
+    tig_art_interface_id_create(27, 0, 0, 0, &(font.art_id));
+    font.str = NULL;
+    font.color = tig_color_make(80, 220, 200);
+    tig_font_create(&font, &intgame_morph15_teal_font);
+
+    font.flags = 0;
     tig_art_interface_id_create(229, 0, 0, 0, &(font.art_id));
     font.str = NULL;
     font.color = tig_color_make(255, 255, 255);
@@ -1142,6 +1149,7 @@ void intgame_exit(void)
     tig_font_destroy(intgame_morph15_green_font);
     tig_font_destroy(intgame_morph15_purple_font);
     tig_font_destroy(intgame_morph15_gold_font);
+    tig_font_destroy(intgame_morph15_teal_font);
     tig_font_destroy(intgame_flare12_white_font);
     tig_font_destroy(intgame_flare12_red_font);
     tig_font_destroy(intgame_flare12_blue_font);
@@ -7036,6 +7044,7 @@ void intgame_examine_item(int64_t pc_obj, int64_t item_obj, char* str)
                 case ITEM_RARITY_RARE:     name_font = intgame_morph15_blue_font;   break;
                 case ITEM_RARITY_EPIC:     name_font = intgame_morph15_purple_font; break;
                 case ITEM_RARITY_UNIQUE:   name_font = intgame_morph15_gold_font;   break;
+                case ITEM_RARITY_SET:      name_font = intgame_morph15_teal_font;   break;
                 default:
                     name_font = complexity > 0 ? intgame_morph15_blue_font : intgame_morph15_white_font;
                     break;

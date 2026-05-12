@@ -1,6 +1,7 @@
 #include "game/stat.h"
 
 #include "game/item_rarity.h"
+#include "game/item_set.h"
 #include "game/a_name.h"
 #include "game/anim.h"
 #include "game/background.h"
@@ -516,6 +517,7 @@ int stat_level_get(int64_t obj, int stat)
 
     // Apply stat bonuses from equipped magic items.
     value = item_rarity_adjust_stat(obj, stat, value);
+    value = item_set_adjust_stat(obj, stat, value);
 
     // Clamp the final value to min/max bounds.
     min_value = stat_level_min(obj, stat);

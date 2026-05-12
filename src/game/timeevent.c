@@ -20,6 +20,7 @@
 #include "game/stat.h"
 #include "game/teleport.h"
 #include "game/trap.h"
+#include "game/item_set.h"
 #include "game/ui.h"
 
 typedef unsigned int TimeEventParamTypeFlags;
@@ -125,6 +126,7 @@ static TimeEventTypeInfo stru_5B2188[TIMEEVENT_TYPE_COUNT] = {
     /*          TIMEEVENT_TYPE_TELEPORTED */ { "Teleported", false, P0_OBJ, TIME_TYPE_GAME_TIME, object_teleported_timeevent_process, NULL, NULL },
     /*     TIMEEVENT_TYPE_SCENERY_RESPAWN */ { "Scenery Respawn", true, P0_OBJ, TIME_TYPE_GAME_TIME, object_scenery_respawn_timeevent_process, NULL, NULL },
     /*    TIMEEVENT_TYPE_RANDOM_ENCOUNTER */ { "Random Encounter", true, 0, TIME_TYPE_GAME_TIME, ui_wmap_rnd_timeevent_process, NULL, NULL },
+    /*    TIMEEVENT_TYPE_PROC_EFFECT_END */ { "Proc Effect End", false, P3_INT | P2_INT | P1_INT | P0_OBJ, TIME_TYPE_REAL_TIME, item_set_proc_effect_end_timeevent_process, NULL, NULL },
 };
 
 // 0x5B278C
