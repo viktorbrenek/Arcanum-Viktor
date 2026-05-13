@@ -22,7 +22,10 @@
       "Skill(brain)",
       "Bash(cmake --build build --target arcanum)",
       "Bash(cmake --build \"C:/Arcanum of Viktorworks and ARPG Obscura/arcanum-ce/out/build/windows-x64\" --config Debug --target arcanum-ce)",
-      "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Debug --target arcanum-ce)"
+      "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Debug --target arcanum-ce)",
+      "Bash(grep -E \"error|warning C4|\\\\.c$|\\\\.exe$\")",
+      "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --target arcanum)",
+      "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\")"
     ]
   }
 }

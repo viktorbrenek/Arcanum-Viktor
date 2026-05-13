@@ -7,6 +7,7 @@
 #include "game/item.h"
 #include "game/item_set.h"
 #include "game/obj.h"
+#include "game/obj_flags.h"
 #include "game/object.h"
 #include "game/random.h"
 #include "game/resistance.h"
@@ -180,6 +181,94 @@ static const AffixDef affix_table[ITEM_AFFIX_COUNT] = {
     // ITEM_AFFIX_CURSE_OF_COWARDICE
     { NULL, "of Cowardice", true, true, -1, -1, 0, -1, -1, 0, STAT_WILLPOWER, -2,
         "-2 WIL (cursed)" },
+    // ITEM_AFFIX_W_VENOMOUS
+    { "Venomous", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, DAMAGE_TYPE_POISON, 5, -1, -1, 0, -1, 0,
+        "+5 poison damage" },
+    // ITEM_AFFIX_W_THUNDERING
+    { "Thundering", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, DAMAGE_TYPE_ELECTRICAL, 5, -1, -1, 0, -1, 0,
+        "+5 electrical damage" },
+    // ITEM_AFFIX_W_BRUTAL
+    { "Brutal", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, DAMAGE_TYPE_NORMAL, 5, -1, -1, 0, -1, 0,
+        "+5 normal damage" },
+    // ITEM_AFFIX_W_VICIOUS
+    { "Vicious", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, DAMAGE_TYPE_NORMAL, 12, -1, -1, 0, -1, 0,
+        "+12 normal damage" },
+    // ITEM_AFFIX_W_BALANCED
+    { "Balanced", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_HIT_ADJ, -1, 7, -1, -1, 0, -1, 0,
+        "+7 to-hit" },
+    // ITEM_AFFIX_W_RAZOR
+    { "Razor", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_CRIT_HIT_CHANCE, -1, 7, -1, -1, 0, -1, 0,
+        "+7% critical chance" },
+    // ITEM_AFFIX_W_FLEET
+    { "Fleet", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_SPEED_ADJ, -1, -2, -1, -1, 0, -1, 0,
+        "-2 speed (very fast)" },
+    // ITEM_AFFIX_A_REINFORCED
+    { "Reinforced", NULL, false, true,
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_AC_ADJ, -1, 15, -1, 0,
+        "+15 armor class" },
+    // ITEM_AFFIX_A_BLAZEWARD
+    { "Blazeward", NULL, false, true,
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_FIRE, 30, -1, 0,
+        "+30% fire resistance" },
+    // ITEM_AFFIX_A_SPELLWARD
+    { "Spellward", NULL, false, true,
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_MAGIC, 15, -1, 0,
+        "+15% magic resistance" },
+    // ITEM_AFFIX_A_PHANTOM
+    { "Phantom", NULL, false, true,
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_SILENT_MOVE_ADJ, -1, 10, -1, 0,
+        "+10 silent move" },
+    // ITEM_AFFIX_A_GROUNDED
+    { "Grounded", NULL, false, true,
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_ELECTRICAL, 25, -1, 0,
+        "+25% electrical resistance" },
+    // ITEM_AFFIX_OF_THE_OX
+    { NULL, "of the Ox", true, true, -1, -1, 0, -1, -1, 0, STAT_CONSTITUTION, 2, NULL },
+    // ITEM_AFFIX_OF_THE_HAWK
+    { NULL, "of the Hawk", true, true, -1, -1, 0, -1, -1, 0, STAT_PERCEPTION, 2, NULL },
+    // ITEM_AFFIX_OF_THE_ORACLE
+    { NULL, "of the Oracle", true, true, -1, -1, 0, -1, -1, 0, STAT_WILLPOWER, 2, NULL },
+    // ITEM_AFFIX_OF_THE_SCHOLAR
+    { NULL, "of the Scholar", true, true, -1, -1, 0, -1, -1, 0, STAT_INTELLIGENCE, 2, NULL },
+    // ITEM_AFFIX_OF_CELERITY
+    { NULL, "of Celerity", true, true, -1, -1, 0, -1, -1, 0, STAT_SPEED, 1, NULL },
+    // ITEM_AFFIX_OF_TITANS
+    { NULL, "of Titans", true, true, -1, -1, 0, -1, -1, 0, STAT_STRENGTH, 3, NULL },
+    // ITEM_AFFIX_PENALTY_PER_1
+    { NULL, NULL, true, true, -1, -1, 0, -1, -1, 0, STAT_PERCEPTION, -1, NULL },
+    // ITEM_AFFIX_PENALTY_WIL_1
+    { NULL, NULL, true, true, -1, -1, 0, -1, -1, 0, STAT_WILLPOWER, -1, NULL },
+    // ITEM_AFFIX_PENALTY_SPD_2
+    { NULL, NULL, true, true, -1, -1, 0, -1, -1, 0, STAT_SPEED, -2, NULL },
+    // ITEM_AFFIX_CW_RENDING
+    { "Rending", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, DAMAGE_TYPE_ELECTRICAL, 8, -1, -1, 0, -1, 0,
+        "+8 electrical damage" },
+    // ITEM_AFFIX_CW_PESTILENT
+    { "Pestilent", NULL, true, false,
+        OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, DAMAGE_TYPE_POISON, 10, -1, -1, 0, -1, 0,
+        "+10 poison damage" },
+    // ITEM_AFFIX_CA_STYGIAN
+    { "Stygian", NULL, false, true,
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_POISON, 35, -1, 0,
+        "+35% poison resistance" },
+    // ITEM_AFFIX_CA_THUNDERCLAD
+    { "Thunderclad", NULL, false, true,
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_ELECTRICAL, 30, -1, 0,
+        "+30% electrical resistance" },
+    // ITEM_AFFIX_CURSE_OF_BLINDNESS
+    { NULL, "of Blindness", true, true, -1, -1, 0, -1, -1, 0, STAT_PERCEPTION, -2,
+        "-2 PER (cursed)" },
+    // ITEM_AFFIX_CURSE_OF_LETHARGY
+    { NULL, "of Lethargy", true, true, -1, -1, 0, -1, -1, 0, STAT_SPEED, -2,
+        "-2 SPD (cursed)" },
 };
 
 // ---------------------------------------------------------------------------
@@ -195,6 +284,13 @@ static const int weapon_prefix_pool[] = {
     ITEM_AFFIX_W_KEEN,
     ITEM_AFFIX_W_SAVAGE,
     ITEM_AFFIX_W_BLAZING,
+    ITEM_AFFIX_W_VENOMOUS,
+    ITEM_AFFIX_W_THUNDERING,
+    ITEM_AFFIX_W_BRUTAL,
+    ITEM_AFFIX_W_VICIOUS,
+    ITEM_AFFIX_W_BALANCED,
+    ITEM_AFFIX_W_RAZOR,
+    ITEM_AFFIX_W_FLEET,
 };
 static const int weapon_prefix_pool_size = (int)(sizeof(weapon_prefix_pool) / sizeof(weapon_prefix_pool[0]));
 
@@ -206,6 +302,11 @@ static const int armor_prefix_pool[] = {
     ITEM_AFFIX_A_VENOMPROOF,
     ITEM_AFFIX_A_SANCTIFIED,
     ITEM_AFFIX_A_SHADOW,
+    ITEM_AFFIX_A_REINFORCED,
+    ITEM_AFFIX_A_BLAZEWARD,
+    ITEM_AFFIX_A_SPELLWARD,
+    ITEM_AFFIX_A_PHANTOM,
+    ITEM_AFFIX_A_GROUNDED,
 };
 static const int armor_prefix_pool_size = (int)(sizeof(armor_prefix_pool) / sizeof(armor_prefix_pool[0]));
 
@@ -220,6 +321,12 @@ static const int suffix_pool[] = {
     ITEM_AFFIX_OF_WILL,
     ITEM_AFFIX_OF_CHARM,
     ITEM_AFFIX_OF_BEAUTY,
+    ITEM_AFFIX_OF_THE_OX,
+    ITEM_AFFIX_OF_THE_HAWK,
+    ITEM_AFFIX_OF_THE_ORACLE,
+    ITEM_AFFIX_OF_THE_SCHOLAR,
+    ITEM_AFFIX_OF_CELERITY,
+    ITEM_AFFIX_OF_TITANS,
 };
 static const int suffix_pool_size = (int)(sizeof(suffix_pool) / sizeof(suffix_pool[0]));
 
@@ -228,6 +335,8 @@ static const int cursed_weapon_prefix_pool[] = {
     ITEM_AFFIX_CW_CORRUPTED,
     ITEM_AFFIX_CW_SOULREAVER,
     ITEM_AFFIX_CW_BLOODLUST,
+    ITEM_AFFIX_CW_RENDING,
+    ITEM_AFFIX_CW_PESTILENT,
 };
 static const int cursed_weapon_prefix_pool_size = (int)(sizeof(cursed_weapon_prefix_pool) / sizeof(cursed_weapon_prefix_pool[0]));
 
@@ -235,6 +344,8 @@ static const int cursed_armor_prefix_pool[] = {
     ITEM_AFFIX_CA_IRONBOUND,
     ITEM_AFFIX_CA_WRAITHFORGED,
     ITEM_AFFIX_CA_ABYSSAL,
+    ITEM_AFFIX_CA_STYGIAN,
+    ITEM_AFFIX_CA_THUNDERCLAD,
 };
 static const int cursed_armor_prefix_pool_size = (int)(sizeof(cursed_armor_prefix_pool) / sizeof(cursed_armor_prefix_pool[0]));
 
@@ -244,6 +355,8 @@ static const int cursed_suffix_pool[] = {
     ITEM_AFFIX_CURSE_OF_CLUMSINESS,
     ITEM_AFFIX_CURSE_OF_DIMNESS,
     ITEM_AFFIX_CURSE_OF_COWARDICE,
+    ITEM_AFFIX_CURSE_OF_BLINDNESS,
+    ITEM_AFFIX_CURSE_OF_LETHARGY,
 };
 static const int cursed_suffix_pool_size = (int)(sizeof(cursed_suffix_pool) / sizeof(cursed_suffix_pool[0]));
 
@@ -371,6 +484,101 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
         OBJ_F_WEAPON_MAGIC_HIT_ADJ, -1, 10,
         -1, -1, 0,
     },
+
+    // UNIQUE_WYRMFANG
+    // Fire+poison hybrid: burning venom, high crit, minor to-hit penalty
+    {
+        "Wyrmfang",
+        OBJ_TYPE_WEAPON,
+        0,
+        {
+            ITEM_AFFIX_W_BLAZING,
+            ITEM_AFFIX_W_VENOMOUS,
+            ITEM_AFFIX_W_RAZOR,
+            ITEM_AFFIX_PENALTY_DEX_1,
+            ITEM_AFFIX_NONE,
+            ITEM_AFFIX_NONE,
+        },
+        // Extra: +3 fire damage on top of W_BLAZING
+        OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, DAMAGE_TYPE_FIRE, 3,
+        -1, -1, 0,
+    },
+
+    // UNIQUE_COGSWORTH_REPEATER
+    // Mechanically tuned to fire impossibly fast; trades raw damage for speed
+    {
+        "Cogsworth Repeater",
+        OBJ_TYPE_WEAPON,
+        0,
+        {
+            ITEM_AFFIX_W_SWIFT,
+            ITEM_AFFIX_W_FLEET,
+            ITEM_AFFIX_W_BALANCED,
+            ITEM_AFFIX_PENALTY_STR_1,
+            ITEM_AFFIX_NONE,
+            ITEM_AFFIX_NONE,
+        },
+        // Extra: another -1 speed for extreme attack rate
+        OBJ_F_WEAPON_MAGIC_SPEED_ADJ, -1, -1,
+        -1, -1, 0,
+    },
+
+    // UNIQUE_STONEHIDE_MANTLE
+    // Armour carved from a living boulder; immovable but indestructible
+    {
+        "Stonehide Mantle",
+        OBJ_TYPE_ARMOR,
+        0,
+        {
+            ITEM_AFFIX_A_FORTIFIED,
+            ITEM_AFFIX_A_REINFORCED,
+            ITEM_AFFIX_OF_THE_OX,
+            ITEM_AFFIX_PENALTY_SPEED_2,
+            ITEM_AFFIX_NONE,
+            ITEM_AFFIX_NONE,
+        },
+        -1, -1, 0,
+        // Extra: +12 AC on top of Fortified+Reinforced
+        OBJ_F_ARMOR_MAGIC_AC_ADJ, -1, 12,
+    },
+
+    // UNIQUE_GALATEA_MIRROR
+    // Polished to supernatural clarity; spells skitter off its surface
+    {
+        "Galatea Mirror",
+        OBJ_TYPE_ARMOR,
+        0,
+        {
+            ITEM_AFFIX_A_SANCTIFIED,
+            ITEM_AFFIX_A_SPELLWARD,
+            ITEM_AFFIX_OF_THE_ORACLE,
+            ITEM_AFFIX_PENALTY_STR_1,
+            ITEM_AFFIX_NONE,
+            ITEM_AFFIX_NONE,
+        },
+        -1, -1, 0,
+        // Extra: +20% magic resistance
+        OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_MAGIC, 20,
+    },
+
+    // UNIQUE_THORNWEAVE
+    // Woven from shadow-thistle; poisons cannot touch the wearer
+    {
+        "Thornweave",
+        OBJ_TYPE_ARMOR,
+        0,
+        {
+            ITEM_AFFIX_A_VENOMPROOF,
+            ITEM_AFFIX_A_PHANTOM,
+            ITEM_AFFIX_OF_THE_WIND,
+            ITEM_AFFIX_PENALTY_CON_1,
+            ITEM_AFFIX_NONE,
+            ITEM_AFFIX_NONE,
+        },
+        -1, -1, 0,
+        // Extra: +6 more stealth
+        OBJ_F_ARMOR_MAGIC_SILENT_MOVE_ADJ, -1, 6,
+    },
 };
 
 // ---------------------------------------------------------------------------
@@ -437,7 +645,10 @@ bool item_rarity_is_identified(int64_t item_obj)
         return true;
     }
     int v = obj_field_int32_get(item_obj, OBJ_F_ITEM_PAD_I_1);
-    return (v & (int)ITEM_RARITY_IDENTIFIED_BIT) != 0;
+    if ((v & (int)ITEM_RARITY_IDENTIFIED_BIT) != 0) {
+        return true;
+    }
+    return (obj_field_int32_get(item_obj, OBJ_F_ITEM_FLAGS) & OIF_IDENTIFIED) != 0;
 }
 
 bool item_rarity_is_cursed_bound(int64_t item_obj)
@@ -1063,13 +1274,8 @@ void item_rarity_format_equipped_stats(int64_t item_obj, char* buf, int buf_size
 ItemRarity item_rarity_infer(int64_t item_obj)
 {
     ItemRarity stored = item_rarity_get(item_obj);
-    if (stored != ITEM_RARITY_NONE) {
+    if (stored > ITEM_RARITY_COMMON) {
         return stored;
-    }
-
-    int obj_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
-    if (obj_type != OBJ_TYPE_WEAPON && obj_type != OBJ_TYPE_ARMOR) {
-        return ITEM_RARITY_COMMON;
     }
 
     int complexity = obj_field_int32_get(item_obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY);

@@ -82,6 +82,40 @@ typedef enum ItemAffix {
     ITEM_AFFIX_CURSE_OF_CLUMSINESS, // -2 DEX (equipped)
     ITEM_AFFIX_CURSE_OF_DIMNESS,    // -2 INT (equipped)
     ITEM_AFFIX_CURSE_OF_COWARDICE,  // -2 WIL (equipped)
+    // --- Extended weapon prefixes ---
+    ITEM_AFFIX_W_VENOMOUS,          // +5 poison damage
+    ITEM_AFFIX_W_THUNDERING,        // +5 electrical damage
+    ITEM_AFFIX_W_BRUTAL,            // +5 normal damage
+    ITEM_AFFIX_W_VICIOUS,           // +12 normal damage
+    ITEM_AFFIX_W_BALANCED,          // +7 to-hit
+    ITEM_AFFIX_W_RAZOR,             // +7% crit chance
+    ITEM_AFFIX_W_FLEET,             // -2 speed factor (very fast)
+    // --- Extended armor prefixes ---
+    ITEM_AFFIX_A_REINFORCED,        // +15 AC
+    ITEM_AFFIX_A_BLAZEWARD,         // +30% fire resistance
+    ITEM_AFFIX_A_SPELLWARD,         // +15% magic resistance
+    ITEM_AFFIX_A_PHANTOM,           // +10 silent move
+    ITEM_AFFIX_A_GROUNDED,          // +25% electrical resistance
+    // --- Extended stat suffixes ---
+    ITEM_AFFIX_OF_THE_OX,           // +2 CON
+    ITEM_AFFIX_OF_THE_HAWK,         // +2 PER
+    ITEM_AFFIX_OF_THE_ORACLE,       // +2 WIL
+    ITEM_AFFIX_OF_THE_SCHOLAR,      // +2 INT
+    ITEM_AFFIX_OF_CELERITY,         // +1 SPD
+    ITEM_AFFIX_OF_TITANS,           // +3 STR
+    // --- Extended hidden penalties ---
+    ITEM_AFFIX_PENALTY_PER_1,       // -1 PER
+    ITEM_AFFIX_PENALTY_WIL_1,       // -1 WIL
+    ITEM_AFFIX_PENALTY_SPD_2,       // -2 SPD
+    // --- Extended cursed weapon prefixes ---
+    ITEM_AFFIX_CW_RENDING,          // +8 electrical damage
+    ITEM_AFFIX_CW_PESTILENT,        // +10 poison damage
+    // --- Extended cursed armor prefixes ---
+    ITEM_AFFIX_CA_STYGIAN,          // +35% poison resistance
+    ITEM_AFFIX_CA_THUNDERCLAD,      // +30% electrical resistance
+    // --- Extended cursed suffixes ---
+    ITEM_AFFIX_CURSE_OF_BLINDNESS,  // -2 PER
+    ITEM_AFFIX_CURSE_OF_LETHARGY,   // -2 SPD
     ITEM_AFFIX_COUNT,
 } ItemAffix;
 
@@ -101,6 +135,16 @@ typedef enum UniqueItemId {
     UNIQUE_RING_OF_MEPHISTIS,
     // Force mage enabler: high INT + WIL, converts STR to INT (STR penalty)
     UNIQUE_TULLIAN_FOCUS,
+    // Fire + poison hybrid weapon (dragon fang)
+    UNIQUE_WYRMFANG,
+    // Extremely fast mechanical weapon, low damage
+    UNIQUE_COGSWORTH_REPEATER,
+    // Massive AC + endurance, immovable defense
+    UNIQUE_STONEHIDE_MANTLE,
+    // Mirror-polished shield; extreme magic resistance
+    UNIQUE_GALATEA_MIRROR,
+    // Shadow thicket armor: stealth + DEX + poison immunity
+    UNIQUE_THORNWEAVE,
     UNIQUE_ITEM_COUNT,
 } UniqueItemId;
 

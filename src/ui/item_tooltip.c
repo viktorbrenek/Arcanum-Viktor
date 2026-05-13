@@ -167,10 +167,11 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     if (item_name == NULL || item_name[0] == '\0') {
         const char* base = description_get(obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION));
         ItemRarity r0 = item_rarity_get(item_obj);
+        ItemRarity r_display = item_rarity_infer(item_obj);
         if (base == NULL) {
             base = "Item";
         }
-        if (r0 > ITEM_RARITY_COMMON && !item_rarity_is_identified(item_obj)) {
+        if (r_display > ITEM_RARITY_COMMON && !item_rarity_is_identified(item_obj)) {
             snprintf(name_internal, sizeof(name_internal), "%s (?)", base);
         } else if (r0 > ITEM_RARITY_COMMON) {
             item_rarity_generate_name(item_obj, base, name_internal, sizeof(name_internal));
@@ -192,18 +193,15 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     item_tooltip_hide();
 
     obj_type   = obj_field_int32_get(item_obj, OBJ_F_TYPE);
-    rarity     = item_rarity_get(item_obj);
+    rarity     = item_rarity_infer(item_obj);
     identified = item_rarity_is_identified(item_obj);
     is_magic   = (rarity > ITEM_RARITY_COMMON);
 
-    {
-        int r = (int)item_rarity_infer(item_obj);
-        name_font = tooltip_name_fonts[(r >= 0 && r < ITEM_RARITY_COUNT) ? r : 0];
-    }
+    name_font = tooltip_name_fonts[(rarity >= 0 && rarity < ITEM_RARITY_COUNT) ? (int)rarity : 0];
 
     // Subtitle line
     if (is_magic) {
-        const char* bound = (rarity == ITEM_RARITY_CURSED && item_rarity_is_cursed_bound(item_obj))
+        const char* bound = (item_rarity_get(item_obj) == ITEM_RARITY_CURSED && item_rarity_is_cursed_bound(item_obj))
             ? "  [Bound]" : "";
         snprintf(subtitle, sizeof(subtitle), "%s %s%s",
             rarity_label(rarity), type_label(obj_type), bound);

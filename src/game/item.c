@@ -2173,14 +2173,23 @@ void sub_463E20(int64_t obj)
                 && mp_object_create(set.basic_prototype[idx], loc, &item_obj)) {
                 if (!item_transfer(item_obj, obj)) {
                     object_destroy(item_obj);
-                } else if (obj_type == OBJ_TYPE_CONTAINER) {
-                    item_rarity_roll(item_obj);
                 }
             }
         }
 
         if (obj_type == OBJ_TYPE_NPC) {
             item_wield_best_all(obj, OBJ_HANDLE_NULL);
+        } else if (obj_type == OBJ_TYPE_CONTAINER) {
+            int cnt_roll = obj_field_int32_get(obj, OBJ_F_CONTAINER_INVENTORY_NUM);
+            for (int r = 0; r < cnt_roll; r++) {
+                int64_t inv_item = obj_arrayfield_handle_get(obj, OBJ_F_CONTAINER_INVENTORY_LIST_IDX, r);
+                if (inv_item != OBJ_HANDLE_NULL) {
+                    int item_type = obj_field_int32_get(inv_item, OBJ_F_TYPE);
+                    if (item_type == OBJ_TYPE_WEAPON || item_type == OBJ_TYPE_ARMOR) {
+                        item_rarity_roll(inv_item);
+                    }
+                }
+            }
         }
 
         if (spawn) {
@@ -2347,10 +2356,15 @@ void item_identify_all(int64_t obj)
 
     cnt = obj_field_int32_get(obj, inventory_num_fld);
     for (index = 0; index < cnt; index++) {
+        int item_type;
         item_obj = obj_arrayfield_handle_get(obj, inventory_list_fld, index);
         flags = obj_field_int32_get(item_obj, OBJ_F_ITEM_FLAGS);
         flags |= OIF_IDENTIFIED;
         obj_field_int32_set(item_obj, OBJ_F_ITEM_FLAGS, flags);
+        item_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
+        if (item_type == OBJ_TYPE_WEAPON || item_type == OBJ_TYPE_ARMOR) {
+            item_rarity_identify(item_obj);
+        }
     }
 }
 
@@ -4150,6 +4164,7 @@ void item_perform_identify_service(int64_t item_obj, int64_t npc_obj, int64_t pc
     flags = obj_field_int32_get(item_obj, OBJ_F_ITEM_FLAGS);
     flags |= OIF_IDENTIFIED;
     obj_field_int32_set(item_obj, OBJ_F_ITEM_FLAGS, flags);
+    item_rarity_identify(item_obj);
 
     item_gold_transfer(pc_obj, npc_obj, cost, OBJ_HANDLE_NULL);
 

@@ -89,6 +89,24 @@ int item_set_adjust_stat(int64_t critter_obj, int stat, int value)
         if (stat == STAT_WILLPOWER)    value += 2;
     }
 
+    tier = item_set_active_tier(critter_obj, SET_IRON_BROTHERHOOD);
+    if (tier >= 1) {
+        if (stat == STAT_AC_ADJUSTMENT) value += 8;
+        if (stat == STAT_CONSTITUTION)  value += 2;
+    }
+
+    tier = item_set_active_tier(critter_obj, SET_GNOMISH_MASTERWORK);
+    if (tier >= 1) {
+        if (stat == STAT_INTELLIGENCE) value += 2;
+        if (stat == STAT_DEXTERITY)    value += 2;
+    }
+
+    tier = item_set_active_tier(critter_obj, SET_BLESSED_COVENANT);
+    if (tier >= 1) {
+        if (stat == STAT_WILLPOWER) value += 2;
+        if (stat == STAT_CHARISMA)  value += 2;
+    }
+
     return value;
 }
 
@@ -268,6 +286,41 @@ static void proc_arc_discharge(int64_t attacker)
     tb_add(attacker, TB_TYPE_BLUE, "Arc Discharge!");
 }
 
+static void proc_iron_retribution(int64_t victim, int64_t attacker)
+{
+    CombatContext ctx;
+
+    // Reflect 10 normal damage back to attacker
+    sub_4B2210(victim, attacker, &ctx);
+    ctx.dam[DAMAGE_TYPE_NORMAL] = 10;
+    combat_dmg(&ctx);
+    tb_add(victim, TB_TYPE_RED, "Iron Retribution!");
+}
+
+static void proc_galvanic_pulse(int64_t attacker, int64_t target)
+{
+    CombatContext ctx;
+
+    // 8 electrical to single target
+    sub_4B2210(attacker, target, &ctx);
+    ctx.dam[DAMAGE_TYPE_ELECTRICAL] = 8;
+    combat_dmg(&ctx);
+    magictech_fx_add(target, FX_ARC);
+    tb_add(attacker, TB_TYPE_BLUE, "Galvanic Pulse!");
+}
+
+static void proc_sacred_mending(int64_t killer)
+{
+    CombatContext ctx;
+
+    // Self-heal 25 HP
+    sub_4B2210(killer, killer, &ctx);
+    ctx.dam[DAMAGE_TYPE_NORMAL] = 25;
+    combat_heal(&ctx);
+    magictech_fx_add(killer, FX_HEAL);
+    tb_add(killer, TB_TYPE_GREEN, "Sacred Mending!");
+}
+
 // ---------------------------------------------------------------------------
 // Proc dispatch — called from mt_item notify hooks
 // ---------------------------------------------------------------------------
@@ -286,12 +339,15 @@ void item_set_notify_hit(int64_t attacker_obj, int64_t weapon_obj, int64_t targe
             proc_rending_strike(attacker_obj, target_obj);
         }
     }
+    if (item_set_active_tier(attacker_obj, SET_GNOMISH_MASTERWORK) >= 2) {
+        if (random_between(1, 100) <= 25) {
+            proc_galvanic_pulse(attacker_obj, target_obj);
+        }
+    }
 }
 
 void item_set_notify_hit_taken(int64_t victim_obj, int64_t attacker_obj)
 {
-    (void)attacker_obj;
-
     if (item_set_active_tier(victim_obj, SET_DREAD_GUARD) >= 2) {
         if (random_between(1, 100) <= 15) {
             proc_iron_resurgence(victim_obj);
@@ -302,6 +358,11 @@ void item_set_notify_hit_taken(int64_t victim_obj, int64_t attacker_obj)
             proc_arc_discharge(victim_obj);
         }
     }
+    if (item_set_active_tier(victim_obj, SET_IRON_BROTHERHOOD) >= 2) {
+        if (random_between(1, 100) <= 20) {
+            proc_iron_retribution(victim_obj, attacker_obj);
+        }
+    }
 }
 
 void item_set_notify_kill(int64_t killer_obj, int64_t victim_obj)
@@ -310,6 +371,11 @@ void item_set_notify_kill(int64_t killer_obj, int64_t victim_obj)
 
     if (item_set_active_tier(killer_obj, SET_SHROUD_OF_UNSEEN) >= 2) {
         proc_shadow_melt(killer_obj);
+    }
+    if (item_set_active_tier(killer_obj, SET_BLESSED_COVENANT) >= 2) {
+        if (random_between(1, 100) <= 40) {
+            proc_sacred_mending(killer_obj);
+        }
     }
 }
 
@@ -323,6 +389,9 @@ const char* item_set_name(SetId id)
     case SET_DREAD_GUARD:              return "Dread Guard's Panoply";
     case SET_SHROUD_OF_UNSEEN:         return "Shroud of the Unseen";
     case SET_VENDIGROTHIAN_CONFLUENCE: return "Vendigrothian Confluence";
+    case SET_IRON_BROTHERHOOD:         return "Iron Brotherhood";
+    case SET_GNOMISH_MASTERWORK:       return "Gnomish Masterwork";
+    case SET_BLESSED_COVENANT:         return "Blessed Covenant";
     default:                           return "";
     }
 }
@@ -343,6 +412,18 @@ const char* item_set_tier_bonus_str(SetId id, int tier)
     case SET_VENDIGROTHIAN_CONFLUENCE:
         if (tier == 1) return "2/3: +2 INT, +2 WIL";
         if (tier == 2) return "3/3: Arc Discharge - 30% on-hit-taken: 15 elec dmg to all in 3 tiles";
+        break;
+    case SET_IRON_BROTHERHOOD:
+        if (tier == 1) return "2/3: +8 AC, +2 CON";
+        if (tier == 2) return "3/3: Iron Retribution - 20% on-hit-taken: reflect 10 dmg to attacker";
+        break;
+    case SET_GNOMISH_MASTERWORK:
+        if (tier == 1) return "2/3: +2 INT, +2 DEX";
+        if (tier == 2) return "3/3: Galvanic Pulse - 25% on-hit: 8 elec dmg to target";
+        break;
+    case SET_BLESSED_COVENANT:
+        if (tier == 1) return "2/3: +2 WIL, +2 CHA";
+        if (tier == 2) return "3/3: Sacred Mending - 40% on-kill: heal 25 HP";
         break;
     default:
         break;
