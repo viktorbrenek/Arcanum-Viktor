@@ -1,10 +1,12 @@
 #include "game/critter_rarity.h"
 
+#include <stdio.h>
+#include <string.h>
+
 #include "game/obj.h"
 #include "game/obj_private.h"
 #include "game/random.h"
 #include "game/stat.h"
-#include "tig/debug.h"
 
 // PAD_I_1 layout:
 //   bits 0-1  CritterRarity (0=Normal, 1=Magic, 2=Rare, 3=Unique)
@@ -40,6 +42,41 @@ tig_color_t critter_rarity_color(CritterRarity rarity)
     case CRITTER_RARITY_RARE:   return tig_color_make(190, 100, 255); // purple
     case CRITTER_RARITY_UNIQUE: return tig_color_make(255, 180,  50); // gold
     default:                    return tig_color_make(255, 255, 255); // white
+    }
+}
+
+static const char* bonus_names[] = {
+    "Enraged",
+    "Swift",
+    "Armored",
+    "Regenerating",
+    "Brutish",
+    "Wary",
+};
+
+void critter_rarity_generate_name(int64_t obj, const char* base_name,
+    char* out_buf, int buf_size)
+{
+    int bonuses = critter_rarity_bonus_get(obj);
+    char prefix[256];
+    int prefix_len = 0;
+    prefix[0] = '\0';
+
+    for (int i = 0; i < BONUS_COUNT; i++) {
+        if (bonuses & bonus_flag_table[i]) {
+            if (prefix_len > 0) {
+                strncat(prefix, ", ", sizeof(prefix) - prefix_len - 1);
+                prefix_len += 2;
+            }
+            strncat(prefix, bonus_names[i], sizeof(prefix) - prefix_len - 1);
+            prefix_len += (int)strlen(bonus_names[i]);
+        }
+    }
+
+    if (prefix_len > 0) {
+        snprintf(out_buf, buf_size, "%s %s", prefix, base_name);
+    } else {
+        snprintf(out_buf, buf_size, "%s", base_name);
     }
 }
 
@@ -88,8 +125,6 @@ static void apply_bonus(int64_t obj, int bonus_flags)
 
 void critter_rarity_roll(int64_t obj)
 {
-    tig_debug_printf("critter_rarity_roll: obj=%lld\n", obj);
-
     int roll = random_between(1, 100);
     CritterRarity rarity;
     int bonus_count;
@@ -118,7 +153,4 @@ void critter_rarity_roll(int64_t obj)
 
     obj_field_int32_set(obj, OBJ_F_CRITTER_PAD_I_1,
         (int)rarity | (bonus << BONUS_SHIFT));
-
-    tig_debug_printf("  -> rarity=%d bonus=0x%02x con=%d->%d\n",
-        (int)rarity, bonus, con, con + con_bonus[rarity]);
 }

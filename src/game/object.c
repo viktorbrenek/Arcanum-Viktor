@@ -1010,7 +1010,6 @@ void object_hover_obj_set(int64_t obj)
                         object_hover_color = object_reaction_colors[reaction_type];
 
                         CritterRarity cr = critter_rarity_get(object_hover_obj);
-                        tig_debug_printf("hover NPC: obj=%lld rarity=%d\n", object_hover_obj, (int)cr);
                         if (cr != CRITTER_RARITY_NORMAL) {
                             object_hover_color = critter_rarity_color(cr);
                         }
@@ -4014,7 +4013,12 @@ void object_examine(int64_t obj, int64_t pc_obj, char* buffer)
     if (type == OBJ_TYPE_NPC) {
         name = description_get(critter_description_get(obj, pc_obj));
         if (name != NULL) {
-            strcpy(buffer, name);
+            CritterRarity cr = critter_rarity_get(obj);
+            if (cr != CRITTER_RARITY_NORMAL) {
+                critter_rarity_generate_name(obj, name, buffer, MAX_STRING);
+            } else {
+                strcpy(buffer, name);
+            }
         }
         return;
     }

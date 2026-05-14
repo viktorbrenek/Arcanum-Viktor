@@ -24,5 +24,7 @@ CritterRarity critter_rarity_get(int64_t obj);
 int critter_rarity_bonus_get(int64_t obj);
 void critter_rarity_roll(int64_t obj);
 tig_color_t critter_rarity_color(CritterRarity rarity);
+void critter_rarity_generate_name(int64_t obj, const char* base_name,
+    char* out_buf, int buf_size);
 
 #endif /* ARCANUM_GAME_CRITTER_RARITY_H_ */
