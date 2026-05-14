@@ -2176,6 +2176,9 @@ void sub_463E20(int64_t obj)
         for (idx = 0; idx < set.cnt; idx++) {
             if (random_between(1, 100) <= set.rate[idx]
                 && mp_object_create(set.basic_prototype[idx], loc, &item_obj)) {
+                if (set.basic_prototype[idx] == BP_COMPONENT_1) {
+                    item_orb_set_type(item_obj, item_orb_roll_type());
+                }
                 if (!item_transfer(item_obj, obj)) {
                     object_destroy(item_obj);
                 }

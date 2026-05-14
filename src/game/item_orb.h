@@ -21,6 +21,10 @@ typedef enum OrbType {
     ORB_COUNT,
 } OrbType;
 
+// Randomly select an orb type using weighted drop probabilities.
+// Awakening 35% · Reforging 20% · Annulment 15% · Augmentation 12% · Cleansing 8% · Ascension 5% · Entropy 3% · Corruption 2%.
+OrbType item_orb_roll_type(void);
+
 // Display name for an orb type, e.g. "Orb of Reforging". Returns NULL for ORB_NONE.
 const char* item_orb_display_name(OrbType type);
 

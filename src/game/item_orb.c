@@ -5,9 +5,23 @@
 #include "game/obj.h"
 #include "game/obj_flags.h"
 #include "game/object.h"
+#include "game/random.h"
 #include "game/ui.h"
 #include "ui/inven_ui.h"
 #include "tig/art.h"
+
+OrbType item_orb_roll_type(void)
+{
+    int roll = random_between(1, 100);
+    if      (roll <= 35) return ORB_AWAKENING;
+    else if (roll <= 55) return ORB_REFORGING;
+    else if (roll <= 70) return ORB_ANNULMENT;
+    else if (roll <= 82) return ORB_AUGMENTATION;
+    else if (roll <= 90) return ORB_CLEANSING;
+    else if (roll <= 95) return ORB_ASCENSION;
+    else if (roll <= 98) return ORB_ENTROPY;
+    else                 return ORB_CORRUPTION;
+}
 
 const char* item_orb_display_name(OrbType type)
 {

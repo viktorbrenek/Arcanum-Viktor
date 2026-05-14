@@ -40,7 +40,9 @@
       "Bash(python tools/bmp_to_art.py src/game/Assets_main/reforging.bmp       \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_reforging_inven.art\")",
       "Bash(python tools/bmp_to_art.py src/game/Assets_main/reforging_ground.bmp  \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_reforging_ground.art\")",
       "Bash(python tools/bmp_to_art.py src/game/Assets_main/ascension.bmp       \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_ascension_inven.art\")",
-      "Bash(python tools/bmp_to_art.py src/game/Assets_main/ascension_ground.bmp  \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_ascension_ground.art\")"
+      "Bash(python tools/bmp_to_art.py src/game/Assets_main/ascension_ground.bmp  \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_ascension_ground.art\")",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\" | ForEach-Object { $_.Name })",
+      "PowerShell(Test-Path \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\\\\data\\\\Rules\"; Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\\\\data\" -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })"
     ]
   }
 }
