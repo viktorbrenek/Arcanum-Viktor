@@ -2,9 +2,11 @@
 
 #include <stdio.h>
 
+#include "game/descriptions.h"
 #include "game/mes.h"
 #include "game/obj_private.h"
 #include "game/proto.h"
+#include "tig/debug.h"
 
 #define MAX_INVEN_SOURCE_SET_NAME 70
 
@@ -17,6 +19,7 @@ static bool parse_set_data(mes_file_handle_t invensource_mes_file, mes_file_hand
 static bool parse_invensource_entry(MesFileEntry* mes_file_entry, char* str);
 static bool parse_invensourcebuy_entry(MesFileEntry* mes_file_entry, char* str);
 static void show_error(const char* msg);
+static void invensource_inject_orb_entries(void);
 
 /**
  * Path to the inventory source message file.
@@ -133,6 +136,8 @@ bool invensource_init(GameInitInfo* init_info)
         mes_unload(invensource_mes_file);
         mes_unload(invensourcebuy_mes_file);
         invensource_have_buy = false;
+
+        invensource_inject_orb_entries();
 
         invensource_initialized = true;
     }
@@ -473,6 +478,76 @@ bool parse_invensourcebuy_entry(MesFileEntry* mes_file_entry, char* str)
 
     named_set->set.buy_cnt = cnt;
     return true;
+}
+
+/**
+ * Injects orb (BP_COMPONENT_1) entries into relevant loot sets after loading.
+ * Needed because data\ directory overrides do not work for files in DAT archives.
+ */
+void invensource_inject_orb_entries(void)
+{
+    static const struct {
+        int set_id;
+        int rate;
+    } entries[] = {
+        {   1,  3 }, // General Store Rural
+        {   2,  5 }, // General Store City
+        {   4,  5 }, // Elven Trader
+        {   7,  5 }, // Inventor
+        {  12,  5 }, // Smith Magical
+        {  15,  8 }, // Magic General
+        {  16,  8 }, // Magic Light
+        {  17,  8 }, // Magic Dark
+        {  18, 10 }, // Black Market
+        {  48,  3 }, // Bandit 2 Sword
+        {  49,  3 }, // Bandit 2 Mace
+        {  50,  5 }, // Bandit 3 Sword
+        {  51,  5 }, // Bandit 3 Mace
+        {  56,  5 }, // T1 Low Tech Content
+        {  57,  5 }, // T2 Med-Low Tech Content
+        {  58,  8 }, // T3 Medium Tech Content
+        {  59,  8 }, // T4 Med-High Tech Content
+        {  60, 10 }, // T5 High Tech Content
+        {  61,  3 }, // Officer Padded/Swd
+        {  62,  3 }, // Officer Padded/Swd/FineRevolver
+        {  63,  3 }, // Officer Padded/Swd/Rifle
+        {  69,  8 }, // M1 Treasure Set
+        {  70, 12 }, // M2 Treasure Set
+        {  71, 18 }, // M3 Treasure Set
+        {  94,  5 }, // Elven Trader (alt)
+        {  95,  3 }, // Human Bounty Hunter
+        {  96,  3 }, // Elven Bounty Hunter
+        {  97,  3 }, // Dwarven Bounty Hunter
+        {  98,  3 }, // Molochean Hand Leader
+        {  99,  3 }, // Half Elf Molochean Hand Leader
+        { 102,  8 }, // Dwarven Chests
+        { 103, 10 }, // GeneralMagicTreasure
+        { 104,  6 }, // GeneralTechTreasure
+        { 105,  5 }, // WheelClanSmith
+        { 111,  5 }, // Gypsy
+        { 112,  5 }, // Multi-General Store
+        { 115,  5 }, // Multi-Inventor
+        { 117,  5 }, // Multi-Smith Magical
+        { 118,  5 }, // Multi-Gypsy
+        { 121,  8 }, // Multi-Magic General
+        { 122,  8 }, // Multi-Magic Light
+        { 123,  8 }, // Multi-Magic Dark
+        { 0, 0 },
+    };
+
+    for (int i = 0; entries[i].set_id != 0; i++) {
+        int id = entries[i].set_id;
+        if (id < 1 || id > invensource_num_sets) {
+            continue;
+        }
+        NamedInvenSourceSet* named_set = &invensource_sets[id - 1];
+        int cnt = named_set->set.cnt;
+        if (cnt < INVEN_SOURCE_SET_SIZE) {
+            named_set->set.rate[cnt] = entries[i].rate;
+            named_set->set.basic_prototype[cnt] = BP_COMPONENT_1;
+            named_set->set.cnt = cnt + 1;
+        }
+    }
 }
 
 /**
