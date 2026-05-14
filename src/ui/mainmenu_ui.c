@@ -4482,29 +4482,6 @@ void mainmenu_ui_shop_refresh(TigRect* rect)
         sub_463E20(substitute_inventory_obj);
     }
 
-    // DEV: Seed one of each crafting orb into PC inventory for testing.
-    {
-        static const OrbType test_orbs[] = {
-            ORB_REFORGING,
-            ORB_ASCENSION,
-            ORB_CLEANSING,
-            ORB_ANNULMENT,
-            ORB_AWAKENING,
-            ORB_AUGMENTATION,
-            ORB_CORRUPTION,
-            ORB_ENTROPY,
-        };
-        int64_t loc = obj_field_int64_get(pc_obj, OBJ_F_LOCATION);
-        int64_t proto_obj = sub_4685A0(BP_COMPONENT_1);
-        for (int i = 0; i < (int)(sizeof(test_orbs) / sizeof(test_orbs[0])); i++) {
-            int64_t orb_obj;
-            if (object_create(proto_obj, loc, &orb_obj)) {
-                item_orb_set_type(orb_obj, test_orbs[i]);
-                item_transfer(orb_obj, pc_obj);
-            }
-        }
-    }
-
     if (!inven_ui_open(pc_obj, npc_obj, INVEN_UI_MODE_BARTER)) {
         sub_5412D0();
         return;
