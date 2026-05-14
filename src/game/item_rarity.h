@@ -217,5 +217,12 @@ void item_rarity_cleanse(int64_t item_obj);
 void item_rarity_annul(int64_t item_obj);
 // Awaken a plain (NONE/COMMON) item to UNCOMMON with fresh affixes.
 void item_rarity_awaken(int64_t item_obj);
+// Add one random affix to an item with an open slot (UNCOMMON/RARE/EPIC only).
+// Returns false if all slots are full or item type is ineligible.
+bool item_rarity_augment(int64_t item_obj);
+// Apply a random corruption effect. Returns outcome: 0=ascend 1=curse 2=augment 3=strip 4=nothing.
+int item_rarity_corrupt(int64_t item_obj);
+// Reroll each affix within its own pool (prefix→prefix, suffix→suffix), keep rarity and count.
+void item_rarity_entropy(int64_t item_obj);
 
 #endif /* ARCANUM_GAME_ITEM_RARITY_H_ */

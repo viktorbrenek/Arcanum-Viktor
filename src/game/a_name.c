@@ -1081,6 +1081,9 @@ bool a_name_item_aid_to_fname(tig_art_id_t aid, char* fname)
                 "orb3",
                 "orb4",
                 "orb5",
+                "orb6",
+                "orb7",
+                "orb8",
             };
             int orb_idx = num - ORB_ART_NUM_BASE;
             int disp = tig_art_item_id_disposition_get(aid);

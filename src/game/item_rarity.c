@@ -1026,6 +1026,44 @@ void item_rarity_roll_forced(int64_t item_obj, ItemRarity forced_rarity)
         return;
     }
 
+    if (forced_rarity == ITEM_RARITY_CURSED) {
+        const int* cprefix_pool = (obj_type == OBJ_TYPE_WEAPON)
+            ? cursed_weapon_prefix_pool : cursed_armor_prefix_pool;
+        int cprefix_pool_size = (obj_type == OBJ_TYPE_WEAPON)
+            ? cursed_weapon_prefix_pool_size : cursed_armor_prefix_pool_size;
+
+        int chosen_c[ITEM_RARITY_MAX_AFFIXES];
+        int chosen_c_cnt = 0;
+        int affix_slot_c = 0;
+        int affix_id_c;
+
+        affix_id_c = pick_affix(cprefix_pool, cprefix_pool_size, chosen_c, chosen_c_cnt);
+        chosen_c[chosen_c_cnt++] = affix_id_c;
+        item_affix_set(item_obj, affix_slot_c++, affix_id_c);
+        bake_affix(item_obj, obj_type, &affix_table[affix_id_c]);
+
+        affix_id_c = pick_affix(cursed_suffix_pool, cursed_suffix_pool_size, chosen_c, chosen_c_cnt);
+        chosen_c[chosen_c_cnt++] = affix_id_c;
+        item_affix_set(item_obj, affix_slot_c++, affix_id_c);
+
+        if (random_between(1, 100) <= 40) {
+            const int* rprefix_pool = (obj_type == OBJ_TYPE_WEAPON)
+                ? weapon_prefix_pool : armor_prefix_pool;
+            int rprefix_pool_size = (obj_type == OBJ_TYPE_WEAPON)
+                ? weapon_prefix_pool_size : armor_prefix_pool_size;
+            affix_id_c = pick_affix(rprefix_pool, rprefix_pool_size, chosen_c, chosen_c_cnt);
+            chosen_c[chosen_c_cnt++] = affix_id_c;
+            item_affix_set(item_obj, affix_slot_c++, affix_id_c);
+            bake_affix(item_obj, obj_type, &affix_table[affix_id_c]);
+        }
+
+        if (random_between(1, 100) <= 40) {
+            int32_t pad = obj_field_int32_get(item_obj, OBJ_F_ITEM_PAD_I_1);
+            obj_field_int32_set(item_obj, OBJ_F_ITEM_PAD_I_1, pad | (int32_t)ITEM_RARITY_CURSED_BOUND_BIT);
+        }
+        return;
+    }
+
 forced_roll_affixes:;
     switch (forced_rarity) {
     case ITEM_RARITY_UNCOMMON:
@@ -1419,6 +1457,144 @@ void item_rarity_annul(int64_t item_obj)
 void item_rarity_awaken(int64_t item_obj)
 {
     reforge_impl(item_obj, ITEM_RARITY_UNCOMMON);
+}
+
+bool item_rarity_augment(int64_t item_obj)
+{
+    int obj_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
+    int free_slot = -1;
+    int chosen[ITEM_RARITY_MAX_AFFIXES];
+    int chosen_cnt = 0;
+    int s;
+
+    for (s = 0; s < ITEM_RARITY_MAX_AFFIXES - 1; s++) {
+        int a = item_affix_get(item_obj, s);
+        if (a == ITEM_AFFIX_NONE) {
+            if (free_slot == -1) {
+                free_slot = s;
+            }
+        } else {
+            chosen[chosen_cnt++] = a;
+        }
+    }
+
+    if (free_slot == -1) {
+        return false;
+    }
+
+    const int* pool;
+    int pool_size;
+    if (random_between(0, 1) == 0) {
+        pool = (obj_type == OBJ_TYPE_WEAPON) ? weapon_prefix_pool : armor_prefix_pool;
+        pool_size = (obj_type == OBJ_TYPE_WEAPON) ? weapon_prefix_pool_size : armor_prefix_pool_size;
+    } else {
+        pool = suffix_pool;
+        pool_size = suffix_pool_size;
+    }
+
+    int new_affix = pick_affix(pool, pool_size, chosen, chosen_cnt);
+    item_affix_set(item_obj, free_slot, new_affix);
+    if (affix_table[new_affix].prefix != NULL) {
+        bake_affix(item_obj, obj_type, &affix_table[new_affix]);
+    }
+    item_rarity_identify(item_obj);
+    return true;
+}
+
+int item_rarity_corrupt(int64_t item_obj)
+{
+    ItemRarity rarity = item_rarity_get(item_obj);
+    int obj_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
+    int roll = random_between(1, 100);
+
+    if (roll <= 25) {
+        ItemRarity new_rarity = (rarity == ITEM_RARITY_UNCOMMON) ? ITEM_RARITY_RARE : ITEM_RARITY_EPIC;
+        reforge_impl(item_obj, new_rarity);
+        return 0;
+    } else if (roll <= 45) {
+        reforge_impl(item_obj, ITEM_RARITY_CURSED);
+        return 1;
+    } else if (roll <= 65) {
+        if (!item_rarity_augment(item_obj)) {
+            return 4;
+        }
+        return 2;
+    } else if (roll <= 85) {
+        int filled[ITEM_RARITY_MAX_AFFIXES];
+        int filled_cnt = 0;
+        int s;
+        for (s = 0; s < ITEM_RARITY_MAX_AFFIXES - 1; s++) {
+            int a = item_affix_get(item_obj, s);
+            if (a != ITEM_AFFIX_NONE) {
+                filled[filled_cnt++] = s;
+            }
+        }
+        if (filled_cnt > 0) {
+            int target_slot = filled[random_between(0, filled_cnt - 1)];
+            int affix_id = item_affix_get(item_obj, target_slot);
+            if (affix_id > ITEM_AFFIX_NONE && affix_id < ITEM_AFFIX_COUNT) {
+                unbake_affix(item_obj, obj_type, &affix_table[affix_id]);
+            }
+            item_affix_set(item_obj, target_slot, ITEM_AFFIX_NONE);
+        }
+        item_rarity_identify(item_obj);
+        return 3;
+    } else {
+        return 4;
+    }
+}
+
+void item_rarity_entropy(int64_t item_obj)
+{
+    int obj_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
+    int slot;
+
+    for (slot = 0; slot < ITEM_RARITY_MAX_AFFIXES - 1; slot++) {
+        int affix_id = item_affix_get(item_obj, slot);
+        if (affix_id <= ITEM_AFFIX_NONE || affix_id >= ITEM_AFFIX_COUNT) {
+            continue;
+        }
+
+        const AffixDef* def = &affix_table[affix_id];
+        const int* pool = NULL;
+        int pool_size = 0;
+
+        if (def->prefix != NULL) {
+            pool = (obj_type == OBJ_TYPE_WEAPON) ? weapon_prefix_pool : armor_prefix_pool;
+            pool_size = (obj_type == OBJ_TYPE_WEAPON) ? weapon_prefix_pool_size : armor_prefix_pool_size;
+        } else if (def->suffix != NULL) {
+            pool = suffix_pool;
+            pool_size = suffix_pool_size;
+        }
+
+        if (pool == NULL || pool_size == 0) {
+            continue;
+        }
+
+        if (def->prefix != NULL) {
+            unbake_affix(item_obj, obj_type, def);
+        }
+
+        int chosen[ITEM_RARITY_MAX_AFFIXES];
+        int chosen_cnt = 0;
+        int s;
+        for (s = 0; s < ITEM_RARITY_MAX_AFFIXES - 1; s++) {
+            if (s != slot) {
+                int a = item_affix_get(item_obj, s);
+                if (a != ITEM_AFFIX_NONE) {
+                    chosen[chosen_cnt++] = a;
+                }
+            }
+        }
+
+        int new_affix = pick_affix(pool, pool_size, chosen, chosen_cnt);
+        item_affix_set(item_obj, slot, new_affix);
+        if (affix_table[new_affix].prefix != NULL) {
+            bake_affix(item_obj, obj_type, &affix_table[new_affix]);
+        }
+    }
+
+    item_rarity_identify(item_obj);
 }
 
 // ---------------------------------------------------------------------------

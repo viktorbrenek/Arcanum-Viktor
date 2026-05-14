@@ -158,6 +158,47 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
         }
         break;
 
+    case ORB_AUGMENTATION:
+        if (rarity < ITEM_RARITY_UNCOMMON || rarity == ITEM_RARITY_CURSED
+                || rarity == ITEM_RARITY_UNIQUE || rarity == ITEM_RARITY_SET) {
+            orb_feedback("The orb finds no suitable weave to augment.");
+        } else if (!item_rarity_augment(actual_target)) {
+            orb_feedback("The item's enchantments are already at their limit.");
+        } else {
+            orb_feedback("The weave expands — a new property has taken hold.");
+            consumed = true;
+        }
+        break;
+
+    case ORB_CORRUPTION: {
+        if (rarity < ITEM_RARITY_UNCOMMON || rarity == ITEM_RARITY_UNIQUE
+                || rarity == ITEM_RARITY_SET) {
+            orb_feedback("The orb recoils — this item cannot be corrupted.");
+        } else {
+            int outcome = item_rarity_corrupt(actual_target);
+            switch (outcome) {
+            case 0: orb_feedback("Chaotic power surges — the item transcends!"); break;
+            case 1: orb_feedback("Dark energy seeps in — the item is cursed."); break;
+            case 2: orb_feedback("Wild magic coalesces — a new enchantment takes hold."); break;
+            case 3: orb_feedback("Entropy gnaws at the weave — a property is unmade."); break;
+            default: orb_feedback("The orb shudders and goes dark. Nothing changes."); break;
+            }
+            consumed = true;
+        }
+        break;
+    }
+
+    case ORB_ENTROPY:
+        if (rarity < ITEM_RARITY_UNCOMMON || rarity == ITEM_RARITY_CURSED
+                || rarity == ITEM_RARITY_UNIQUE || rarity == ITEM_RARITY_SET) {
+            orb_feedback("The orb finds no suitable enchantments to unravel.");
+        } else {
+            item_rarity_entropy(actual_target);
+            orb_feedback("The enchantments blur and reform — familiar yet changed.");
+            consumed = true;
+        }
+        break;
+
     default:
         return false;
     }

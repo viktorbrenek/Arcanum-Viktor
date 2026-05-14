@@ -14,7 +14,10 @@ typedef enum OrbType {
     ORB_ASCENSION = 2,  // upgrade rarity one tier (UNCOMMON->RARE, RARE->EPIC)
     ORB_CLEANSING = 3,  // remove curse, reroll affixes as RARE
     ORB_ANNULMENT = 4,  // strip all affixes, reset to COMMON
-    ORB_AWAKENING = 5,  // awaken a plain (NONE/COMMON) item to UNCOMMON; common drop
+    ORB_AWAKENING    = 5,  // awaken a plain (NONE/COMMON) item to UNCOMMON; common drop
+    ORB_AUGMENTATION = 6,  // add one random affix if item has an open slot
+    ORB_CORRUPTION   = 7,  // random chaotic effect: ascend / curse / augment / strip / nothing
+    ORB_ENTROPY      = 8,  // reroll each affix within its own pool, keep rarity and count
     ORB_COUNT,
 } OrbType;
 

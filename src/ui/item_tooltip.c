@@ -173,6 +173,9 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
             "Orb of Cleansing",
             "Orb of Annulment",
             "Orb of Awakening",
+            "Orb of Augmentation",
+            "Orb of Corruption",
+            "Orb of Entropy",
         };
         OrbType orb_type = item_orb_get_type(item_obj);
         if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
@@ -253,6 +256,12 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
             strcpy(affixes_buf, "Removes all magical properties from an item.");
         } else if (orb_type == ORB_AWAKENING) {
             strcpy(affixes_buf, "Awakens latent power in a mundane item, granting it Uncommon rarity.");
+        } else if (orb_type == ORB_AUGMENTATION) {
+            strcpy(affixes_buf, "Adds one random magical property to an item with an open affix slot.");
+        } else if (orb_type == ORB_CORRUPTION) {
+            strcpy(affixes_buf, "Unleashes chaotic energy. The result is unpredictable — ascension, curse, augmentation, loss, or nothing.");
+        } else if (orb_type == ORB_ENTROPY) {
+            strcpy(affixes_buf, "Reshuffles each magical property within its own category. Rarity and affix count are preserved.");
         }
         has_affixes = true;
     } else if (is_magic && identified) {
