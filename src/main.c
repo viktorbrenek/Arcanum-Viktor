@@ -48,6 +48,7 @@
 #include "ui/logbook_ui.h"
 #include "ui/mainmenu_ui.h"
 #include "ui/textedit_ui.h"
+#include "ui/modguide_ui.h"
 #include "ui/wmap_rnd.h"
 #include "ui/wmap_ui.h"
 
@@ -277,6 +278,8 @@ int main(int argc, char** argv)
         return EXIT_SUCCESS; // FIXME: Should be `EXIT_FAILURE`.
     }
 
+    modguide_ui_init();
+
     if (!gamelib_mod_load(gamelib_default_module_name_get())) {
         tig_debug_printf("Error loading default module %s\n",
             gamelib_default_module_name_get());
@@ -318,6 +321,7 @@ int main(int argc, char** argv)
 
     gameuilib_mod_unload();
     gamelib_mod_unload();
+    modguide_ui_exit();
     gameuilib_exit();
     gamelib_exit();
     tig_exit();
@@ -442,6 +446,9 @@ void main_loop(void)
                         }
                         break;
                     }
+                    case SDL_SCANCODE_F9:
+                        modguide_ui_toggle();
+                        break;
                     case SDL_SCANCODE_F10:
                         intgame_toggle_interface();
                         tig_debug_printf("iso_redraw...");

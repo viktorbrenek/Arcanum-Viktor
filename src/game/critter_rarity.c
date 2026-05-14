@@ -9,19 +9,23 @@
 #include "game/stat.h"
 
 // PAD_I_1 layout:
-//   bits 0-1  CritterRarity (0=Normal, 1=Magic, 2=Rare, 3=Unique)
-//   bits 2-7  bonus bitmask (CRITTER_BONUS_*)
+//   bits 0-1   CritterRarity (0=Normal, 1=Magic, 2=Rare, 3=Unique)
+//   bits 2-11  bonus bitmask (CRITTER_BONUS_* shifted left by BONUS_SHIFT)
 
 #define RARITY_MASK  0x03
 #define BONUS_SHIFT  2
 
 static const int bonus_flag_table[] = {
+    CRITTER_BONUS_DEXTEROUS,
+    CRITTER_BONUS_DETERMINED,
     CRITTER_BONUS_ENRAGED,
     CRITTER_BONUS_SWIFT,
     CRITTER_BONUS_ARMORED,
     CRITTER_BONUS_REGENERATING,
     CRITTER_BONUS_BRUTISH,
     CRITTER_BONUS_WARY,
+    CRITTER_BONUS_ROBUST,
+    CRITTER_BONUS_CUNNING,
 };
 #define BONUS_COUNT ((int)(sizeof(bonus_flag_table) / sizeof(bonus_flag_table[0])))
 
@@ -32,7 +36,7 @@ CritterRarity critter_rarity_get(int64_t obj)
 
 int critter_rarity_bonus_get(int64_t obj)
 {
-    return (obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1) >> BONUS_SHIFT) & 0xFF;
+    return (obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1) >> BONUS_SHIFT) & 0x3FF;
 }
 
 tig_color_t critter_rarity_color(CritterRarity rarity)
@@ -46,12 +50,16 @@ tig_color_t critter_rarity_color(CritterRarity rarity)
 }
 
 static const char* bonus_names[] = {
+    "Dexterous",
+    "Determined",
     "Enraged",
     "Swift",
     "Armored",
     "Regenerating",
     "Brutish",
     "Wary",
+    "Robust",
+    "Cunning",
 };
 
 void critter_rarity_generate_name(int64_t obj, const char* base_name,
@@ -97,6 +105,14 @@ static int pick_bonuses(int count)
 
 static void apply_bonus(int64_t obj, int bonus_flags)
 {
+    if (bonus_flags & CRITTER_BONUS_DEXTEROUS) {
+        int cur = stat_base_get(obj, STAT_DEXTERITY);
+        stat_base_set(obj, STAT_DEXTERITY, cur + 4);
+    }
+    if (bonus_flags & CRITTER_BONUS_DETERMINED) {
+        int cur = stat_base_get(obj, STAT_WILLPOWER);
+        stat_base_set(obj, STAT_WILLPOWER, cur + 4);
+    }
     if (bonus_flags & CRITTER_BONUS_ENRAGED) {
         int cur = stat_base_get(obj, STAT_DAMAGE_BONUS);
         stat_base_set(obj, STAT_DAMAGE_BONUS, cur + 8);
@@ -120,6 +136,14 @@ static void apply_bonus(int64_t obj, int bonus_flags)
     if (bonus_flags & CRITTER_BONUS_WARY) {
         int cur = stat_base_get(obj, STAT_PERCEPTION);
         stat_base_set(obj, STAT_PERCEPTION, cur + 4);
+    }
+    if (bonus_flags & CRITTER_BONUS_ROBUST) {
+        int cur = stat_base_get(obj, STAT_CONSTITUTION);
+        stat_base_set(obj, STAT_CONSTITUTION, cur + 5);
+    }
+    if (bonus_flags & CRITTER_BONUS_CUNNING) {
+        int cur = stat_base_get(obj, STAT_INTELLIGENCE);
+        stat_base_set(obj, STAT_INTELLIGENCE, cur + 4);
     }
 }
 

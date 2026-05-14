@@ -12,13 +12,17 @@ typedef enum CritterRarity {
     CRITTER_RARITY_UNIQUE = 3,
 } CritterRarity;
 
-// Bonus flags stored in OBJ_F_CRITTER_PAD_I_1 bits 2-7.
-#define CRITTER_BONUS_ENRAGED      0x04  // +STAT_DAMAGE_BONUS
-#define CRITTER_BONUS_SWIFT        0x08  // +STAT_SPEED
-#define CRITTER_BONUS_ARMORED      0x10  // +STAT_AC_ADJUSTMENT
-#define CRITTER_BONUS_REGENERATING 0x20  // +STAT_HEAL_RATE
-#define CRITTER_BONUS_BRUTISH      0x40  // +STAT_STRENGTH
-#define CRITTER_BONUS_WARY         0x80  // +STAT_PERCEPTION
+// Bonus flags stored in OBJ_F_CRITTER_PAD_I_1 bits 2-11 (shifted by BONUS_SHIFT=2).
+#define CRITTER_BONUS_DEXTEROUS    0x001  // +STAT_DEXTERITY
+#define CRITTER_BONUS_DETERMINED   0x002  // +STAT_WILLPOWER
+#define CRITTER_BONUS_ENRAGED      0x004  // +STAT_DAMAGE_BONUS
+#define CRITTER_BONUS_SWIFT        0x008  // +STAT_SPEED
+#define CRITTER_BONUS_ARMORED      0x010  // +STAT_AC_ADJUSTMENT
+#define CRITTER_BONUS_REGENERATING 0x020  // +STAT_HEAL_RATE
+#define CRITTER_BONUS_BRUTISH      0x040  // +STAT_STRENGTH
+#define CRITTER_BONUS_WARY         0x080  // +STAT_PERCEPTION
+#define CRITTER_BONUS_ROBUST       0x100  // +STAT_CONSTITUTION
+#define CRITTER_BONUS_CUNNING      0x200  // +STAT_INTELLIGENCE
 
 CritterRarity critter_rarity_get(int64_t obj);
 int critter_rarity_bonus_get(int64_t obj);
