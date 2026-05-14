@@ -54,7 +54,7 @@ void item_orb_set_type(int64_t item_obj, OrbType type)
         &inv_aid);
     obj_field_int32_set(item_obj, OBJ_F_ITEM_INV_AID, (int)inv_aid);
 
-    // Set custom ground art
+    // Set custom ground art (OBJ_F_AID = base, OBJ_F_CURRENT_AID = rendered; both must match).
     tig_art_id_t ground_aid;
     tig_art_item_id_create(
         ORB_ART_NUM_BASE + (int)type - 1,
@@ -64,6 +64,7 @@ void item_orb_set_type(int64_t item_obj, OrbType type)
         0, 0,
         &ground_aid);
     obj_field_int32_set(item_obj, OBJ_F_AID, (int)ground_aid);
+    obj_field_int32_set(item_obj, OBJ_F_CURRENT_AID, (int)ground_aid);
 }
 
 static void orb_feedback(const char* msg)
