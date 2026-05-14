@@ -148,6 +148,16 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
         }
         break;
 
+    case ORB_AWAKENING:
+        if (rarity > ITEM_RARITY_COMMON) {
+            orb_feedback("The orb recoils — this item already holds power.");
+        } else {
+            item_rarity_awaken(actual_target);
+            orb_feedback("A spark ignites — latent power stirs within the item.");
+            consumed = true;
+        }
+        break;
+
     default:
         return false;
     }

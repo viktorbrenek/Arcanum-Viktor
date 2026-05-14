@@ -215,5 +215,7 @@ bool item_rarity_ascend(int64_t item_obj);
 void item_rarity_cleanse(int64_t item_obj);
 // Strip all affixes and reset to COMMON. No-op on COMMON/NONE.
 void item_rarity_annul(int64_t item_obj);
+// Awaken a plain (NONE/COMMON) item to UNCOMMON with fresh affixes.
+void item_rarity_awaken(int64_t item_obj);
 
 #endif /* ARCANUM_GAME_ITEM_RARITY_H_ */

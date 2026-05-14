@@ -172,6 +172,7 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
             "Orb of Ascension",
             "Orb of Cleansing",
             "Orb of Annulment",
+            "Orb of Awakening",
         };
         OrbType orb_type = item_orb_get_type(item_obj);
         if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
@@ -250,6 +251,8 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
             strcpy(affixes_buf, "Removes a curse from a magical item.");
         } else if (orb_type == ORB_ANNULMENT) {
             strcpy(affixes_buf, "Removes all magical properties from an item.");
+        } else if (orb_type == ORB_AWAKENING) {
+            strcpy(affixes_buf, "Awakens latent power in a mundane item, granting it Uncommon rarity.");
         }
         has_affixes = true;
     } else if (is_magic && identified) {

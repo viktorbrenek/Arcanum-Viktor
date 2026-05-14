@@ -4489,6 +4489,7 @@ void mainmenu_ui_shop_refresh(TigRect* rect)
             ORB_ASCENSION,
             ORB_CLEANSING,
             ORB_ANNULMENT,
+            ORB_AWAKENING,
         };
         int64_t loc = obj_field_int64_get(pc_obj, OBJ_F_LOCATION);
         int64_t proto_obj = sub_4685A0(BP_COMPONENT_1);

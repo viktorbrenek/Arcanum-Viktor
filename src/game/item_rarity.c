@@ -1416,6 +1416,11 @@ void item_rarity_annul(int64_t item_obj)
     obj_field_int32_set(item_obj, OBJ_F_ITEM_PAD_I_1, (int)ITEM_RARITY_COMMON);
 }
 
+void item_rarity_awaken(int64_t item_obj)
+{
+    reforge_impl(item_obj, ITEM_RARITY_UNCOMMON);
+}
+
 // ---------------------------------------------------------------------------
 // Tooltip affix list
 // ---------------------------------------------------------------------------

@@ -22,13 +22,15 @@ set TOOL=tools\bmp_to_art.py
 
 if not exist "%ARTS_DIR%" mkdir "%ARTS_DIR%"
 
-python %TOOL% %BMPS%\reforging.bmp       "%ARTS_DIR%\orb_reforging_inven.art"
-python %TOOL% %BMPS%\reforging_ground.bmp "%ARTS_DIR%\orb_reforging_ground.art"
-python %TOOL% %BMPS%\ascension.bmp        "%ARTS_DIR%\orb_ascension_inven.art"
-python %TOOL% %BMPS%\ascension_ground.bmp "%ARTS_DIR%\orb_ascension_ground.art"
-python %TOOL% %BMPS%\cleansing.bmp        "%ARTS_DIR%\orb_cleansing_inven.art"
-python %TOOL% %BMPS%\cleansing_ground.bmp "%ARTS_DIR%\orb_cleansing_ground.art"
-python %TOOL% %BMPS%\annulment.bmp        "%ARTS_DIR%\orb_annulment_inven.art"
-python %TOOL% %BMPS%\annulment_ground.bmp "%ARTS_DIR%\orb_annulment_ground.art"
+python %TOOL% %BMPS%\reforging.bmp        "%ARTS_DIR%\orb1_inven.art"
+python %TOOL% %BMPS%\reforging_ground.bmp "%ARTS_DIR%\orb1_ground.art"
+python %TOOL% %BMPS%\ascension.bmp        "%ARTS_DIR%\orb2_inven.art"
+python %TOOL% %BMPS%\ascension_ground.bmp "%ARTS_DIR%\orb2_ground.art"
+python %TOOL% %BMPS%\cleansing.bmp        "%ARTS_DIR%\orb3_inven.art"
+python %TOOL% %BMPS%\cleansing_ground.bmp "%ARTS_DIR%\orb3_ground.art"
+python %TOOL% %BMPS%\annulment.bmp        "%ARTS_DIR%\orb4_inven.art"
+python %TOOL% %BMPS%\annulment_ground.bmp "%ARTS_DIR%\orb4_ground.art"
+python %TOOL% %BMPS%\awakening.bmp        "%ARTS_DIR%\orb5_inven.art"
+python %TOOL% %BMPS%\awakening_ground.bmp "%ARTS_DIR%\orb5_ground.art"
 
-echo Done. 8 art files written to %ARTS_DIR%
+echo Done. 10 art files written to %ARTS_DIR%
