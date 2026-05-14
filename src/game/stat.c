@@ -532,6 +532,15 @@ int stat_level_get(int64_t obj, int stat)
     return value;
 }
 
+// Like stat_level_get but subtracts equipped-item stat bonuses.
+// Use for skill cap checks: backgrounds/spells count, items don't.
+int stat_level_get_no_items(int64_t obj, int stat)
+{
+    int item_bonus = item_rarity_adjust_stat(obj, stat, 0)
+                   + item_set_adjust_stat(obj, stat, 0);
+    return stat_level_get(obj, stat) - item_bonus;
+}
+
 /**
  * Retrieves the base stat value for a critter.
  *

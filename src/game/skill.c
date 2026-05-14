@@ -609,9 +609,9 @@ int basic_skill_points_set(int64_t obj, int bs, int value)
         return 0;
     }
 
-    // Use base stat (no item bonuses) so items cannot be used to bank skill points
-    // above the character's natural cap.
-    key_stat_level = stat_base_get(obj, basic_skill_stat(bs));
+    // Exclude equipped-item stat bonuses so items can't be used to bank skill points,
+    // but allow background/spell bonuses (those are intentional permanent/temporary gains).
+    key_stat_level = stat_level_get_no_items(obj, basic_skill_stat(bs));
     current_value = obj_arrayfield_int32_get(obj, OBJ_F_CRITTER_BASIC_SKILL_IDX, bs);
 
     // Check if the new base skill level exceeds the stat-based maximum. If so,
@@ -1121,9 +1121,9 @@ int tech_skill_points_set(int64_t obj, int ts, int value)
         return 0;
     }
 
-    // Use base stat (no item bonuses) so items cannot be used to bank skill points
-    // above the character's natural cap.
-    key_stat_level = stat_base_get(obj, tech_skill_stat(ts));
+    // Exclude equipped-item stat bonuses so items can't be used to bank skill points,
+    // but allow background/spell bonuses (those are intentional permanent/temporary gains).
+    key_stat_level = stat_level_get_no_items(obj, tech_skill_stat(ts));
     current_value = obj_arrayfield_int32_get(obj, OBJ_F_CRITTER_TECH_SKILL_IDX, ts);
 
     // Check if the new base skill level exceeds the stat-based maximum. If so,
