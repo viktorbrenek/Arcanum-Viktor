@@ -94,15 +94,17 @@ void critter_rarity_roll(int64_t obj)
     CritterRarity rarity;
     int bonus_count;
 
-    if (roll >= 67) {
+    if (roll >= 98) {
         rarity = CRITTER_RARITY_UNIQUE;
         bonus_count = 3;
-    } else if (roll >= 34) {
+    } else if (roll >= 83) {
         rarity = CRITTER_RARITY_RARE;
         bonus_count = 2;
-    } else {
+    } else if (roll >= 53) {
         rarity = CRITTER_RARITY_MAGIC;
         bonus_count = 1;
+    } else {
+        return;
     }
 
     int bonus = pick_bonuses(bonus_count);

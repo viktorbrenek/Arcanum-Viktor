@@ -1,5 +1,9 @@
 #include "game/critter.h"
 
+#include "game/critter_rarity.h"
+#include "game/descriptions.h"
+#include "game/item_orb.h"
+#include "game/mp_utils.h"
 #include "game/ai.h"
 #include "game/anim.h"
 #include "game/background.h"
@@ -697,6 +701,27 @@ void critter_notify_killed(int64_t victim_obj, int64_t killer_obj, int anim)
             if (pc_killer_obj != OBJ_HANDLE_NULL) {
                 ObjectList followers;
                 ObjectNode* node;
+
+                // Drop orbs for magic+ monsters.
+                CritterRarity cr = critter_rarity_get(victim_obj);
+                if (cr >= CRITTER_RARITY_MAGIC) {
+                    int64_t loc = obj_field_int64_get(victim_obj, OBJ_F_LOCATION);
+                    // Magic: 50% for 1 orb. Rare: 100% for 1. Unique: 100% for 2.
+                    int orb_count = 0;
+                    if (cr == CRITTER_RARITY_MAGIC) {
+                        if (random_between(1, 100) <= 50) orb_count = 1;
+                    } else if (cr == CRITTER_RARITY_RARE) {
+                        orb_count = 1;
+                    } else if (cr == CRITTER_RARITY_UNIQUE) {
+                        orb_count = 2;
+                    }
+                    for (int o = 0; o < orb_count; o++) {
+                        int64_t orb_obj;
+                        if (mp_object_create(BP_COMPONENT_1, loc, &orb_obj)) {
+                            item_orb_set_type(orb_obj, item_orb_roll_type());
+                        }
+                    }
+                }
 
                 // 20% of the experience cost for killing.
                 critter_give_xp(pc_killer_obj, 20 * obj_field_int32_get(victim_obj, OBJ_F_NPC_EXPERIENCE_WORTH) / 100);
