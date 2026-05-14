@@ -16,6 +16,7 @@
 #include "game/hrp.h"
 #include "game/item.h"
 #include "game/item_effect.h"
+#include "game/item_orb.h"
 #include "game/item_rarity.h"
 #include "game/level.h"
 #include "game/light.h"
@@ -7016,6 +7017,17 @@ void intgame_examine_item(int64_t pc_obj, int64_t item_obj, char* str)
 
     obj_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
 
+    // Override name and description for crafting orbs.
+    {
+        OrbType orb_type = item_orb_get_type(item_obj);
+        if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
+            const char* orb_name = item_orb_display_name(orb_type);
+            if (orb_name != NULL) {
+                strcpy(str, orb_name);
+            }
+        }
+    }
+
     intgame_message_window_clear_internal();
 
     if (item_parent(item_obj, &parent_obj)
@@ -7110,6 +7122,16 @@ void intgame_examine_item(int64_t pc_obj, int64_t item_obj, char* str)
     case OBJ_TYPE_WRITTEN:
     case OBJ_TYPE_GENERIC:
         buffer[0] = '\0';
+        if (obj_type == OBJ_TYPE_GENERIC) {
+            OrbType orb_type_desc = item_orb_get_type(item_obj);
+            if (orb_type_desc != ORB_NONE && (int)orb_type_desc < ORB_COUNT) {
+                const char* orb_desc = item_orb_description(orb_type_desc);
+                if (orb_desc != NULL) {
+                    strcpy(buffer, orb_desc);
+                }
+                break;
+            }
+        }
         if (complexity <= 0 || is_identified) {
             mes_file_entry.num = obj_field_int32_get(item_obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS);
             mes_file_entry.str = item_effect_get(mes_file_entry.num);

@@ -9,6 +9,44 @@
 #include "ui/inven_ui.h"
 #include "tig/art.h"
 
+const char* item_orb_display_name(OrbType type)
+{
+    static const char* const names[] = {
+        NULL,
+        "Orb of Reforging",
+        "Orb of Ascension",
+        "Orb of Cleansing",
+        "Orb of Annulment",
+        "Orb of Awakening",
+        "Orb of Augmentation",
+        "Orb of Corruption",
+        "Orb of Entropy",
+    };
+    if (type > ORB_NONE && (int)type < ORB_COUNT) {
+        return names[type];
+    }
+    return NULL;
+}
+
+const char* item_orb_description(OrbType type)
+{
+    static const char* const descs[] = {
+        NULL,
+        "Randomizes the magical affixes on an item, preserving its rarity.",
+        "Upgrades a magical item to the next tier of rarity.",
+        "Removes a curse from a magical item, reforging it as Rare.",
+        "Removes all magical properties from an item, reducing it to Common.",
+        "Awakens latent power in a mundane item, granting it Uncommon rarity.",
+        "Adds one random magical property to an item with an open affix slot.",
+        "Unleashes chaotic energy upon an item. The result is unpredictable.",
+        "Reshuffles each magical property within its own category, preserving rarity and affix count.",
+    };
+    if (type > ORB_NONE && (int)type < ORB_COUNT) {
+        return descs[type];
+    }
+    return NULL;
+}
+
 OrbType item_orb_get_type(int64_t item_obj)
 {
     int t;

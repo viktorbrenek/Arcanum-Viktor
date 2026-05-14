@@ -166,20 +166,9 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
 
     // Crafting orbs get a fixed display name regardless of proto description.
     {
-        static const char* const orb_display_names[] = {
-            NULL,
-            "Orb of Reforging",
-            "Orb of Ascension",
-            "Orb of Cleansing",
-            "Orb of Annulment",
-            "Orb of Awakening",
-            "Orb of Augmentation",
-            "Orb of Corruption",
-            "Orb of Entropy",
-        };
         OrbType orb_type = item_orb_get_type(item_obj);
         if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
-            item_name = orb_display_names[orb_type];
+            item_name = item_orb_display_name(orb_type);
         }
     }
 
@@ -246,24 +235,11 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     
     OrbType orb_type = item_orb_get_type(item_obj);
     if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
-        if (orb_type == ORB_REFORGING) {
-            strcpy(affixes_buf, "Randomizes the numeric values of magical affixes.");
-        } else if (orb_type == ORB_ASCENSION) {
-            strcpy(affixes_buf, "Upgrades a magical item to the next tier of rarity.");
-        } else if (orb_type == ORB_CLEANSING) {
-            strcpy(affixes_buf, "Removes a curse from a magical item.");
-        } else if (orb_type == ORB_ANNULMENT) {
-            strcpy(affixes_buf, "Removes all magical properties from an item.");
-        } else if (orb_type == ORB_AWAKENING) {
-            strcpy(affixes_buf, "Awakens latent power in a mundane item, granting it Uncommon rarity.");
-        } else if (orb_type == ORB_AUGMENTATION) {
-            strcpy(affixes_buf, "Adds one random magical property to an item with an open affix slot.");
-        } else if (orb_type == ORB_CORRUPTION) {
-            strcpy(affixes_buf, "Unleashes chaotic energy. The result is unpredictable — ascension, curse, augmentation, loss, or nothing.");
-        } else if (orb_type == ORB_ENTROPY) {
-            strcpy(affixes_buf, "Reshuffles each magical property within its own category. Rarity and affix count are preserved.");
+        const char* orb_desc = item_orb_description(orb_type);
+        if (orb_desc != NULL) {
+            strcpy(affixes_buf, orb_desc);
         }
-        has_affixes = true;
+        has_affixes = affixes_buf[0] != '\0';
     } else if (is_magic && identified) {
         item_rarity_format_tooltip_affixes(item_obj, affixes_buf, sizeof(affixes_buf));
         has_affixes = affixes_buf[0] != '\0';

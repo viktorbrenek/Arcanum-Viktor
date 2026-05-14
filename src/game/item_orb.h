@@ -21,6 +21,12 @@ typedef enum OrbType {
     ORB_COUNT,
 } OrbType;
 
+// Display name for an orb type, e.g. "Orb of Reforging". Returns NULL for ORB_NONE.
+const char* item_orb_display_name(OrbType type);
+
+// Short description of what an orb does (one sentence). Returns NULL for ORB_NONE.
+const char* item_orb_description(OrbType type);
+
 // Get orb type from a GENERIC item (returns ORB_NONE if not an orb).
 OrbType item_orb_get_type(int64_t item_obj);
 
