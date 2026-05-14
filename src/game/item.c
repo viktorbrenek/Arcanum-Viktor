@@ -1,5 +1,6 @@
 #include "game/item.h"
 
+#include "game/critter_rarity.h"
 #include "game/item_orb.h"
 #include "game/item_rarity.h"
 #include "game/item_set.h"
@@ -2208,6 +2209,7 @@ void sub_463E20(int64_t obj)
             obj_field_int32_set(obj, OBJ_F_CONTAINER_FLAGS, container_flags);
         }
     }
+
 }
 
 // 0x4640C0

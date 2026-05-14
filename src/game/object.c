@@ -3,7 +3,9 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include "game/critter_rarity.h"
 #include "game/item_rarity.h"
+#include "tig/debug.h"
 #include "game/ai.h"
 #include "game/anim.h"
 #include "game/critter.h"
@@ -1006,6 +1008,12 @@ void object_hover_obj_set(int64_t obj)
                         reaction_level = reaction_get(object_hover_obj, pc_obj);
                         reaction_type = reaction_translate(reaction_level);
                         object_hover_color = object_reaction_colors[reaction_type];
+
+                        CritterRarity cr = critter_rarity_get(object_hover_obj);
+                        tig_debug_printf("hover NPC: obj=%lld rarity=%d\n", object_hover_obj, (int)cr);
+                        if (cr != CRITTER_RARITY_NORMAL) {
+                            object_hover_color = critter_rarity_color(cr);
+                        }
 
                         if (combat_critter_is_combat_mode_active(pc_obj)) {
                             tig_art_interface_id_create(555, dword_5E2E6C, 1, 0, &object_hover_underlay_art_id);

@@ -4,6 +4,7 @@
 
 #include "game/anim.h"
 #include "game/critter.h"
+#include "game/critter_rarity.h"
 #include "game/description.h"
 #include "game/descriptions.h"
 #include "game/effect.h"
@@ -1346,6 +1347,11 @@ void map_load_postprocess(void)
 
                 flags &= ~OF_TELEPORTED;
                 obj_field_int32_set(obj, OBJ_F_FLAGS, flags);
+            }
+
+            if (obj_field_int32_get(obj, OBJ_F_TYPE) == OBJ_TYPE_NPC
+                && critter_rarity_get(obj) == CRITTER_RARITY_NORMAL) {
+                critter_rarity_roll(obj);
             }
         } while (obj_inst_next(&obj, &iter));
     }
