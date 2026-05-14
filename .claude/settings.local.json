@@ -25,7 +25,22 @@
       "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Debug --target arcanum-ce)",
       "Bash(grep -E \"error|warning C4|\\\\.c$|\\\\.exe$\")",
       "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --target arcanum)",
-      "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\")"
+      "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\")",
+      "PowerShell(cmake *)",
+      "Bash(xargs grep -l \"art.*bmp\\\\|bmp.*art\\\\|art_id_create\\\\|art_interface\\\\|art_load\\\\|tig_art\")",
+      "Bash(xargs grep -l \"bmp\\\\|bitmap\\\\|load_image\\\\|from_file\\\\|surface\")",
+      "Bash(xargs grep -l \"video_buffer\\\\|VideoBuffer\\\\|tig_video\")",
+      "Bash(grep -n \"tig_art_file_path_resolver\\\\|path_resolver\\\\|art_type_path\\\\|item.*path\\\\|path.*item\\\\|snprintf.*art\\\\|\\\\\"art\\\\\\\\\\\\\\\\item\" \"C:/Arcanum of Viktorworks and ARPG Obscura/arcanum-ce/first_party/tig/src/art.c\")",
+      "Bash(grep -A1 \"sub_575770$\")",
+      "Bash(cmake --build out/build/windows-x64 --target arcanum-ce --config Debug)",
+      "Bash(python -c \"import PIL; print\\('Pillow', PIL.__version__\\)\")",
+      "Bash(pip install *)",
+      "Bash(python tools/bmp_to_art.py src/game/Assets_main/reforging.bmp /tmp/test_reforging_inven.art)",
+      "Bash(mkdir -p \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item\")",
+      "Bash(python tools/bmp_to_art.py src/game/Assets_main/reforging.bmp       \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_reforging_inven.art\")",
+      "Bash(python tools/bmp_to_art.py src/game/Assets_main/reforging_ground.bmp  \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_reforging_ground.art\")",
+      "Bash(python tools/bmp_to_art.py src/game/Assets_main/ascension.bmp       \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_ascension_inven.art\")",
+      "Bash(python tools/bmp_to_art.py src/game/Assets_main/ascension_ground.bmp  \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_ascension_ground.art\")"
     ]
   }
 }

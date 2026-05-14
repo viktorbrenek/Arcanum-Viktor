@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "game/item_orb.h"
 #include "game/item_rarity.h"
 #include "ui/item_tooltip.h"
 #include "game/ai.h"
@@ -1199,6 +1200,11 @@ int64_t inven_ui_drag_item_obj_get(void)
     return inven_ui_drag_item_obj;
 }
 
+int64_t inven_ui_hovered_item_get(void)
+{
+    return qword_681458;
+}
+
 // 0x573630
 void sub_573630(int64_t obj)
 {
@@ -1796,6 +1802,8 @@ static inline bool inven_ui_message_filter_handle_mouse_lbutton_up_accept_drop(T
         return false;
     }
 
+
+
     if (inventory_location - dword_683470 < 0) {
         if (!sub_57EDA0(TIG_MESSAGE_MOUSE_LEFT_BUTTON_UP)) {
             sub_575770();
@@ -2019,6 +2027,26 @@ static inline bool inven_ui_message_filter_handle_mouse_lbutton_up(int x, int y,
                     sub_575770();
                 }
             } else {
+                // Orb drag-drop: dropping an orb directly onto another item applies it.
+                if (item_orb_get_type(inven_ui_drag_item_obj) != ORB_NONE) {
+                    int64_t drop_parent;
+                    int64_t drop_target = sub_575FA0(x, y, &drop_parent);
+                    if (drop_target != OBJ_HANDLE_NULL && drop_target != inven_ui_drag_item_obj) {
+                        int64_t orb_obj = inven_ui_drag_item_obj;
+                        sub_575770();
+                        item_orb_try_apply(inven_ui_pc_obj, orb_obj, drop_target);
+                        inven_ui_drag_item_obj = OBJ_HANDLE_NULL;
+                        redraw_inven(false);
+                        item_inventory_slots_get(inven_ui_pc_obj, dword_68111C);
+                        if (qword_6813A8 != OBJ_HANDLE_NULL) {
+                            item_inventory_slots_get(qword_6813A8, dword_681518);
+                        }
+                        intgame_refresh_cursor();
+                        return false;
+                    }
+                }
+
+
                 if (inventory_location - dword_683470 < 0) {
                     if (!sub_57EDA0(TIG_MESSAGE_MOUSE_LEFT_BUTTON_UP)) {
                         sub_575770();

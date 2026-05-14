@@ -206,4 +206,14 @@ ItemRarity item_rarity_infer(int64_t item_obj);
 // UI color per rarity.
 tig_color_t item_rarity_color(ItemRarity rarity);
 
+// Crafting operations (used by item_orb system):
+// Reroll all affixes keeping the same rarity. No-op on COMMON/UNIQUE/SET.
+void item_rarity_reforge(int64_t item_obj);
+// Upgrade rarity one tier (UNCOMMON->RARE->EPIC). Returns false if not upgradable.
+bool item_rarity_ascend(int64_t item_obj);
+// Remove curse: strip cursed affixes, set rarity to RARE, roll new affixes. No-op if not CURSED.
+void item_rarity_cleanse(int64_t item_obj);
+// Strip all affixes and reset to COMMON. No-op on COMMON/NONE.
+void item_rarity_annul(int64_t item_obj);
+
 #endif /* ARCANUM_GAME_ITEM_RARITY_H_ */

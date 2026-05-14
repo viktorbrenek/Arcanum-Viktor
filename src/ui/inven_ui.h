@@ -27,6 +27,7 @@ void inven_ui_notify_object_destroyed(int64_t obj);
 int inven_ui_is_created(void);
 int64_t sub_573600(void);
 int64_t inven_ui_drag_item_obj_get(void);
+int64_t inven_ui_hovered_item_get(void);
 void sub_573630(int64_t obj);
 void sub_5736E0(void);
 void sub_573730(void);

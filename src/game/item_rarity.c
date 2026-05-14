@@ -705,6 +705,33 @@ static void bake_affix(int64_t item_obj, int obj_type, const AffixDef* def)
     }
 }
 
+static void unbake_affix(int64_t item_obj, int obj_type, const AffixDef* def)
+{
+    int field, field_idx, value;
+
+    if (obj_type == OBJ_TYPE_WEAPON) {
+        field = def->weapon_field;
+        field_idx = def->weapon_field_idx;
+        value = def->weapon_value;
+    } else {
+        field = def->armor_field;
+        field_idx = def->armor_field_idx;
+        value = def->armor_value;
+    }
+
+    if (field == -1 || value == 0) {
+        return;
+    }
+
+    if (field_idx == -1) {
+        int current = obj_field_int32_get(item_obj, field);
+        obj_field_int32_set(item_obj, field, current - value);
+    } else {
+        int current = obj_arrayfield_int32_get(item_obj, field, field_idx);
+        obj_arrayfield_int32_set(item_obj, field, field_idx, current - value);
+    }
+}
+
 static void bake_extra(int64_t item_obj, int field, int field_idx, int value)
 {
     if (field == -1 || value == 0) {
@@ -1306,6 +1333,87 @@ tig_color_t item_rarity_color(ItemRarity rarity)
     case ITEM_RARITY_SET:      return tig_color_make( 80, 220, 200);  // teal
     default:                   return tig_color_make(255, 255, 255);  // white
     }
+}
+
+// ---------------------------------------------------------------------------
+// Crafting operations
+// ---------------------------------------------------------------------------
+
+static void reforge_impl(int64_t item_obj, ItemRarity target_rarity)
+{
+    int obj_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
+    int v;
+    int slot;
+    int affix_id;
+
+    for (slot = 0; slot < ITEM_RARITY_MAX_AFFIXES; slot++) {
+        affix_id = item_affix_get(item_obj, slot);
+        if (affix_id > ITEM_AFFIX_NONE && affix_id < ITEM_AFFIX_COUNT) {
+            unbake_affix(item_obj, obj_type, &affix_table[affix_id]);
+        }
+        item_affix_set(item_obj, slot, ITEM_AFFIX_NONE);
+    }
+
+    // Clear rarity + cursed-bound, preserve only identified bit.
+    v = obj_field_int32_get(item_obj, OBJ_F_ITEM_PAD_I_1);
+    v = (v & (int)ITEM_RARITY_IDENTIFIED_BIT) | ITEM_RARITY_NONE;
+    obj_field_int32_set(item_obj, OBJ_F_ITEM_PAD_I_1, v);
+
+    item_rarity_roll_forced(item_obj, target_rarity);
+    item_rarity_identify(item_obj);
+}
+
+void item_rarity_reforge(int64_t item_obj)
+{
+    ItemRarity rarity = item_rarity_get(item_obj);
+    if (rarity <= ITEM_RARITY_COMMON || rarity == ITEM_RARITY_UNIQUE || rarity == ITEM_RARITY_SET) {
+        return;
+    }
+    reforge_impl(item_obj, rarity);
+}
+
+bool item_rarity_ascend(int64_t item_obj)
+{
+    ItemRarity rarity = item_rarity_get(item_obj);
+    ItemRarity new_rarity;
+
+    switch (rarity) {
+    case ITEM_RARITY_UNCOMMON: new_rarity = ITEM_RARITY_RARE; break;
+    case ITEM_RARITY_RARE:     new_rarity = ITEM_RARITY_EPIC; break;
+    default: return false;
+    }
+
+    reforge_impl(item_obj, new_rarity);
+    return true;
+}
+
+void item_rarity_cleanse(int64_t item_obj)
+{
+    if (item_rarity_get(item_obj) != ITEM_RARITY_CURSED) {
+        return;
+    }
+    reforge_impl(item_obj, ITEM_RARITY_RARE);
+}
+
+void item_rarity_annul(int64_t item_obj)
+{
+    int obj_type;
+    int slot;
+    int affix_id;
+
+    if (item_rarity_get(item_obj) <= ITEM_RARITY_COMMON) {
+        return;
+    }
+
+    obj_type = obj_field_int32_get(item_obj, OBJ_F_TYPE);
+    for (slot = 0; slot < ITEM_RARITY_MAX_AFFIXES; slot++) {
+        affix_id = item_affix_get(item_obj, slot);
+        if (affix_id > ITEM_AFFIX_NONE && affix_id < ITEM_AFFIX_COUNT) {
+            unbake_affix(item_obj, obj_type, &affix_table[affix_id]);
+        }
+        item_affix_set(item_obj, slot, ITEM_AFFIX_NONE);
+    }
+    obj_field_int32_set(item_obj, OBJ_F_ITEM_PAD_I_1, (int)ITEM_RARITY_COMMON);
 }
 
 // ---------------------------------------------------------------------------

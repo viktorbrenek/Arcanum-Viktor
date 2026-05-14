@@ -262,6 +262,7 @@ typedef uint32_t ObjectGenericFlags;
 #define OGF_IS_TRAP_DEVICE             0x0004u
 #define OGF_IS_HEALING_ITEM            0x0008u
 #define OGF_IS_GRENADE                 0x0010u
+#define OGF_IS_ORB                     0x0020u  // crafting orb (item_orb system)
 // clang-format on
 
 typedef uint32_t ObjectCritterFlags;

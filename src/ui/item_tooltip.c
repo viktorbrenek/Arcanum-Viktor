@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "game/description.h"
+#include "game/item_orb.h"
 #include "game/hrp.h"
 #include "game/item.h"
 #include "game/item_rarity.h"
@@ -163,6 +164,21 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
 
     tig_font_handle_t name_font;
 
+    // Crafting orbs get a fixed display name regardless of proto description.
+    {
+        static const char* const orb_display_names[] = {
+            NULL,
+            "Orb of Reforging",
+            "Orb of Ascension",
+            "Orb of Cleansing",
+            "Orb of Annulment",
+        };
+        OrbType orb_type = item_orb_get_type(item_obj);
+        if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
+            item_name = orb_display_names[orb_type];
+        }
+    }
+
     char name_internal[256];
     if (item_name == NULL || item_name[0] == '\0') {
         const char* base = description_get(obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION));
@@ -223,7 +239,20 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     // Affix descriptions
     affixes_buf[0] = '\0';
     has_affixes = false;
-    if (is_magic && identified) {
+    
+    OrbType orb_type = item_orb_get_type(item_obj);
+    if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
+        if (orb_type == ORB_REFORGING) {
+            strcpy(affixes_buf, "Randomizes the numeric values of magical affixes.");
+        } else if (orb_type == ORB_ASCENSION) {
+            strcpy(affixes_buf, "Upgrades a magical item to the next tier of rarity.");
+        } else if (orb_type == ORB_CLEANSING) {
+            strcpy(affixes_buf, "Removes a curse from a magical item.");
+        } else if (orb_type == ORB_ANNULMENT) {
+            strcpy(affixes_buf, "Removes all magical properties from an item.");
+        }
+        has_affixes = true;
+    } else if (is_magic && identified) {
         item_rarity_format_tooltip_affixes(item_obj, affixes_buf, sizeof(affixes_buf));
         has_affixes = affixes_buf[0] != '\0';
     }

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "game/item_orb.h"
 #include "game/mes.h"
 #include "game/obj_private.h"
 
@@ -1069,6 +1070,25 @@ bool a_name_item_aid_to_fname(tig_art_id_t aid, char* fname)
 
     subtype = tig_art_item_id_subtype_get(aid);
     type = tig_art_item_id_type_get(aid);
+
+    // Crafting orbs: bypass mes lookup and return hardcoded paths.
+    if (type == TIG_ART_ITEM_TYPE_GENERIC && subtype == 0) {
+        int num = (int)tig_art_num_get(aid);
+        if (num >= ORB_ART_NUM_BASE && num < ORB_ART_NUM_BASE + ORB_COUNT - 1) {
+            static const char* const orb_art_names[] = {
+                "orb1",
+                "orb2",
+                "orb3",
+                "orb4",
+            };
+            int orb_idx = num - ORB_ART_NUM_BASE;
+            int disp = tig_art_item_id_disposition_get(aid);
+            const char* suffix = (disp == TIG_ART_ITEM_DISPOSITION_GROUND) ? "_ground" : "_inven";
+            sprintf(fname, "art\\item\\%s%s.art", orb_art_names[orb_idx], suffix);
+            tig_debug_printf("CE DEBUG: Loading custom orb art: %s\n", fname);
+            return true;
+        }
+    }
 
     mes_file_entry.num = tig_art_num_get(aid) + 20 * (subtype + 50 * type);
     if (type == TIG_ART_ITEM_TYPE_ARMOR) {

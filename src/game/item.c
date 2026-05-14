@@ -1,5 +1,6 @@
 #include "game/item.h"
 
+#include "game/item_orb.h"
 #include "game/item_rarity.h"
 #include "game/item_set.h"
 #include "game/anim.h"
@@ -1447,6 +1448,10 @@ void item_use_on_obj(int64_t source_obj, int64_t item_obj, int64_t target_obj)
     TargetDescriptor td;
 
     if (item_obj == OBJ_HANDLE_NULL) {
+        return;
+    }
+
+    if (item_orb_try_apply(source_obj, item_obj, target_obj)) {
         return;
     }
 

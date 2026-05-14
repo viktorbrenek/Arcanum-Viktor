@@ -86,6 +86,8 @@ set(SRCS
     "src/game/invensource.h"
     "src/game/item_effect.c"
     "src/game/item_effect.h"
+    "src/game/item_orb.c"
+    "src/game/item_orb.h"
     "src/game/item_rarity.c"
     "src/game/item_rarity.h"
     "src/game/item_set.c"
