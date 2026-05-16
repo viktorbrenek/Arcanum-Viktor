@@ -16,6 +16,8 @@
 #include "game/gamelib.h"
 #include "game/gsound.h"
 #include "game/item.h"
+#include "game/critter_rarity.h"
+#include "game/item_rarity.h"
 #include "game/logbook.h"
 #include "game/magictech.h"
 #include "game/map.h"
@@ -1789,6 +1791,31 @@ void combat_dmg(CombatContext* combat)
         }
         object_hp_damage_set(combat->target_obj, hp_dam);
 
+        if (dam > 0 && combat->attacker_obj != OBJ_HANDLE_NULL) {
+            int loh = item_rarity_life_on_hit_get(combat->attacker_obj);
+            if (critter_rarity_bonus_get(combat->attacker_obj) & CRITTER_BONUS_VAMPIRIC) {
+                loh += 2;
+            }
+            if (loh > 0) {
+                int attacker_hp_dam = object_hp_damage_get(combat->attacker_obj) - loh;
+                if (attacker_hp_dam < 0) {
+                    attacker_hp_dam = 0;
+                }
+                object_hp_damage_set(combat->attacker_obj, attacker_hp_dam);
+            }
+            int thorns = item_rarity_thorns_get(combat->target_obj);
+            if (critter_rarity_bonus_get(combat->target_obj) & CRITTER_BONUS_THORNED) {
+                thorns += 3;
+            }
+            if (thorns > 0) {
+                int attacker_hp_dam = object_hp_damage_get(combat->attacker_obj) + thorns;
+                if (attacker_hp_dam < 0) {
+                    attacker_hp_dam = 0;
+                }
+                object_hp_damage_set(combat->attacker_obj, attacker_hp_dam);
+            }
+        }
+
         if (dam > 0) {
             int64_t leader_obj = critter_pc_leader_get(combat->target_obj);
             if (leader_obj != OBJ_HANDLE_NULL
@@ -3257,6 +3284,14 @@ void combat_turn_based_subturn_start(void)
 {
     if (dword_5FC240 != NULL) {
         combat_debug(dword_5FC240->obj, "SubTurn Start");
+        if (critter_rarity_bonus_get(dword_5FC240->obj) & CRITTER_BONUS_REGENERATING) {
+            int heal = stat_level_get(dword_5FC240->obj, STAT_HEAL_RATE);
+            if (heal > 0) {
+                int dam = object_hp_damage_get(dword_5FC240->obj) - heal;
+                if (dam < 0) dam = 0;
+                object_hp_damage_set(dword_5FC240->obj, dam);
+            }
+        }
         combat_turn_based_whos_turn_set(dword_5FC240->obj);
         combat_check_action_points(dword_5FC240->obj, 0);
     } else {

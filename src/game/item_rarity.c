@@ -33,6 +33,8 @@ typedef struct AffixDef {
     int equip_stat;
     int equip_stat_val;
     const char* desc;   // human-readable bonus for tooltip; NULL = auto-format from equip_stat
+    int equip_loh;      // life on hit HP recovery per successful hit (0 = none)
+    int equip_thorns;   // damage reflected to attacker per hit received (0 = none)
 } AffixDef;
 
 // Must match ItemAffix enum order exactly (index 0 = ITEM_AFFIX_NONE sentinel).
@@ -269,6 +271,12 @@ static const AffixDef affix_table[ITEM_AFFIX_COUNT] = {
     // ITEM_AFFIX_CURSE_OF_LETHARGY
     { NULL, "of Lethargy", true, true, -1, -1, 0, -1, -1, 0, STAT_SPEED, -2,
         "-2 SPD (cursed)" },
+    // ITEM_AFFIX_OF_THE_VAMPIRE
+    { NULL, "of the Vampire", true, true, -1, -1, 0, -1, -1, 0, -1, 0,
+        "+1 life on hit", 1 },
+    // ITEM_AFFIX_OF_THORNS
+    { NULL, "of Thorns", false, true, -1, -1, 0, -1, -1, 0, -1, 0,
+        "+2 thorns (damage returned to attacker)", 0, 2 },
 };
 
 // ---------------------------------------------------------------------------
@@ -348,6 +356,13 @@ static const int cursed_armor_prefix_pool[] = {
     ITEM_AFFIX_CA_THUNDERCLAD,
 };
 static const int cursed_armor_prefix_pool_size = (int)(sizeof(cursed_armor_prefix_pool) / sizeof(cursed_armor_prefix_pool[0]));
+
+// Rare affixes only available on EPIC items (second suffix slot, 30% chance).
+static const int rare_suffix_pool[] = {
+    ITEM_AFFIX_OF_THE_VAMPIRE,
+    ITEM_AFFIX_OF_THORNS,
+};
+static const int rare_suffix_pool_size = (int)(sizeof(rare_suffix_pool) / sizeof(rare_suffix_pool[0]));
 
 static const int cursed_suffix_pool[] = {
     ITEM_AFFIX_CURSE_OF_FRAILTY,
@@ -954,7 +969,14 @@ roll_epic:;
     }
 
     for (int s = 0; s < suffix_count && affix_slot < ITEM_RARITY_MAX_AFFIXES - 1; s++) {
-        affix_id = pick_affix(suffix_pool, suffix_pool_size, chosen, chosen_cnt);
+        const int* spool = suffix_pool;
+        int spool_size = suffix_pool_size;
+        // Last suffix on EPIC: 30% chance to draw from the rare pool instead.
+        if (rarity == ITEM_RARITY_EPIC && s == suffix_count - 1 && random_between(1, 100) <= 30) {
+            spool = rare_suffix_pool;
+            spool_size = rare_suffix_pool_size;
+        }
+        affix_id = pick_affix(spool, spool_size, chosen, chosen_cnt);
         chosen[chosen_cnt++] = affix_id;
         item_affix_set(item_obj, affix_slot++, affix_id);
         // Suffix affixes don't bake (stat bonuses are applied via item_rarity_adjust_stat).
@@ -1099,7 +1121,13 @@ forced_roll_affixes:;
     }
 
     for (int s = 0; s < suffix_count && affix_slot < ITEM_RARITY_MAX_AFFIXES - 1; s++) {
-        affix_id = pick_affix(suffix_pool, suffix_pool_size, chosen, chosen_cnt);
+        const int* spool = suffix_pool;
+        int spool_size = suffix_pool_size;
+        if (forced_rarity == ITEM_RARITY_EPIC && s == suffix_count - 1 && random_between(1, 100) <= 30) {
+            spool = rare_suffix_pool;
+            spool_size = rare_suffix_pool_size;
+        }
+        affix_id = pick_affix(spool, spool_size, chosen, chosen_cnt);
         chosen[chosen_cnt++] = affix_id;
         item_affix_set(item_obj, affix_slot++, affix_id);
     }
@@ -1295,6 +1323,86 @@ int item_rarity_adjust_stat(int64_t critter_obj, int stat, int value)
     }
 
     return value;
+}
+
+int item_rarity_life_on_hit_get(int64_t critter_obj)
+{
+    static const int wear_slots[] = {
+        ITEM_INV_LOC_HELMET,
+        ITEM_INV_LOC_RING1,
+        ITEM_INV_LOC_RING2,
+        ITEM_INV_LOC_MEDALLION,
+        ITEM_INV_LOC_WEAPON,
+        ITEM_INV_LOC_SHIELD,
+        ITEM_INV_LOC_ARMOR,
+        ITEM_INV_LOC_GAUNTLET,
+        ITEM_INV_LOC_BOOTS,
+    };
+    int num_slots = (int)(sizeof(wear_slots) / sizeof(wear_slots[0]));
+    int loh = 0;
+
+    for (int s = 0; s < num_slots; s++) {
+        int64_t item_obj = item_wield_get(critter_obj, wear_slots[s]);
+        if (item_obj == OBJ_HANDLE_NULL) {
+            continue;
+        }
+        ItemRarity rarity = item_rarity_get(item_obj);
+        if (rarity <= ITEM_RARITY_COMMON) {
+            continue;
+        }
+        for (int slot = 0; slot < ITEM_RARITY_MAX_AFFIXES; slot++) {
+            if (rarity == ITEM_RARITY_UNIQUE && slot == UNIQUE_ID_SLOT) {
+                continue;
+            }
+            int affix_id = item_affix_get(item_obj, slot);
+            if (affix_id <= ITEM_AFFIX_NONE || affix_id >= ITEM_AFFIX_COUNT) {
+                continue;
+            }
+            loh += affix_table[affix_id].equip_loh;
+        }
+    }
+
+    return loh;
+}
+
+int item_rarity_thorns_get(int64_t critter_obj)
+{
+    static const int wear_slots[] = {
+        ITEM_INV_LOC_HELMET,
+        ITEM_INV_LOC_RING1,
+        ITEM_INV_LOC_RING2,
+        ITEM_INV_LOC_MEDALLION,
+        ITEM_INV_LOC_WEAPON,
+        ITEM_INV_LOC_SHIELD,
+        ITEM_INV_LOC_ARMOR,
+        ITEM_INV_LOC_GAUNTLET,
+        ITEM_INV_LOC_BOOTS,
+    };
+    int num_slots = (int)(sizeof(wear_slots) / sizeof(wear_slots[0]));
+    int thorns = 0;
+
+    for (int s = 0; s < num_slots; s++) {
+        int64_t item_obj = item_wield_get(critter_obj, wear_slots[s]);
+        if (item_obj == OBJ_HANDLE_NULL) {
+            continue;
+        }
+        ItemRarity rarity = item_rarity_get(item_obj);
+        if (rarity <= ITEM_RARITY_COMMON) {
+            continue;
+        }
+        for (int slot = 0; slot < ITEM_RARITY_MAX_AFFIXES; slot++) {
+            if (rarity == ITEM_RARITY_UNIQUE && slot == UNIQUE_ID_SLOT) {
+                continue;
+            }
+            int affix_id = item_affix_get(item_obj, slot);
+            if (affix_id <= ITEM_AFFIX_NONE || affix_id >= ITEM_AFFIX_COUNT) {
+                continue;
+            }
+            thorns += affix_table[affix_id].equip_thorns;
+        }
+    }
+
+    return thorns;
 }
 
 // ---------------------------------------------------------------------------

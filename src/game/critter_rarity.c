@@ -26,6 +26,8 @@ static const int bonus_flag_table[] = {
     CRITTER_BONUS_WARY,
     CRITTER_BONUS_ROBUST,
     CRITTER_BONUS_CUNNING,
+    CRITTER_BONUS_VAMPIRIC,
+    CRITTER_BONUS_THORNED,
 };
 #define BONUS_COUNT ((int)(sizeof(bonus_flag_table) / sizeof(bonus_flag_table[0])))
 
@@ -36,7 +38,7 @@ CritterRarity critter_rarity_get(int64_t obj)
 
 int critter_rarity_bonus_get(int64_t obj)
 {
-    return (obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1) >> BONUS_SHIFT) & 0x3FF;
+    return (obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1) >> BONUS_SHIFT) & 0xFFF;
 }
 
 tig_color_t critter_rarity_color(CritterRarity rarity)
@@ -60,6 +62,8 @@ static const char* bonus_names[] = {
     "Wary",
     "Robust",
     "Cunning",
+    "Vampiric",
+    "Thorned",
 };
 
 void critter_rarity_generate_name(int64_t obj, const char* base_name,

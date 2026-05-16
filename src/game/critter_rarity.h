@@ -18,11 +18,13 @@ typedef enum CritterRarity {
 #define CRITTER_BONUS_ENRAGED      0x004  // +STAT_DAMAGE_BONUS
 #define CRITTER_BONUS_SWIFT        0x008  // +STAT_SPEED
 #define CRITTER_BONUS_ARMORED      0x010  // +STAT_AC_ADJUSTMENT
-#define CRITTER_BONUS_REGENERATING 0x020  // +STAT_HEAL_RATE
+#define CRITTER_BONUS_REGENERATING 0x020  // +STAT_HEAL_RATE (heals per TB turn in combat)
 #define CRITTER_BONUS_BRUTISH      0x040  // +STAT_STRENGTH
 #define CRITTER_BONUS_WARY         0x080  // +STAT_PERCEPTION
 #define CRITTER_BONUS_ROBUST       0x100  // +STAT_CONSTITUTION
 #define CRITTER_BONUS_CUNNING      0x200  // +STAT_INTELLIGENCE
+#define CRITTER_BONUS_VAMPIRIC     0x400  // +2 life on hit (combat.c LoH hook)
+#define CRITTER_BONUS_THORNED      0x800  // +3 thorns reflected damage (combat.c Thorns hook)
 
 CritterRarity critter_rarity_get(int64_t obj);
 int critter_rarity_bonus_get(int64_t obj);

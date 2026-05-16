@@ -13,6 +13,7 @@
 #include "game/object.h"
 #include "game/player.h"
 #include "game/portrait.h"
+#include "game/item_rarity.h"
 #include "game/resistance.h"
 #include "game/skill.h"
 #include "game/snd.h"
@@ -645,6 +646,10 @@ static int charedit_player_basic_skills_tbl[8][BASIC_SKILL_COUNT];
 
 // 0x64C9CC
 static int charedit_hint;
+
+// Rects for custom ARPG stat hover detection (window-local coords, set during render).
+static TigRect charedit_loh_rect;
+static TigRect charedit_thorns_rect;
 
 // 0x64C9D0
 static tig_font_handle_t charedit_flare12_white_font;
@@ -1557,9 +1562,24 @@ bool charedit_window_message_filter(TigMessage* msg)
         return false;
     case TIG_MESSAGE_MOUSE:
         switch (msg->data.mouse.event) {
-        case TIG_MESSAGE_MOUSE_IDLE:
-            charedit_show_hint(charedit_hint);
+        case TIG_MESSAGE_MOUSE_IDLE: {
+            TigWindowData wd_hint;
+            tig_window_data(charedit_window_handle, &wd_hint);
+            int local_x = msg->data.mouse.x - wd_hint.rect.x;
+            int local_y = msg->data.mouse.y - wd_hint.rect.y;
+            if (charedit_loh_rect.width > 0 &&
+                local_x >= charedit_loh_rect.x && local_x < charedit_loh_rect.x + charedit_loh_rect.width &&
+                local_y >= charedit_loh_rect.y && local_y < charedit_loh_rect.y + charedit_loh_rect.height) {
+                charedit_show_hint(900);
+            } else if (charedit_thorns_rect.width > 0 &&
+                local_x >= charedit_thorns_rect.x && local_x < charedit_thorns_rect.x + charedit_thorns_rect.width &&
+                local_y >= charedit_thorns_rect.y && local_y < charedit_thorns_rect.y + charedit_thorns_rect.height) {
+                charedit_show_hint(901);
+            } else {
+                charedit_show_hint(charedit_hint);
+            }
             return false;
+        }
         case TIG_MESSAGE_MOUSE_LEFT_BUTTON_UP:
             if (charedit_mode != CHAREDIT_MODE_CREATE
                 && charedit_mode != CHAREDIT_MODE_3
@@ -1628,6 +1648,14 @@ void charedit_show_hint(int hint)
         ui_message.type = UI_MSG_TYPE_DEGREE;
         ui_message.field_8 = hint - 5000;
         ui_message.field_C = tech_degree_cost_get(ui_message.field_8 % DEGREE_COUNT);
+        intgame_message_window_display_msg(&ui_message);
+    } else if (hint == 900) {
+        ui_message.type = UI_MSG_TYPE_FEEDBACK;
+        ui_message.str = "Life on Hit: restores HP equal to this value on each successful hit.";
+        intgame_message_window_display_msg(&ui_message);
+    } else if (hint == 901) {
+        ui_message.type = UI_MSG_TYPE_FEEDBACK;
+        ui_message.str = "Thorns: reflects this much damage back to attackers on each hit received.";
         intgame_message_window_display_msg(&ui_message);
     } else {
         ui_message.type = UI_MSG_TYPE_FEEDBACK;
@@ -1708,6 +1736,37 @@ void charedit_refresh_secondary_stats(void)
     }
 
     sub_55B880(charedit_window_handle, charedit_flare12_white_font, stru_5C81E0, labels, -1, 13);
+
+    // Custom ARPG combat stats (below secondary stats, same row)
+    {
+        TigWindowData wd;
+        TigFont fd;
+        TigRect r;
+        char buf[40];
+
+        tig_window_data(charedit_window_handle, &wd);
+        tig_font_push(charedit_flare12_white_font);
+
+        sprintf(buf, "Life on Hit: %d", item_rarity_life_on_hit_get(charedit_obj));
+        fd.str = buf; fd.width = 0;
+        tig_font_measure(&fd);
+        r.x = 49 - wd.rect.x; r.y = 422 - wd.rect.y;
+        r.width = fd.width; r.height = fd.height;
+        hrp_apply(&r, GRAVITY_CENTER_HORIZONTAL | GRAVITY_CENTER_VERTICAL);
+        charedit_loh_rect = r;
+        tig_window_text_write(charedit_window_handle, buf, &r);
+
+        sprintf(buf, "Thorns: %d", item_rarity_thorns_get(charedit_obj));
+        fd.str = buf; fd.width = 0;
+        tig_font_measure(&fd);
+        r.x = 178 - wd.rect.x; r.y = 422 - wd.rect.y;
+        r.width = fd.width; r.height = fd.height;
+        hrp_apply(&r, GRAVITY_CENTER_HORIZONTAL | GRAVITY_CENTER_VERTICAL);
+        charedit_thorns_rect = r;
+        tig_window_text_write(charedit_window_handle, buf, &r);
+
+        tig_font_pop();
+    }
 }
 
 // 0x55B280

@@ -116,6 +116,10 @@ typedef enum ItemAffix {
     // --- Extended cursed suffixes ---
     ITEM_AFFIX_CURSE_OF_BLINDNESS,  // -2 PER
     ITEM_AFFIX_CURSE_OF_LETHARGY,   // -2 SPD
+    // --- Life on hit (epic-only rare suffix) ---
+    ITEM_AFFIX_OF_THE_VAMPIRE,      // +1 life on hit
+    // --- Thorns (epic-only rare suffix, armor only) ---
+    ITEM_AFFIX_OF_THORNS,           // +2 damage reflected to attacker on hit
     ITEM_AFFIX_COUNT,
 } ItemAffix;
 
@@ -187,6 +191,12 @@ bool item_rarity_is_cursed_bound(int64_t item_obj);
 
 // Called from stat_level_get to apply equipped-item stat bonuses.
 int item_rarity_adjust_stat(int64_t critter_obj, int stat, int value);
+
+// Sum life-on-hit value across all equipped items. Returns 0 if none.
+int item_rarity_life_on_hit_get(int64_t critter_obj);
+
+// Sum thorns value across all equipped items. Returns 0 if none.
+int item_rarity_thorns_get(int64_t critter_obj);
 
 // Tooltip: compact line of equipped stat bonuses e.g. "+2 STR | -2 DEX (equipped)".
 // buf[0] = '\0' if no stat bonuses.

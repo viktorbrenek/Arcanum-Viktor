@@ -43,7 +43,10 @@
       "Bash(python tools/bmp_to_art.py src/game/Assets_main/ascension_ground.bmp  \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/art/item/orb_ascension_ground.art\")",
       "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\" | ForEach-Object { $_.Name })",
       "PowerShell(Test-Path \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\\\\data\\\\Rules\"; Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\\\\data\" -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })",
-      "Bash(cmake --build \"out/build/windows-x64\" --config Debug --target arcanum-ce)"
+      "Bash(cmake --build \"out/build/windows-x64\" --config Debug --target arcanum-ce)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Select-Object -Last 40)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Where-Object { $_ -match \"error|warning C4|arcanum-ce.vcxproj ->\" } | Select-Object -Last 20)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Where-Object { $_ -match \"error|arcanum-ce.vcxproj ->\" } | Select-Object -Last 10)"
     ]
   }
 }
