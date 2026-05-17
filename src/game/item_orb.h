@@ -42,4 +42,11 @@ void item_orb_set_type(int64_t item_obj, OrbType type);
 // Returns true if handled (caller should return from item_use_on_obj).
 bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj);
 
+// Stack count stored in OBJ_F_GENERIC_PAD_IAS_1[0]. Returns >= 1 (0 treated as 1).
+int item_orb_stack_count_get(int64_t item_obj);
+void item_orb_stack_count_set(int64_t item_obj, int count);
+
+// Find first orb of given type in critter's inventory. Returns OBJ_HANDLE_NULL if none.
+int64_t item_orb_find_in_inventory(int64_t critter_obj, OrbType type);
+
 #endif /* ARCANUM_GAME_ITEM_ORB_H_ */

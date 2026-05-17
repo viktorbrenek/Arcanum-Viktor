@@ -619,6 +619,18 @@ void item_inv_icon_size(int64_t item_id, int* width, int* height)
 // 0x4617F0
 bool item_transfer(int64_t item_obj, int64_t critter_obj)
 {
+    if (!item_parent(item_obj, NULL)
+        && obj_field_int32_get(critter_obj, OBJ_F_TYPE) == OBJ_TYPE_PC) {
+        OrbType orb_type = item_orb_get_type(item_obj);
+        if (orb_type != ORB_NONE) {
+            int64_t existing = item_orb_find_in_inventory(critter_obj, orb_type);
+            if (existing != OBJ_HANDLE_NULL) {
+                item_orb_stack_count_set(existing, item_orb_stack_count_get(existing) + 1);
+                object_destroy(item_obj);
+                return true;
+            }
+        }
+    }
     return item_transfer_ex(item_obj, critter_obj, -1);
 }
 

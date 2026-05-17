@@ -46,7 +46,23 @@
       "Bash(cmake --build \"out/build/windows-x64\" --config Debug --target arcanum-ce)",
       "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Select-Object -Last 40)",
       "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Where-Object { $_ -match \"error|warning C4|arcanum-ce.vcxproj ->\" } | Select-Object -Last 20)",
-      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Where-Object { $_ -match \"error|arcanum-ce.vcxproj ->\" } | Select-Object -Last 10)"
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release 2>&1 | Where-Object { $_ -match \"error|arcanum-ce.vcxproj ->\" } | Select-Object -Last 10)",
+      "Bash(Get-ChildItem *)",
+      "Bash(xargs grep -l \"encounter\\\\|worldmap\\\\|world_map\\\\|travel\" -i)",
+      "Bash(mkdir -p \"/tmp/arcanum_extract\")",
+      "Bash(./undat.exe \"../arcanum3.dat\" \"/tmp/arcanum_extract\")",
+      "Bash(./undat.exe \"../arcanum3.dat\" \"extracted/arc3\")",
+      "Bash(mkdir -p \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/UnDAT_MatuX_TMS/extracted/arc3\")",
+      "Bash(./undat.exe \"../arcanum3.dat\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/UnDAT_MatuX_TMS/extracted/arc3\")",
+      "Bash(./undat.exe \"../arcanum3.dat\" -l)",
+      "Bash(./undat.exe \"../arcanum3.dat\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/UnDAT_MatuX_TMS/extracted/Arcanum3\")",
+      "Bash(xargs grep -il \"trader\\\\|merchant\\\\|traveler\\\\|wandering\")",
+      "Bash(findstr \"ai_danger_source\" ai.c)",
+      "Bash(grep -n \"^// 0x4A[A-F][0-9A-F][0-9A-F][0-9A-F]$\" ai.c)",
+      "Bash(awk '/^static void ai_danger_source.*{/,/^}$/{print NR\": \"$0}' ai.c)",
+      "Bash(cmake --build out/build/windows-x64 --config Release --target arcanum-ce -- -m)",
+      "Bash(dir \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\extracted\\\\arc3\\\\arcanum3\\\\proto\\\\npc\")",
+      "Bash(cmake --build out/build/windows-x64 --config Release --target arcanum-ce)"
     ]
   }
 }

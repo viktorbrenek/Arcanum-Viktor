@@ -1,6 +1,7 @@
 #include "ui/wmap_rnd.h"
 
 #include "game/area.h"
+#include "game/critter_rarity.h"
 #include "game/map.h"
 #include "game/mes.h"
 #include "game/object.h"
@@ -116,10 +117,13 @@ static bool wmap_rnd_check(int64_t location);
 static bool wmap_rnd_encounter_chart_lookup(WmapRndEncounterChart* chart, int64_t loc, int* value_ptr);
 static int wmap_rnd_determine_terrain(int64_t loc);
 static bool wmap_rnd_encounter_check(void);
+static void wmap_rnd_inject_encounter_entries(void);
+static void wmap_rnd_zone_scale_tables(void);
 static bool wmap_rnd_encounter_entry_check(WmapRndEncounterTableEntry* entry);
 static int wmap_rnd_encounter_total_frequency(WmapRndEncounterTable* table);
 static int wmap_rnd_encounter_entry_total_monsters(WmapRndEncounterTableEntry* entry);
 static void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry);
+static void wmap_rnd_encounter_spawn_critters(WmapRndEncounterTableEntry* entry, int spawn_dist, bool face_player, bool apply_rarity);
 static void wmap_rnd_spawn_position_offset(int a1, int64_t* dx_ptr, int64_t* dy_ptr);
 static void wmap_rnd_encounter_build_object(int name, int64_t loc, int64_t* obj_ptr);
 
@@ -538,10 +542,13 @@ bool wmap_rnd_mod_load(void)
             if (tig_str_parse_named_value(&str, "TriggerCount:", &value)) {
                 entry->max_trigger_cnt = value;
             }
+
         }
     }
 
     mes_unload(wmap_rnd_mes_file);
+    wmap_rnd_inject_encounter_entries();
+    wmap_rnd_zone_scale_tables();
     wmap_rnd_initialized = true;
     return true;
 }
@@ -1174,6 +1181,152 @@ bool wmap_rnd_encounter_check(void)
 }
 
 /**
+ * Descriptor for a single injected encounter entry.
+ * proto2/min2/max2 = 0 means only one critter group.
+ * table_idx matches the formula: night + 2*power + 6*terrain - 8
+ *
+ * Table quick-reference (from WMap_Rnd.mes):
+ *   Grasslands: 0=DayE 1=NightE 2=DayA 3=NightA 4=DayP 5=NightP
+ *   Plains:     6=DayE 7=NightE 8=DayA 9=NightA 10=DayP 11=NightP
+ *   Swamps:     12-17, Elven Forest: 18-23, Jungle: 24-29
+ *   Desert:     30-35, Forest: 36-41, Snowy Plains: 42-47
+ */
+typedef struct {
+    int table_idx;
+    int frequency;
+    int proto1; int min1; int max1;
+    int proto2; int min2; int max2;
+    int min_level; int max_level;
+} WmapEncounterInjectDef;
+
+/**
+ * Scales critter counts in all vanilla + injected encounter tables based on
+ * geographic zone. Tables 0-47 map to 8 terrain types (terrain = table_idx / 6).
+ * Later zones are progressively more dangerous: extra_min/extra_max are added
+ * to every populated critter slot in every entry of the zone's tables.
+ *
+ * Zone order matches WMap_Rnd.mes: Grasslands(0), Plains(1), Swamps(2),
+ * Elven Forest(3), Jungle(4), Desert(5), Forest(6), Snowy Plains(7).
+ */
+static void wmap_rnd_zone_scale_tables(void)
+{
+    static const int zone_extra_min[8] = { 0, 0, 1, 1, 1, 1, 0, 1 };
+    static const int zone_extra_max[8] = { 0, 1, 1, 1, 2, 2, 1, 2 };
+
+    for (int table_idx = 0; table_idx < 48 && table_idx < wmap_rnd_num_encounter_tables; table_idx++) {
+        int terrain = table_idx / 6;
+        int emin = zone_extra_min[terrain];
+        int emax = zone_extra_max[terrain];
+        if (emin == 0 && emax == 0) {
+            continue;
+        }
+
+        WmapRndEncounterTable* table = &wmap_rnd_encounter_tables[table_idx];
+        for (int entry_idx = 0; entry_idx < table->num_entries; entry_idx++) {
+            WmapRndEncounterTableEntry* entry = &table->entries[entry_idx];
+            for (int slot = 0; slot < 5; slot++) {
+                if (entry->critter_basic_prototype[slot] == 0) {
+                    continue;
+                }
+                entry->critter_min_cnt[slot] += (int16_t)emin;
+                entry->critter_max_cnt[slot] += (int16_t)emax;
+            }
+        }
+    }
+}
+
+/**
+ * Injects ARPG encounter variety (ambush/patrol/camp) into existing encounter
+ * tables after WMap_Rnd.mes loads. Same pattern as invensource_inject_orb_entries.
+ * Proto IDs from WMap_Rnd.mes comments.
+ */
+static void wmap_rnd_inject_encounter_entries(void)
+{
+    static const WmapEncounterInjectDef defs[] = {
+        // --- Grasslands ---
+        {  0, 15, 28428, 1, 1,  0, 0, 0,  1, 32000 },
+        {  1, 20, 28340, 2, 3,  0, 0, 0,  1, 32000 },
+        {  3, 20, 28342, 1, 2,  0, 0, 0,  3, 32000 },
+        {  4, 15, 27321, 1, 2, 27322, 1, 1,  8, 32000 },
+        {  5, 20, 28422, 1, 1, 28340, 2, 4,  8, 32000 },
+
+        // --- Plains ---
+        {  6, 15, 28456, 1, 1,  0, 0, 0,  1, 32000 },
+        {  7, 15, 28327, 1, 2,  0, 0, 0,  1, 32000 },
+        {  9, 15, 28352, 1, 1, 28327, 1, 2,  4, 32000 },
+        { 10, 15, 28456, 2, 3,  0, 0, 0,  6, 32000 },
+
+        // --- Swamps ---
+        { 13, 20, 28367, 1, 2,  0, 0, 0,  1, 32000 },
+        { 15, 15, 28379, 1, 1, 28367, 1, 2,  4, 32000 },
+        { 16, 15, 28373, 2, 3, 28374, 1, 1,  6, 32000 },
+
+        // --- Elven Forest ---
+        { 18, 15, 27337, 1, 2,  0, 0, 0,  1, 32000 },
+        { 21, 15, 28454, 1, 1, 28452, 1, 2,  4, 32000 },
+        { 23, 20, 27337, 2, 3, 27340, 1, 2,  8, 32000 },
+
+        // --- Jungle ---
+        { 26, 15, 28393, 1, 2,  0, 0, 0,  4, 32000 },
+        { 25, 20, 28334, 1, 1,  0, 0, 0,  1, 32000 },
+        { 29, 20, 27333, 1, 1, 28389, 2, 4,  8, 32000 },
+
+        // --- Desert ---
+        { 32, 15, 28346, 1, 2, 28345, 2, 4,  3, 32000 },
+        { 33, 20, 28350, 1, 1,  0, 0, 0,  4, 32000 },
+        { 35, 15, 28419, 1, 2, 28345, 3, 5,  8, 32000 },
+
+        // --- Forest ---
+        { 38, 15, 28399, 1, 1, 28403, 1, 2,  3, 32000 },
+        { 37, 20, 27340, 1, 2,  0, 0, 0,  1, 32000 },
+        { 41, 20, 28340, 2, 4, 28343, 1, 1,  8, 32000 },
+
+        // --- Snowy Plains ---
+        { 44, 15, 28398, 1, 1,  0, 0, 0,  4, 32000 },
+        { 43, 20, 28319, 1, 2,  0, 0, 0,  1, 32000 },
+        { 47, 20, 28341, 1, 1, 28340, 2, 3,  8, 32000 },
+
+        // sentinel
+        { -1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    };
+
+    for (int i = 0; defs[i].table_idx >= 0; i++) {
+        int idx = defs[i].table_idx;
+        if (idx >= wmap_rnd_num_encounter_tables) {
+            continue;
+        }
+
+        WmapRndEncounterTable* table = &wmap_rnd_encounter_tables[idx];
+        int cnt = table->num_entries;
+
+        WmapRndEncounterTableEntry* new_entries = (WmapRndEncounterTableEntry*)REALLOC(
+            table->entries, sizeof(WmapRndEncounterTableEntry) * (cnt + 1));
+        if (new_entries == NULL) {
+            continue;
+        }
+        table->entries = new_entries;
+
+        WmapRndEncounterTableEntry* e = &table->entries[cnt];
+        wmap_rnd_encounter_table_entry_init(e);
+
+        e->frequency                = defs[i].frequency;
+        e->critter_basic_prototype[0] = defs[i].proto1;
+        e->critter_min_cnt[0]       = (int16_t)defs[i].min1;
+        e->critter_max_cnt[0]       = (int16_t)defs[i].max1;
+        if (defs[i].proto2 != 0) {
+            e->critter_basic_prototype[1] = defs[i].proto2;
+            e->critter_min_cnt[1]         = (int16_t)defs[i].min2;
+            e->critter_max_cnt[1]         = (int16_t)defs[i].max2;
+        }
+        e->min_level                = (int16_t)defs[i].min_level;
+        e->max_level                = (int16_t)defs[i].max_level;
+        e->message_num              = -1;
+
+        table->num_entries = cnt + 1;
+    }
+}
+
+/**
  * Checks whether a single encounter table entry is currently eligible to be
  * selected.
  *
@@ -1265,12 +1418,15 @@ int wmap_rnd_encounter_entry_total_monsters(WmapRndEncounterTableEntry* entry)
 }
 
 /**
- * Spawns all monsters for a selected encounter entry around the player's
- * current world-map location.
+ * Shared spawn core. Spawns all critters for the entry around the player's
+ * world-map location.
  *
- * 0x559260
+ * spawn_dist  – tiles away from the player the origin is placed
+ * face_player – true: orient toward player; false: random facing
+ * apply_rarity – true: call critter_rarity_roll on each spawned critter
  */
-void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry)
+static void wmap_rnd_encounter_spawn_critters(WmapRndEncounterTableEntry* entry,
+    int spawn_dist, bool face_player, bool apply_rarity)
 {
     int index;
     int k;
@@ -1285,14 +1441,11 @@ void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry)
     int rot;
     tig_art_id_t art_id;
 
-    // Randomly choose whether monsters approach from the left or from above.
     if (random_between(1, 100) < 51) {
-        // TODO: Check.
-        origin = LOCATION_MAKE(wmap_rnd_loc_x - 6, wmap_rnd_loc_y);
+        origin = LOCATION_MAKE(wmap_rnd_loc_x - spawn_dist, wmap_rnd_loc_y);
         wmap_rnd_spawn_direction = 6;
     } else {
-        // TODO: Check.
-        origin = LOCATION_MAKE(wmap_rnd_loc_x, wmap_rnd_loc_y - 6);
+        origin = LOCATION_MAKE(wmap_rnd_loc_x, wmap_rnd_loc_y - spawn_dist);
         wmap_rnd_spawn_direction = 2;
     }
 
@@ -1302,8 +1455,6 @@ void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry)
         }
 
         for (k = 0; k < wmap_rnd_critter_spawn_counts[index]; k++) {
-            // Calculate the spawn position for this individual monster.
-            // TODO: Check.
             dx = LOCATION_GET_X(origin);
             dy = LOCATION_GET_Y(origin);
             wmap_rnd_spawn_position_offset(k, &dx, &dy);
@@ -1311,8 +1462,6 @@ void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry)
             loc = LOCATION_MAKE(dx, dy);
             wmap_rnd_encounter_build_object(entry->critter_basic_prototype[index], loc, &obj);
 
-            // If the ideal spawn tile is blocked, try to find a nearby clear
-            // tile (range 6). Destroy the monster if none can be found.
             if (tile_is_blocking(loc, 0)) {
                 pc_obj = player_get_local_pc_obj();
                 if (!target_find_displacement_loc(pc_obj, 6, &loc) || tile_is_blocking(loc, false)) {
@@ -1323,8 +1472,6 @@ void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry)
                 }
             }
 
-            // Destroy the monster if another PC or NPC already occupies the
-            // chosen tile.
             object_list_location(loc, OBJ_TM_PC | OBJ_TM_NPC, &objects);
             node = objects.head;
             while (node != NULL) {
@@ -1337,15 +1484,30 @@ void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry)
             }
             object_list_destroy(&objects);
 
-            // Orient the spawned monster to face toward the player's location.
             if (obj != OBJ_HANDLE_NULL) {
-                rot = location_rot(loc, wmap_rnd_loc);
+                if (apply_rarity) {
+                    critter_rarity_roll(obj);
+                }
+                rot = face_player
+                    ? location_rot(loc, wmap_rnd_loc)
+                    : random_between(0, 7);
                 art_id = obj_field_int32_get(obj, OBJ_F_CURRENT_AID);
                 art_id = tig_art_id_rotation_set(art_id, rot);
                 object_set_current_aid(obj, art_id);
             }
         }
     }
+}
+
+/**
+ * Spawns all critters for the encounter entry. Monsters appear 6 tiles from
+ * the player, facing the player, with ARPG rarity applied.
+ *
+ * 0x559260
+ */
+void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry)
+{
+    wmap_rnd_encounter_spawn_critters(entry, 6, true, true);
 }
 
 /**

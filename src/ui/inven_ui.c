@@ -3532,6 +3532,24 @@ void redraw_inven(bool a1)
                 dst_rect.height = art_frame_data.height;
 
                 tig_window_blit_art(inven_ui_window_handle, &art_blit_info);
+
+                if (item_orb_get_type(item_obj) != ORB_NONE) {
+                    int stack_cnt = item_orb_stack_count_get(item_obj);
+                    if (stack_cnt > 1) {
+                        char cnt_str[12];
+                        sprintf(cnt_str, "x%d", stack_cnt);
+                        tig_font_push(dword_682C74);
+                        font_desc.str = cnt_str;
+                        font_desc.width = 0;
+                        tig_font_measure(&font_desc);
+                        dst_rect.x = x + width - font_desc.width;
+                        dst_rect.y = y + height - font_desc.height;
+                        dst_rect.width = font_desc.width;
+                        dst_rect.height = font_desc.height;
+                        tig_window_text_write(inven_ui_window_handle, cnt_str, &dst_rect);
+                        tig_font_pop();
+                    }
+                }
             }
 
             if (palette_modify_info.dst_palette != NULL) {

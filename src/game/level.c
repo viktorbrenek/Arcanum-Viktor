@@ -20,7 +20,7 @@
  * This value can be increased, be sure to modify `stat_max_values` as well,
  * and populate `xp_level.mes` accordingly.
  */
-#define LEVEL_MAX 51
+#define LEVEL_MAX 100
 
 /**
  * The size of log during auto level up.

@@ -61,6 +61,29 @@ const char* item_orb_description(OrbType type)
     return NULL;
 }
 
+int item_orb_stack_count_get(int64_t item_obj)
+{
+    int cnt = obj_arrayfield_int32_get(item_obj, OBJ_F_GENERIC_PAD_IAS_1, 0);
+    return cnt <= 0 ? 1 : cnt;
+}
+
+void item_orb_stack_count_set(int64_t item_obj, int count)
+{
+    obj_arrayfield_int32_set(item_obj, OBJ_F_GENERIC_PAD_IAS_1, 0, count);
+}
+
+int64_t item_orb_find_in_inventory(int64_t critter_obj, OrbType type)
+{
+    int cnt = obj_field_int32_get(critter_obj, OBJ_F_CRITTER_INVENTORY_NUM);
+    for (int i = 0; i < cnt; i++) {
+        int64_t inv_item = obj_arrayfield_handle_get(critter_obj, OBJ_F_CRITTER_INVENTORY_LIST_IDX, i);
+        if (item_orb_get_type(inv_item) == type) {
+            return inv_item;
+        }
+    }
+    return OBJ_HANDLE_NULL;
+}
+
 OrbType item_orb_get_type(int64_t item_obj)
 {
     int t;
@@ -256,11 +279,16 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
     }
 
     if (consumed) {
-        int64_t parent_obj;
-        if (item_parent(item_obj, &parent_obj)) {
-            item_remove(item_obj);
+        int cnt = item_orb_stack_count_get(item_obj);
+        if (cnt > 1) {
+            item_orb_stack_count_set(item_obj, cnt - 1);
+        } else {
+            int64_t parent_obj;
+            if (item_parent(item_obj, &parent_obj)) {
+                item_remove(item_obj);
+            }
+            object_destroy(item_obj);
         }
-        object_destroy(item_obj);
     }
 
     return true;
