@@ -12,7 +12,8 @@
 
 // PAD_I_1 layout:
 //   bits 0-1   CritterRarity (0=Normal, 1=Magic, 2=Rare, 3=Unique)
-//   bits 2-11  bonus bitmask (CRITTER_BONUS_* shifted left by BONUS_SHIFT)
+//   bits 2-13  bonus bitmask (CRITTER_BONUS_* shifted left by BONUS_SHIFT)
+//   bit  14    CRITTER_PAD_ROLLED_FLAG — set after any rarity roll, even NORMAL
 
 #define RARITY_MASK  0x03
 #define BONUS_SHIFT  2
@@ -205,5 +206,13 @@ void critter_rarity_roll(int64_t obj)
         stat_base_set(obj, STAT_STRENGTH, str + ng * 2);
         int wil = stat_base_get(obj, STAT_WILLPOWER);
         stat_base_set(obj, STAT_WILLPOWER, wil + ng * 2);
+    }
+
+    // Mark as rolled — persisted in PAD_I_1 bit 14, survives obj diffs.
+    // Guards against re-rolling on subsequent map loads (NORMAL critters have PAD_I_1 bits 0-1 = 0,
+    // so without this flag the postprocess guard can't distinguish "never rolled" from "rolled NORMAL").
+    {
+        int pad = obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1);
+        obj_field_int32_set(obj, OBJ_F_CRITTER_PAD_I_1, pad | CRITTER_PAD_ROLLED_FLAG);
     }
 }

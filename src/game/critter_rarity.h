@@ -26,6 +26,10 @@ typedef enum CritterRarity {
 #define CRITTER_BONUS_VAMPIRIC     0x400  // +2 life on hit (combat.c LoH hook)
 #define CRITTER_BONUS_THORNED      0x800  // +3 thorns reflected damage (combat.c Thorns hook)
 
+// Bit 14 of PAD_I_1 — set after first rarity roll (even NORMAL result), persisted via obj diffs.
+// Prevents re-rolling on subsequent map loads when PAD_I_1 bits 0-1 are 0 (NORMAL).
+#define CRITTER_PAD_ROLLED_FLAG    (1 << 14)
+
 CritterRarity critter_rarity_get(int64_t obj);
 int critter_rarity_bonus_get(int64_t obj);
 void critter_rarity_roll(int64_t obj);

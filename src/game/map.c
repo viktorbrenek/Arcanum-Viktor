@@ -1350,7 +1350,7 @@ void map_load_postprocess(void)
             }
 
             if (obj_field_int32_get(obj, OBJ_F_TYPE) == OBJ_TYPE_NPC
-                && critter_rarity_get(obj) == CRITTER_RARITY_NORMAL) {
+                && (obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1) & CRITTER_PAD_ROLLED_FLAG) == 0) {
                 critter_rarity_roll(obj);
             }
         } while (obj_inst_next(&obj, &iter));
