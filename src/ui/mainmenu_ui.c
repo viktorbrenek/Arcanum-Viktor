@@ -12,6 +12,7 @@
 #include "game/gsound.h"
 #include "game/hrp.h"
 #include "game/item.h"
+#include "game/ng_plus.h"
 #include "game/item_orb.h"
 #include "game/item_rarity.h"
 #include "game/item_set.h"
@@ -3649,6 +3650,49 @@ void mainmenu_ui_create_single_player(void)
 // 0x5446D0
 void mainmenu_ui_pick_new_or_pregen_create(void)
 {
+    // CE: reset per-save NG+ to 0; player picks level below.
+    ng_plus_reload();
+
+    if (ng_plus_is_unlocked()) {
+        int max_offer = ng_plus_get_last_level() + 1;
+        if (max_offer > NG_PLUS_MAX_LEVEL) max_offer = NG_PLUS_MAX_LEVEL;
+
+        if (max_offer >= 1) {
+            char msg_buf[256];
+            TigWindowModalDialogInfo modal_info;
+            TigWindowModalDialogChoice choice;
+            int offer;
+
+            modal_info.type = TIG_WINDOW_MODAL_DIALOG_TYPE_OK_CANCEL;
+            modal_info.x = 237;
+            modal_info.y = 232;
+            modal_info.text = msg_buf;
+            modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_OK] = 'y';
+            modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_CANCEL] = 'n';
+            modal_info.process = NULL;
+            modal_info.redraw = gamelib_redraw;
+            hrp_center(&(modal_info.x), &(modal_info.y));
+
+            for (offer = max_offer; offer >= 1; offer--) {
+                snprintf(msg_buf, sizeof(msg_buf),
+                    "New Game+ - NG+%d\n"
+                    "Enemies %d%% stronger, better loot.\n"
+                    "Bonus character points: +%d\n"
+                    "%s",
+                    offer, offer * 25, offer,
+                    offer > 1 ? "No = try lower difficulty." : "No = Normal difficulty.");
+                tig_window_modal_dialog(&modal_info, &choice);
+                if (choice == TIG_WINDOW_MODAL_DIALOG_CHOICE_OK) {
+                    ng_plus_set_level(offer);
+                    break;
+                }
+            }
+            if (offer < 1) {
+                ng_plus_set_level(0);
+            }
+        }
+    }
+
     dword_64C454 = CHAREDIT_MODE_CREATE;
     mainmenu_ui_window_type = MM_WINDOW_PICK_NEW_OR_PREGEN;
     mainmenu_ui_create_window();
@@ -3670,6 +3714,15 @@ void mainmenu_ui_new_char_create(void)
     if (!player_obj_create_player(&player_create_info)) {
         tig_debug_printf("MainMenu-UI: mainmenu_ui_create_pick_new_or_pregen: ERROR: Player Creation Failed!\n");
         exit(EXIT_FAILURE);
+    }
+
+    // CE: NG+ bonus points - added here so player sees them in the character roller.
+    {
+        int ng = ng_plus_get_level();
+        if (ng > 0) {
+            stat_base_set(player_create_info.obj, STAT_UNSPENT_POINTS,
+                stat_base_get(player_create_info.obj, STAT_UNSPENT_POINTS) + ng);
+        }
     }
 
     // CE: There's a bug in the original game — the name persists when
@@ -4344,6 +4397,15 @@ bool mainmenu_ui_pregen_char_execute(int btn)
     if (!player_obj_create_player(&player_create_info)) {
         tig_debug_printf("MainMenu-UI: mmUIPregenCharExecuteFunc: ERROR: Player Creation Failed!\n");
         exit(EXIT_FAILURE);
+    }
+
+    // CE: NG+ bonus points for pregen characters.
+    {
+        int ng = ng_plus_get_level();
+        if (ng > 0) {
+            stat_base_set(player_create_info.obj, STAT_UNSPENT_POINTS,
+                stat_base_get(player_create_info.obj, STAT_UNSPENT_POINTS) + ng);
+        }
     }
 
     for (index = 0; index < mainmenu_ui_pregen_char_cnt - 1; index++) {

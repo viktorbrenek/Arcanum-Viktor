@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "game/ng_plus.h"
 #include "game/obj.h"
 #include "game/obj_private.h"
+#include "game/object.h"
 #include "game/random.h"
 #include "game/stat.h"
 
@@ -151,34 +153,57 @@ static void apply_bonus(int64_t obj, int bonus_flags)
     }
 }
 
+// NG+ thresholds: [level][UNIQUE, RARE, MAGIC]
+static const int ng_plus_thresholds[4][3] = {
+    { 98, 83, 53 },  // NG+0 (vanilla)
+    { 95, 75, 40 },  // NG+1
+    { 92, 67, 30 },  // NG+2
+    { 88, 58, 20 },  // NG+3
+};
+
 void critter_rarity_roll(int64_t obj)
 {
     int roll = random_between(1, 100);
-    CritterRarity rarity;
-    int bonus_count;
+    int ng = ng_plus_get_level();
+    const int* thr = ng_plus_thresholds[ng];
 
-    if (roll >= 98) {
+    CritterRarity rarity = CRITTER_RARITY_NORMAL;
+    int bonus_count = 0;
+
+    if (roll >= thr[0]) {
         rarity = CRITTER_RARITY_UNIQUE;
         bonus_count = 3;
-    } else if (roll >= 83) {
+    } else if (roll >= thr[1]) {
         rarity = CRITTER_RARITY_RARE;
         bonus_count = 2;
-    } else if (roll >= 53) {
+    } else if (roll >= thr[2]) {
         rarity = CRITTER_RARITY_MAGIC;
         bonus_count = 1;
-    } else {
-        return;
     }
 
-    int bonus = pick_bonuses(bonus_count);
+    if (rarity != CRITTER_RARITY_NORMAL) {
+        int bonus = pick_bonuses(bonus_count);
 
-    // Boost CON — HP in Arcanum is CON-derived, HP_PTS is 0 at postprocess time.
-    static const int con_bonus[] = { 0, 5, 10, 18 };
-    int con = stat_base_get(obj, STAT_CONSTITUTION);
-    stat_base_set(obj, STAT_CONSTITUTION, con + con_bonus[rarity]);
+        // Boost CON — HP in Arcanum is CON-derived, HP_PTS is 0 at postprocess time.
+        static const int con_bonus[] = { 0, 5, 10, 18 };
+        int con = stat_base_get(obj, STAT_CONSTITUTION);
+        stat_base_set(obj, STAT_CONSTITUTION, con + con_bonus[rarity]);
 
-    apply_bonus(obj, bonus);
+        apply_bonus(obj, bonus);
 
-    obj_field_int32_set(obj, OBJ_F_CRITTER_PAD_I_1,
-        (int)rarity | (bonus << BONUS_SHIFT));
+        obj_field_int32_set(obj, OBJ_F_CRITTER_PAD_I_1,
+            (int)rarity | (bonus << BONUS_SHIFT));
+    }
+
+    // CE: NG+ baseline boost — all critters regardless of rarity.
+    // HP +25% per level (via adj), STR and WIL +2 per level.
+    // WIL feeds both the HP formula (1x) and fatigue formula (1x).
+    if (ng > 0) {
+        int base_hp = object_hp_max(obj);
+        object_hp_adj_set(obj, object_hp_adj_get(obj) + base_hp * ng / 4);
+        int str = stat_base_get(obj, STAT_STRENGTH);
+        stat_base_set(obj, STAT_STRENGTH, str + ng * 2);
+        int wil = stat_base_get(obj, STAT_WILLPOWER);
+        stat_base_set(obj, STAT_WILLPOWER, wil + ng * 2);
+    }
 }

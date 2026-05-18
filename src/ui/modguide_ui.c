@@ -1,6 +1,9 @@
 #include "ui/modguide_ui.h"
 
+#include <stdio.h>
+
 #include "game/hrp.h"
+#include "game/ng_plus.h"
 #include "tig/color.h"
 #include "tig/font.h"
 #include "tig/message.h"
@@ -8,7 +11,7 @@
 #include "tig/window.h"
 
 #define GUIDE_W  480
-#define GUIDE_H  565
+#define GUIDE_H  620
 #define GUIDE_ML 14
 #define GUIDE_LH 18
 #define GUIDE_SH 19
@@ -179,6 +182,28 @@ static void modguide_ui_draw(void)
     r.height = GUIDE_LH;
     tline(&r, guide_font_unique, "Sets = groups of themed unique items with synergy bonuses");
     tline(&r, guide_font_body,   "Equipping 2+ pieces from same set grants partial bonuses");
+
+    r.y += 3;
+    hsep(&r, tig_color_make(140, 110, 40));
+
+    // --- NEW GAME+ STATUS ---
+    {
+        char ng_buf[96];
+        int ng_level = ng_plus_get_level();
+        int ng_last  = ng_plus_get_last_level();
+        if (ng_plus_is_unlocked() && ng_level > 0) {
+            snprintf(ng_buf, sizeof(ng_buf),
+                "New Game+: NG+%d active  (Ctrl+F11 to increment)", ng_level);
+        } else if (ng_plus_is_unlocked()) {
+            snprintf(ng_buf, sizeof(ng_buf),
+                "New Game+: unlocked (last NG+%d - start new game to continue)", ng_last);
+        } else {
+            snprintf(ng_buf, sizeof(ng_buf),
+                "New Game+: locked (beat the game to unlock)");
+        }
+        r.height = GUIDE_LH;
+        tline(&r, guide_font_body, ng_buf);
+    }
 
     r.y += 3;
     hsep(&r, tig_color_make(140, 110, 40));

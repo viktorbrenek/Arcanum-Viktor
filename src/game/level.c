@@ -5,6 +5,7 @@
 #include "game/background.h"
 #include "game/critter.h"
 #include "game/mes.h"
+#include "game/ng_plus.h"
 #include "game/obj.h"
 #include "game/object.h"
 #include "game/player.h"

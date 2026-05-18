@@ -1,7 +1,9 @@
 #include "ui/anim_ui.h"
 
 #include "game/critter.h"
+#include "game/ng_plus.h"
 #include "game/gamelib.h"
+#include "game/stat.h"
 #include "game/gfade.h"
 #include "game/light_scheme.h"
 #include "game/player.h"
@@ -16,6 +18,11 @@
 #include "ui/sleep_ui.h"
 #include "ui/slide_ui.h"
 #include "ui/wmap_ui.h"
+#include "ui/ng_hud_ui.h"
+
+#include "game/hrp.h"
+
+#include <stdio.h>
 
 static bool sub_57D3B0(TimeEvent* timeevent);
 static bool anim_ui_bkg_process_callback(TimeEvent* timeevent);
@@ -187,12 +194,58 @@ bool anim_ui_bkg_process_callback(TimeEvent* timeevent)
             sub_5412D0();
             anim_ui_event_add_delay(ANIM_UI_EVENT_TYPE_END_GAME, -1, 300);
         } else {
+            ng_plus_unlock();
+
             slide_ui_start(SLIDE_UI_TYPE_END_GAME);
 
-            tig_debug_printf("EndGame: Resetting game!\n");
-            gamelib_reset();
-            gameuilib_reset();
-            mainmenu_ui_start(MM_TYPE_DEFAULT);
+            // CE: Offer in-place NG+ upgrade — player keeps their character.
+            {
+                int next_level = ng_plus_get_level() + 1;
+                bool upgraded = false;
+
+                if (next_level <= NG_PLUS_MAX_LEVEL) {
+                    char msg_buf[256];
+                    TigWindowModalDialogInfo modal_info;
+                    TigWindowModalDialogChoice choice;
+                    int64_t pc = player_get_local_pc_obj();
+
+                    snprintf(msg_buf, sizeof(msg_buf),
+                        "Ascend to NG+%d?\n"
+                        "Enemies %d%% stronger, better loot.\n"
+                        "Bonus character point: +1\n"
+                        "No = return to main menu.",
+                        next_level, next_level * 25);
+
+                    modal_info.type = TIG_WINDOW_MODAL_DIALOG_TYPE_OK_CANCEL;
+                    modal_info.x = 237;
+                    modal_info.y = 232;
+                    modal_info.text = msg_buf;
+                    modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_OK] = 'y';
+                    modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_CANCEL] = 'n';
+                    modal_info.process = NULL;
+                    modal_info.redraw = gamelib_redraw;
+                    hrp_center(&(modal_info.x), &(modal_info.y));
+
+                    tig_window_modal_dialog(&modal_info, &choice);
+
+                    if (choice == TIG_WINDOW_MODAL_DIALOG_CHOICE_OK) {
+                        ng_plus_increment();
+                        if (pc != OBJ_HANDLE_NULL) {
+                            stat_base_set(pc, STAT_UNSPENT_POINTS,
+                                stat_base_get(pc, STAT_UNSPENT_POINTS) + 1);
+                        }
+                        ng_hud_ui_refresh();
+                        upgraded = true;
+                    }
+                }
+
+                if (!upgraded) {
+                    tig_debug_printf("EndGame: Resetting game!\n");
+                    gamelib_reset();
+                    gameuilib_reset();
+                    mainmenu_ui_start(MM_TYPE_DEFAULT);
+                }
+            }
 
             fade_data.flags = FADE_IN;
             fade_data.duration = 2.0f;

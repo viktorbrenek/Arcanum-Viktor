@@ -42,6 +42,7 @@
 #include "game/multiplayer.h"
 #include "game/name.h"
 #include "game/newspaper.h"
+#include "game/ng_plus.h"
 #include "game/party.h"
 #include "game/player.h"
 #include "game/portrait.h"
@@ -1109,6 +1110,10 @@ bool gamelib_load(const char* name)
     }
     duration = tig_timer_elapsed(time);
     tig_debug_printf("done.  Time (ms): %d\n", duration);
+
+    // CE: reload NG+ level before module loaders so critter/item scaling uses the
+    // correct level for this save, not the stale level from the previously loaded save.
+    ng_plus_reload();
 
     stream = tig_file_fopen("Save\\Current\\data.sav", "rb");
     if (stream == NULL) {

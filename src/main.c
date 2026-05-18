@@ -48,7 +48,9 @@
 #include "ui/logbook_ui.h"
 #include "ui/mainmenu_ui.h"
 #include "ui/textedit_ui.h"
+#include "game/ng_plus.h"
 #include "ui/modguide_ui.h"
+#include "ui/ng_hud_ui.h"
 #include "ui/wmap_rnd.h"
 #include "ui/wmap_ui.h"
 
@@ -278,6 +280,7 @@ int main(int argc, char** argv)
         return EXIT_SUCCESS; // FIXME: Should be `EXIT_FAILURE`.
     }
 
+    ng_plus_init();
     modguide_ui_init();
 
     if (!gamelib_mod_load(gamelib_default_module_name_get())) {
@@ -322,6 +325,7 @@ int main(int argc, char** argv)
     gameuilib_mod_unload();
     gamelib_mod_unload();
     modguide_ui_exit();
+    ng_plus_exit();
     gameuilib_exit();
     gamelib_exit();
     tig_exit();
@@ -510,6 +514,61 @@ void main_loop(void)
                             iso_interface_refresh();
                             intgame_draw_bar(INTGAME_BAR_HEALTH);
                             intgame_draw_bar(INTGAME_BAR_FATIGUE);
+                        }
+                        // CE: Ctrl+F11 offers NG+ upgrade for testing.
+                        if (tig_kb_get_modifier(SDL_KMOD_CTRL)) {
+                            UiMessage ng_ui_msg;
+                            static char ng_msg_buf[64];
+                            int next_ng = ng_plus_get_level() + 1;
+                            ng_plus_unlock();
+                            if (next_ng <= NG_PLUS_MAX_LEVEL) {
+                                char modal_buf[256];
+                                TigWindowModalDialogInfo modal_info;
+                                TigWindowModalDialogChoice choice;
+                                snprintf(modal_buf, sizeof(modal_buf),
+                                    "Ascend to NG+%d? [DEBUG]\n"
+                                    "Enemies %d%% stronger, better loot.\n"
+                                    "Bonus character point: +1",
+                                    next_ng, next_ng * 25);
+                                modal_info.type = TIG_WINDOW_MODAL_DIALOG_TYPE_OK_CANCEL;
+                                modal_info.x = 237;
+                                modal_info.y = 232;
+                                modal_info.text = modal_buf;
+                                modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_OK] = 'y';
+                                modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_CANCEL] = 'n';
+                                modal_info.process = NULL;
+                                modal_info.redraw = gamelib_redraw;
+                                hrp_center(&(modal_info.x), &(modal_info.y));
+                                tig_window_modal_dialog(&modal_info, &choice);
+                                if (choice == TIG_WINDOW_MODAL_DIALOG_CHOICE_OK) {
+                                    int64_t dbg_pc = player_get_local_pc_obj();
+                                    ng_plus_increment();
+                                    if (dbg_pc != OBJ_HANDLE_NULL) {
+                                        stat_base_set(dbg_pc, STAT_UNSPENT_POINTS,
+                                            stat_base_get(dbg_pc, STAT_UNSPENT_POINTS) + 1);
+                                    }
+                                    ng_hud_ui_refresh();
+                                    snprintf(ng_msg_buf, sizeof(ng_msg_buf),
+                                        "NG+%d active", ng_plus_get_level());
+                                    ng_ui_msg.type = UI_MSG_TYPE_FEEDBACK;
+                                    ng_ui_msg.str = ng_msg_buf;
+                                    ng_ui_msg.field_8 = 0;
+                                    ng_ui_msg.field_C = 0;
+                                    ng_ui_msg.field_10 = 0;
+                                    ui_display_msg(&ng_ui_msg);
+                                }
+                            } else {
+                                snprintf(ng_msg_buf, sizeof(ng_msg_buf),
+                                    "NG+ already at max (%d)", ng_plus_get_level());
+                                ng_ui_msg.type = UI_MSG_TYPE_FEEDBACK;
+                                ng_ui_msg.str = ng_msg_buf;
+                                ng_ui_msg.field_8 = 0;
+                                ng_ui_msg.field_C = 0;
+                                ng_ui_msg.field_10 = 0;
+                                ui_display_msg(&ng_ui_msg);
+                            }
+                            tig_debug_printf("NG+ Debug: unlocked=%d level=%d\n",
+                                (int)ng_plus_is_unlocked(), ng_plus_get_level());
                         }
                         break;
                     default:

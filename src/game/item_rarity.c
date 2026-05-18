@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "game/damage_type.h"
+#include "game/ng_plus.h"
 #include "game/item.h"
 #include "game/item_set.h"
 #include "game/obj.h"
@@ -765,21 +766,24 @@ static void bake_extra(int64_t item_obj, int field, int field_idx, int value)
 // Rarity roll
 // ---------------------------------------------------------------------------
 
-// Rarity probability thresholds (cumulative, out of 100):
-//   CURSED   :  1%
-//   UNIQUE   :  3%
-//   EPIC     :  8%
-//   RARE     : 20%
-//   UNCOMMON : 45%
-//   COMMON   : 100%
+// NG+ rarity thresholds (cumulative, out of 100):
+// [level] { CURSED, UNIQUE, EPIC, RARE, UNCOMMON }
+static const int ng_plus_item_thresholds[4][5] = {
+    {  1,  3,  8, 20, 45 },  // NG+0 (vanilla)
+    {  2,  5, 13, 30, 55 },  // NG+1
+    {  3,  8, 18, 38, 60 },  // NG+2
+    {  4, 12, 24, 45, 65 },  // NG+3
+};
+
 static ItemRarity roll_rarity(void)
 {
     int r = random_between(1, 100);
-    if (r <= 1)  return ITEM_RARITY_CURSED;
-    if (r <= 3)  return ITEM_RARITY_UNIQUE;
-    if (r <= 8)  return ITEM_RARITY_EPIC;
-    if (r <= 20) return ITEM_RARITY_RARE;
-    if (r <= 45) return ITEM_RARITY_UNCOMMON;
+    const int* t = ng_plus_item_thresholds[ng_plus_get_level()];
+    if (r <= t[0]) return ITEM_RARITY_CURSED;
+    if (r <= t[1]) return ITEM_RARITY_UNIQUE;
+    if (r <= t[2]) return ITEM_RARITY_EPIC;
+    if (r <= t[3]) return ITEM_RARITY_RARE;
+    if (r <= t[4]) return ITEM_RARITY_UNCOMMON;
     return ITEM_RARITY_COMMON;
 }
 

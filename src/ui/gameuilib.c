@@ -1,7 +1,9 @@
 #include "ui/gameuilib.h"
 
 #include "game/gamelib.h"
+#include "game/ng_plus.h"
 #include "game/target.h"
+#include "ui/ng_hud_ui.h"
 #include "ui/anim_ui.h"
 #include "ui/broadcast_ui.h"
 #include "ui/charedit_ui.h"
@@ -349,6 +351,9 @@ bool gameuilib_save(void)
         return false;
     }
 
+    // CE: flush NG+ level to Save\Current so it gets archived with this save.
+    ng_plus_save();
+
     return true;
 }
 
@@ -430,6 +435,10 @@ bool gameuilib_load(void)
         // One of the module failed to read data.
         return false;
     }
+
+    // CE: reload per-save NG+ state from Save\Current after archive extraction.
+    ng_plus_reload();
+    ng_hud_ui_refresh();
 
     return true;
 }

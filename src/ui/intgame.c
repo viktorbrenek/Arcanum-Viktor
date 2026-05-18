@@ -56,6 +56,7 @@
 #include "ui/item_ui.h"
 #include "ui/logbook_ui.h"
 #include "ui/mainmenu_ui.h"
+#include "ui/ng_hud_ui.h"
 #include "ui/roller_ui.h"
 #include "ui/schematic_ui.h"
 #include "ui/scrollbar_ui.h"
@@ -875,7 +876,7 @@ static UiPrimaryButton intgame_map_button;
 static tig_font_handle_t intgame_morph15_orange_font;
 static tig_font_handle_t intgame_morph15_green_font;
 static tig_font_handle_t intgame_morph15_purple_font;
-static tig_font_handle_t intgame_morph15_gold_font;
+tig_font_handle_t intgame_morph15_gold_font;
 
 // 0x64C540
 static UiMessage intgame_message_history[MAX_MESSAGE_HISTORY_ITEMS];
@@ -1310,6 +1311,7 @@ void iso_interface_create(tig_window_handle_t window_handle)
 
     intgame_iso_interface_created = true;
     dword_64C530 = 0;
+    ng_hud_ui_show();
 
     for (index = 0; index < 11; index++) {
         iwid = find_interface_window_index(intgame_rotwin_text_frame[index].rect.x, intgame_rotwin_text_frame[index].rect.y);
@@ -1431,6 +1433,8 @@ void iso_interface_destroy(void)
     int index;
 
     if (intgame_iso_interface_created) {
+        ng_hud_ui_hide();
+
         for (index = 0; index < 2; index++) {
             tig_window_destroy(dword_64C4F8[index]);
         }

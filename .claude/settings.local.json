@@ -62,7 +62,13 @@
       "Bash(awk '/^static void ai_danger_source.*{/,/^}$/{print NR\": \"$0}' ai.c)",
       "Bash(cmake --build out/build/windows-x64 --config Release --target arcanum-ce -- -m)",
       "Bash(dir \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\extracted\\\\arc3\\\\arcanum3\\\\proto\\\\npc\")",
-      "Bash(cmake --build out/build/windows-x64 --config Release --target arcanum-ce)"
+      "Bash(cmake --build out/build/windows-x64 --config Release --target arcanum-ce)",
+      "Bash(cmake --build \"out/build/windows-x64\" --target arcanum --config Debug)",
+      "Bash(cmake --build \"out/build/windows-x64\" --config Debug)",
+      "Bash(findstr /R \"proto_instantiate\" \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\src\\\\game\\\\*.c\")",
+      "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\subbrains\\\\arcanum\" -Force | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\subbrains\\\\arcanum\\\\wiki\" -Recurse -Force | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\shared\" -Recurse -Force | ForEach-Object { $_.FullName })"
     ]
   }
 }
