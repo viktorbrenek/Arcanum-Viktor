@@ -70,7 +70,8 @@
       "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\subbrains\\\\arcanum\\\\wiki\" -Recurse -Force | ForEach-Object { $_.FullName })",
       "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\shared\" -Recurse -Force | ForEach-Object { $_.FullName })",
       "Bash(cmake --build \"out/build/windows-x64\" --target arcanum)",
-      "Bash(cmake --build \"out/build/windows-x64\" --target arcanum-ce)"
+      "Bash(cmake --build \"out/build/windows-x64\" --target arcanum-ce)",
+      "Bash(git log *)"
     ]
   }
 }

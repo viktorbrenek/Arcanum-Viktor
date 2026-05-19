@@ -627,6 +627,12 @@ bool item_transfer(int64_t item_obj, int64_t critter_obj)
                 item_orb_stack_count_set(existing, item_orb_stack_count_get(existing) + 1);
                 if (item_parent(item_obj, NULL)) {
                     item_remove(item_obj);
+                    if (dword_5E8820) {
+                        // item_remove failed — handle still in parent inventory list.
+                        // Destroying now would leave a dangling handle → obj_validate_system fail.
+                        item_orb_stack_count_set(existing, item_orb_stack_count_get(existing) - 1);
+                        return false;
+                    }
                 }
                 object_destroy(item_obj);
                 return true;
