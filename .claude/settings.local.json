@@ -92,7 +92,32 @@
       "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v \"C:\\\\Temp\\\\x4view\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
       "PowerShell(& \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v -u \"C:\\\\Temp\\\\a4extract\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\" 2>&1 | Select-Object -First 10)",
       "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\utilities\\\\DATBuilder\\\\datbuilder.exe\" --help)",
-      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\utilities\\\\DATBuilder\\\\datbuilder.exe\" -h)"
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\utilities\\\\DATBuilder\\\\datbuilder.exe\" -h)",
+      "PowerShell(Get-ChildItem \"d:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\\\\PATCH1_extracted\" -Recurse -File | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\\\\Races_extracted\" -Recurse -File | ForEach-Object { $_.FullName.Replace\\(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum - kopie\\\\Races_extracted\\\\ArcanumXRaces\\\\\",\"\"\\) })",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum - kopie/Races_extracted/ArcanumXRaces/portrait/DEF1.bmp\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/DEF1.bmp\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum - kopie/Races_extracted/ArcanumXRaces/portrait/DEF1_b.bmp\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/DEF1_b.bmp\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum - kopie/Races_extracted/ArcanumXRaces/portrait/DEF2.bmp\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/DEF2.bmp\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum - kopie/Races_extracted/ArcanumXRaces/portrait/DEF2_b.bmp\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/DEF2_b.bmp\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum - kopie/Races_extracted/ArcanumXRaces/portrait/DEM1.bmp\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/DEM1.bmp\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/DE\"*.bmp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/arcanum3/portrait/\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/OG\"*.bmp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/arcanum3/portrait/\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/OC\"*.bmp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/arcanum3/portrait/\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/portrait/gameport.mes\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/arcanum3/portrait/gameport.mes\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/rules/backgrnd.mes\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/arcanum3/rules/backgrnd.mes\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/rules/effect.mes\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/arcanum3/rules/effect.mes\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/mes/gameback.mes\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/arcanum3/mes/gameback.mes\")",
+      "Bash(cp \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3/mes/MainMenu.mes\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/arcanum3/mes/MainMenu.mes\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(cmake --build out/build/windows-x64 --config Release --parallel)",
+      "Bash(grep -i \"rules\\\\|mes/\\\\|mes\\\\\\\\\\\\\\\\\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3.lst\")",
+      "Bash(grep \"^rules\\\\\\\\\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3.lst\")",
+      "Bash(grep \"^mes\\\\\\\\\\\\\\\\\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum3.lst\")",
+      "Bash(cmake --build out/build/windows-x64 --config Release --clean-first --parallel)",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\modules\\\\Arcanum\\\\portrait\\\\\" | Where-Object { $_.Name -match '^\\(DE|OG|OC\\)' } | Select-Object Name | Select-Object -First 20)",
+      "Bash(cmake --build build --target arcanum-ce)",
+      "PowerShell(Copy-Item *)"
     ]
   }
 }

@@ -13182,11 +13182,7 @@ bool sub_433270(AnimRunInfo* run_info)
         return false;
     }
 
-    if (player_is_local_pc_obj(run_info->anim_obj)) {
-        return true;
-    }
-
-    return combat_consume_action_points(obj, 2);
+    return combat_consume_action_points(obj, 4);
 }
 
 // 0x4332E0
@@ -14091,7 +14087,7 @@ bool anim_goal_throw_item(int64_t obj, int64_t item_obj, int64_t target_loc)
 
     ASSERT(item_obj != OBJ_HANDLE_NULL); // itemObj != OBJ_HANDLE_NULL
 
-    if (!sub_4348E0(obj, 0)) {
+    if (!sub_4348E0(obj, 4)) {
         return false;
     }
 

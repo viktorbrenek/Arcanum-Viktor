@@ -598,6 +598,9 @@ int stat_base_get(int64_t obj, int stat)
             break;
         case STAT_HEAL_RATE:
             value = (stat_level_get(obj, STAT_CONSTITUTION) + 1) / 3;
+            if (value < 1) {
+                value = 1;
+            }
             break;
         case STAT_POISON_RECOVERY:
             value = stat_level_get(obj, STAT_CONSTITUTION);

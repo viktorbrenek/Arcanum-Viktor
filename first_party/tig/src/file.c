@@ -1746,39 +1746,58 @@ int tig_file_open_internal_native(const char* path, const char* mode, TigFile* s
     } else {
         ignored = tig_file_ignored(path);
 
-        repo = tig_file_repositories_head;
-        while (repo != NULL) {
-            if ((repo->type & TIG_FILE_REPOSITORY_DATABASE) != 0
-                && (ignored & TIG_FILE_IGNORE_DATABASE) == 0
-                && tig_database_get_entry(repo->database, path, &database_entry)) {
-                if ((database_entry->flags & (TIG_DATABASE_ENTRY_0x100 | TIG_DATABASE_ENTRY_0x200)) != 0
-                    || mode[0] == 'w') {
-                    writeable_repo = tig_file_repositories_head;
-                    while (writeable_repo != repo) {
-                        if ((writeable_repo->type & TIG_FILE_REPOSITORY_DIRECTORY) != 0) {
-                            compat_join_path(mutable_path, sizeof(mutable_path), writeable_repo->path, path);
-                            compat_resolve_path(mutable_path);
-
-                            stream->impl.plain_file_stream = fopen(mutable_path, mode);
-                            if (stream->impl.plain_file_stream != NULL) {
-                                stream->flags |= TIG_FILE_PLAIN;
-                                database_entry->flags &= ~TIG_DATABASE_ENTRY_0x100;
-                                database_entry->flags |= TIG_DATABASE_ENTRY_0x200;
-                                break;
-                            }
-                        }
-                        writeable_repo = writeable_repo->next;
+        // Read mode: check directory repos first so loose files override packed .dat files
+        if (mode[0] != 'w' && (ignored & TIG_FILE_PLAIN) == 0) {
+            repo = tig_file_repositories_head;
+            while (repo != NULL) {
+                if ((repo->type & TIG_FILE_REPOSITORY_DIRECTORY) != 0) {
+                    compat_join_path(mutable_path, sizeof(mutable_path), repo->path, path);
+                    compat_resolve_path(mutable_path);
+                    stream->impl.plain_file_stream = fopen(mutable_path, mode);
+                    if (stream->impl.plain_file_stream != NULL) {
+                        stream->flags |= TIG_FILE_PLAIN;
+                        break;
                     }
                 }
-
-                if ((stream->flags & TIG_FILE_PLAIN) == 0) {
-                    database_entry->flags &= ~(TIG_DATABASE_ENTRY_0x100 | TIG_DATABASE_ENTRY_0x200);
-                    stream->impl.database_file_stream = tig_database_fopen_entry(repo->database, database_entry, mode);
-                    stream->flags |= TIG_FILE_DATABASE;
-                }
-                break;
+                repo = repo->next;
             }
-            repo = repo->next;
+        }
+
+        if ((stream->flags & TIG_FILE_PLAIN) == 0) {
+            repo = tig_file_repositories_head;
+            while (repo != NULL) {
+                if ((repo->type & TIG_FILE_REPOSITORY_DATABASE) != 0
+                    && (ignored & TIG_FILE_IGNORE_DATABASE) == 0
+                    && tig_database_get_entry(repo->database, path, &database_entry)) {
+                    if ((database_entry->flags & (TIG_DATABASE_ENTRY_0x100 | TIG_DATABASE_ENTRY_0x200)) != 0
+                        || mode[0] == 'w') {
+                        writeable_repo = tig_file_repositories_head;
+                        while (writeable_repo != repo) {
+                            if ((writeable_repo->type & TIG_FILE_REPOSITORY_DIRECTORY) != 0) {
+                                compat_join_path(mutable_path, sizeof(mutable_path), writeable_repo->path, path);
+                                compat_resolve_path(mutable_path);
+
+                                stream->impl.plain_file_stream = fopen(mutable_path, mode);
+                                if (stream->impl.plain_file_stream != NULL) {
+                                    stream->flags |= TIG_FILE_PLAIN;
+                                    database_entry->flags &= ~TIG_DATABASE_ENTRY_0x100;
+                                    database_entry->flags |= TIG_DATABASE_ENTRY_0x200;
+                                    break;
+                                }
+                            }
+                            writeable_repo = writeable_repo->next;
+                        }
+                    }
+
+                    if ((stream->flags & TIG_FILE_PLAIN) == 0) {
+                        database_entry->flags &= ~(TIG_DATABASE_ENTRY_0x100 | TIG_DATABASE_ENTRY_0x200);
+                        stream->impl.database_file_stream = tig_database_fopen_entry(repo->database, database_entry, mode);
+                        stream->flags |= TIG_FILE_DATABASE;
+                    }
+                    break;
+                }
+                repo = repo->next;
+            }
         }
 
         if ((stream->flags & (TIG_FILE_DATABASE | TIG_FILE_PLAIN)) == 0

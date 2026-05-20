@@ -1198,6 +1198,7 @@ bool intgame_load(GameLoadInfo* load_info)
 
     intgame_counters_refresh();
     intgame_refresh_cursor();
+    intgame_mt_button_disable();
     intgame_mt_button_enable();
 
     obj = player_get_local_pc_obj();
