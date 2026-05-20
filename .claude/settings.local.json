@@ -119,7 +119,10 @@
       "Bash(cmake --build build --target arcanum-ce)",
       "PowerShell(Copy-Item *)",
       "PowerShell(\\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_m2m.mes\" | Measure-Object -Line\\).Lines)",
-      "PowerShell(\\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_m2f.mes\" | Measure-Object -Line\\).Lines; \\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_f2m.mes\" | Measure-Object -Line\\).Lines; \\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_f2f.mes\" | Measure-Object -Line\\).Lines)"
+      "PowerShell(\\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_m2f.mes\" | Measure-Object -Line\\).Lines; \\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_f2m.mes\" | Measure-Object -Line\\).Lines; \\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_f2f.mes\" | Measure-Object -Line\\).Lines)",
+      "Bash(cmake --build \"out/build/windows-x64\" --config Release)",
+      "Bash(copy \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\\\\Release\\\\arcanum-ce.exe\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum-ce.exe\")",
+      "Bash(copy \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\\\\Release\\\\arcanum-ce.exe\" \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce-dist\\\\arcanum-ce.exe\")"
     ]
   }
 }
