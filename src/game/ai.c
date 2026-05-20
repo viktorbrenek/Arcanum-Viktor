@@ -3443,7 +3443,8 @@ int ai_check_kos(int64_t source_obj, int64_t target_obj)
             ai_danger_source(source_obj, &danger_source_type, &danger_source_obj);
 
             if (danger_source_type != AI_DANGER_SOURCE_TYPE_SURRENDER || danger_source_obj != target_obj) {
-                if (pc_leader_obj == OBJ_HANDLE_NULL) {
+                if (pc_leader_obj == OBJ_HANDLE_NULL
+                    && (obj_field_int32_get(source_obj, OBJ_F_SPELL_FLAGS) & OSF_SUMMONED) == 0) {
                     npc_flags = obj_field_int32_get(source_obj, OBJ_F_NPC_FLAGS);
                     if ((npc_flags & ONF_KOS) != 0) {
                         critter_flags = obj_field_int32_get(source_obj, OBJ_F_CRITTER_FLAGS);
@@ -3611,6 +3612,13 @@ int ai_check_use_skill(int64_t source_obj, int64_t target_obj, int64_t item_obj,
 int sub_4AE720(int64_t attacker_obj, int64_t item_obj, int64_t target_obj, int spell)
 {
     int attacker_obj_type = obj_field_int32_get(attacker_obj, OBJ_F_TYPE);
+
+    // UAP: Purity of Water is a beauty buff — useless in combat; skip it.
+    if (spell == SPELL_PURITY_OF_WATER
+        && attacker_obj_type == OBJ_TYPE_NPC
+        && combat_critter_is_combat_mode_active(attacker_obj)) {
+        return 1;
+    }
 
     if (item_obj != OBJ_HANDLE_NULL) {
         if (attacker_obj_type == OBJ_TYPE_NPC

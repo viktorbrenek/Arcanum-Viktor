@@ -129,11 +129,12 @@ static char name_gender_codes[3] = {
 
 // 0x5A11A4
 static const char* name_body_type_strs[TIG_ART_CRITTER_BODY_TYPE_COUNT] = {
-    /*     TIG_ART_CRITTER_BODY_TYPE_HUMAN */ "HM",
-    /*     TIG_ART_CRITTER_BODY_TYPE_DWARF */ "DF",
-    /*  TIG_ART_CRITTER_BODY_TYPE_HALFLING */ "GH",
-    /* TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE */ "HG",
-    /*       TIG_ART_CRITTER_BODY_TYPE_ELF */ "EF",
+    /*       TIG_ART_CRITTER_BODY_TYPE_HUMAN */ "HM",
+    /*       TIG_ART_CRITTER_BODY_TYPE_DWARF */ "DF",
+    /*    TIG_ART_CRITTER_BODY_TYPE_HALFLING */ "GH",
+    /*   TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE */ "HG",
+    /*         TIG_ART_CRITTER_BODY_TYPE_ELF */ "EF",
+    /* TIG_ART_CRITTER_BODY_TYPE_LIZARD_MAN */ "LI",
 };
 
 // 0x5A11B8
@@ -415,7 +416,7 @@ void name_missing_art_init(void)
     tig_art_id_t aid;
     MesFileEntry mes_file_entry;
 
-    num_critter_art = 10;
+    num_critter_art = TIG_ART_CRITTER_BODY_TYPE_COUNT * 2;
     num_monster_art = mes_num_entries(name_monster_mes_file);
     num_unique_npc_art = mes_num_entries(name_unique_npc_mes_file);
 

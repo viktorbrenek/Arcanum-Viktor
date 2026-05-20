@@ -2153,6 +2153,13 @@ bool critter_is_monstrous(int64_t critter_obj)
         return false;
     }
 
+    // Ogres and Orcs are playable races, not monsters — their OCF_MONSTER flag
+    // was set in vanilla only because race icons were lost late in development.
+    int race = stat_base_get(critter_obj, STAT_RACE);
+    if (race == RACE_OGRE || race == RACE_ORC) {
+        return false;
+    }
+
     // Check for monstrous flags.
     critter_flags = obj_field_int32_get(critter_obj, OBJ_F_CRITTER_FLAGS);
     if ((critter_flags & (OCF_MECHANICAL | OCF_MONSTER | OCF_ANIMAL | OCF_UNDEAD)) == 0) {

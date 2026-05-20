@@ -338,7 +338,10 @@ void broadcast_msg_client(int64_t pc_obj, Broadcast* bcast)
                     found = false;
                     break;
                 case BROADCAST_CMD_TYPE_ATTACK:
-                    target_obj = object_hover_obj_get();
+                    // UAP fix: use object handle stored in bcast->loc by
+                    // follower_ui_execute_order instead of the unreliable hover
+                    // object (which can be stale or wrong at dispatch time).
+                    target_obj = bcast->loc;
                     if (target_obj != OBJ_HANDLE_NULL
                         && (combat_critter_is_combat_mode_active(pc_obj)
                             || critter_pc_leader_get(target_obj) != candidate_obj)) {

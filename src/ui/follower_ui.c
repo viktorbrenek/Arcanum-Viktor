@@ -953,9 +953,10 @@ void follower_ui_execute_order(TargetDescriptor* td)
             num = FOLLOWER_UI_COMMAND_WALK;
             bcast.loc = td->loc;
         } else {
-            // Attack
+            // Attack - store enemy object handle so broadcast handler can attack
+            // the correct target regardless of hover state at dispatch time.
             num = FOLLOWER_UI_COMMAND_ATTACK;
-            bcast.loc = obj_field_int64_get(td->obj, OBJ_F_LOCATION);
+            bcast.loc = td->obj;
         }
 
         mes_file_entry.num = num;

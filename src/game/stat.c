@@ -938,13 +938,20 @@ int stat_level_max(int64_t obj, int stat)
         }
         break;
     case RACE_ELF:
-    case RACE_DARK_ELF:
         if (stat == STAT_DEXTERITY || stat == STAT_BEAUTY || stat == STAT_WILLPOWER) {
             return 21;
         }
         break;
+    case RACE_DARK_ELF:
+        if (stat == STAT_DEXTERITY || stat == STAT_BEAUTY || stat == STAT_WILLPOWER) {
+            return 21;
+        }
+        if (stat == STAT_ALIGNMENT) {
+            return -10;
+        }
+        break;
     case RACE_HALF_ELF:
-        if (stat == STAT_DEXTERITY) {
+        if (stat == STAT_DEXTERITY || stat == STAT_BEAUTY) {
             return 21;
         }
         break;
@@ -971,6 +978,14 @@ int stat_level_max(int64_t obj, int stat)
     case RACE_ORC:
         if (stat == STAT_STRENGTH || stat == STAT_CONSTITUTION) {
             return 22;
+        }
+        break;
+    case RACE_LIZARD_MAN:
+        if (stat == STAT_STRENGTH) {
+            return 22;
+        }
+        if (stat == STAT_CONSTITUTION || stat == STAT_PERCEPTION) {
+            return 21;
         }
         break;
     }

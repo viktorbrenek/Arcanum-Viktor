@@ -532,6 +532,7 @@ static int intgame_race_icons[RACE_COUNT] = {
     /*  RACE_DARK_ELF */ 376, // raceelficon.art
     /*      RACE_OGRE */ 382, // racehogreicon.art
     /*       RACE_ORC */ 381, // racehorcicon.art
+    /* RACE_LIZARD_MAN */ 381, // racehorcicon.art (placeholder)
 };
 
 // 0x5C6FCC

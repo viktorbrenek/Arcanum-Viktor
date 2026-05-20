@@ -1734,6 +1734,17 @@ int script_execute_action(ScriptAction* action, int line, ScriptState* state)
         int64_t npc_obj = script_get_obj(action->op_type[0], action->op_value[0], state);
         int64_t pc_obj = script_get_obj(action->op_type[1], action->op_value[1], state);
         int value = script_get_value(action->op_type[2], action->op_value[2], state);
+        // UAP: Barbarian armor reaction penalty should only affect dialog, not
+        // stored per-NPC reaction. Skip adjustments from equip/unequip scripts
+        // so ugly characters don't get KOS purely from cosmetic armor.
+        if (state->invocation != NULL
+            && (state->invocation->attachment_point == SAP_WIELD_ON
+                || state->invocation->attachment_point == SAP_WIELD_OFF)
+            && tig_art_critter_id_armor_get(
+                obj_field_int32_get(state->invocation->attachee_obj, OBJ_F_CURRENT_AID))
+               == TIG_ART_ARMOR_TYPE_BARBARIAN) {
+            return NEXT;
+        }
         reaction_adj(npc_obj, pc_obj, value);
         return NEXT;
     }

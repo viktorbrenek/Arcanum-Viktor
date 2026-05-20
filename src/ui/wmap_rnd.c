@@ -509,8 +509,7 @@ bool wmap_rnd_mod_load(void)
             }
 
             // Maximum player level required for this entry to be eligible.
-            // TODO: Check, probably should be "MaxLevel:".
-            if (tig_str_parse_named_value(&str, "MinLevel:", &value)) {
+            if (tig_str_parse_named_value(&str, "MaxLevel:", &value)) {
                 if (value < 0 || value > 32000) {
                     tig_debug_printf("WmapRnd: Init: ERROR: MaxLevel Value Wrong: Line: %d.\n", mes_file_entry.num);
                     tig_debug_println("Disabling random encounters because of bad message file.");

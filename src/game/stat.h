@@ -56,6 +56,7 @@ typedef enum Race {
     RACE_DARK_ELF,
     RACE_OGRE,
     RACE_ORC,
+    RACE_LIZARD_MAN,
     RACE_COUNT,
 } Race;
 

@@ -93,6 +93,7 @@ static unsigned int item_race_to_armor_size_tbl[RACE_COUNT] = {
     /*  RACE_DARK_ELF */ OARF_SIZE_MEDIUM,
     /*      RACE_OGRE */ OARF_SIZE_LARGE,
     /*       RACE_ORC */ OARF_SIZE_MEDIUM,
+    /* RACE_LIZARD_MAN */ OARF_SIZE_MEDIUM,
 };
 
 // 0x5B32EC

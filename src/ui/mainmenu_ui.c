@@ -1105,17 +1105,18 @@ static struct {
     int body_type;
     bool available_for_female;
 } stru_5C5170[] = {
-    /*     RACE_HUMAN */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, true },
-    /*     RACE_DWARF */ { TIG_ART_CRITTER_BODY_TYPE_DWARF, false },
-    /*       RACE_ELF */ { TIG_ART_CRITTER_BODY_TYPE_ELF, true },
-    /*  RACE_HALF_ELF */ { TIG_ART_CRITTER_BODY_TYPE_ELF, true },
-    /*     RACE_GNOME */ { TIG_ART_CRITTER_BODY_TYPE_HALFLING, false },
-    /*  RACE_HALFLING */ { TIG_ART_CRITTER_BODY_TYPE_HALFLING, false },
-    /*  RACE_HALF_ORC */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, true },
-    /* RACE_HALF_OGRE */ { TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE, false },
-    /*  RACE_DARK_ELF */ { TIG_ART_CRITTER_BODY_TYPE_ELF, true },
-    /*      RACE_OGRE */ { TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE, false },
-    /*       RACE_ORC */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, false },
+    /*      RACE_HUMAN */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, true },
+    /*      RACE_DWARF */ { TIG_ART_CRITTER_BODY_TYPE_DWARF, false },
+    /*        RACE_ELF */ { TIG_ART_CRITTER_BODY_TYPE_ELF, true },
+    /*   RACE_HALF_ELF */ { TIG_ART_CRITTER_BODY_TYPE_ELF, true },
+    /*      RACE_GNOME */ { TIG_ART_CRITTER_BODY_TYPE_HALFLING, false },
+    /*   RACE_HALFLING */ { TIG_ART_CRITTER_BODY_TYPE_HALFLING, false },
+    /*   RACE_HALF_ORC */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, true },
+    /*  RACE_HALF_OGRE */ { TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE, false },
+    /*   RACE_DARK_ELF */ { TIG_ART_CRITTER_BODY_TYPE_ELF, true },
+    /*       RACE_OGRE */ { TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE, false },
+    /*        RACE_ORC */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, false },
+    /* RACE_LIZARD_MAN */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, false },
 };
 
 // 0x5C51B0
@@ -4132,7 +4133,7 @@ bool mainmenu_ui_new_char_prev_race(int64_t obj)
             return false;
         }
     } else {
-        race = RACE_ORC;
+        race = RACE_LIZARD_MAN;
         if (stat_level_get(obj, STAT_GENDER) == GENDER_FEMALE) {
             while (race >= 0 && !stru_5C5170[race].available_for_female) {
                 race--;
@@ -4181,11 +4182,11 @@ bool mainmenu_ui_new_char_next_race(int64_t obj)
     int race;
 
     race = stat_level_get(obj, STAT_RACE);
-    if (race < RACE_ORC) {
+    if (race < RACE_LIZARD_MAN) {
         if (stat_level_get(obj, STAT_GENDER) == GENDER_FEMALE) {
             do {
                 race++;
-            } while (race < RACE_ORC && !stru_5C5170[race].available_for_female);
+            } while (race < RACE_LIZARD_MAN && !stru_5C5170[race].available_for_female);
 
             if (!stru_5C5170[race].available_for_female) {
                 race = RACE_HUMAN;

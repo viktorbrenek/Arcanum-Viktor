@@ -14,17 +14,18 @@ static bool portrait_is_valid(int64_t obj, const char* str);
  * 0x5B7C0C
  */
 static const char* portrait_race_specifiers[RACE_COUNT] = {
-    /*     RACE_HUMAN */ "HU",
-    /*     RACE_DWARF */ "DW",
-    /*       RACE_ELF */ "EL",
-    /*  RACE_HALF_ELF */ "HE",
-    /*     RACE_GNOME */ "GN",
-    /*  RACE_HALFLING */ "HA",
-    /*  RACE_HALF_ORC */ "HO",
-    /* RACE_HALF_OGRE */ "HG",
-    /*  RACE_DARK_ELF */ "DE",
-    /*      RACE_OGRE */ "OG",
-    /*       RACE_ORC */ "OC",
+    /*      RACE_HUMAN */ "HU",
+    /*      RACE_DWARF */ "DW",
+    /*        RACE_ELF */ "EL",
+    /*   RACE_HALF_ELF */ "HE",
+    /*      RACE_GNOME */ "GN",
+    /*   RACE_HALFLING */ "HA",
+    /*   RACE_HALF_ORC */ "HO",
+    /*  RACE_HALF_OGRE */ "HG",
+    /*   RACE_DARK_ELF */ "DE",
+    /*       RACE_OGRE */ "OG",
+    /*        RACE_ORC */ "OC",
+    /* RACE_LIZARD_MAN */ "LI",
 };
 
 /**
