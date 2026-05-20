@@ -17,12 +17,13 @@ typedef enum OrbType {
     ORB_AWAKENING    = 5,  // awaken a plain (NONE/COMMON) item to UNCOMMON; common drop
     ORB_AUGMENTATION = 6,  // add one random affix if item has an open slot
     ORB_CORRUPTION   = 7,  // random chaotic effect: ascend / curse / augment / strip / nothing
-    ORB_ENTROPY      = 8,  // reroll each affix within its own pool, keep rarity and count
+    ORB_ENTROPY         = 8,  // reroll each affix within its own pool, keep rarity and count
+    ORB_IDENTIFICATION  = 9,  // reveal magical properties of an unidentified item; most common drop
     ORB_COUNT,
 } OrbType;
 
 // Randomly select an orb type using weighted drop probabilities.
-// Awakening 35% · Reforging 20% · Annulment 15% · Augmentation 12% · Cleansing 8% · Ascension 5% · Entropy 3% · Corruption 2%.
+// Identification 35% · Awakening 23% · Reforging 16% · Annulment 10% · Augmentation 7% · Cleansing 4% · Ascension 3% · Entropy 1% · Corruption 1%.
 OrbType item_orb_roll_type(void);
 
 // Display name for an orb type, e.g. "Orb of Reforging". Returns NULL for ORB_NONE.

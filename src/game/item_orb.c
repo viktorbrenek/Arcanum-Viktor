@@ -13,13 +13,14 @@
 OrbType item_orb_roll_type(void)
 {
     int roll = random_between(1, 100);
-    if      (roll <= 35) return ORB_AWAKENING;
-    else if (roll <= 55) return ORB_REFORGING;
-    else if (roll <= 70) return ORB_ANNULMENT;
-    else if (roll <= 82) return ORB_AUGMENTATION;
-    else if (roll <= 90) return ORB_CLEANSING;
-    else if (roll <= 95) return ORB_ASCENSION;
-    else if (roll <= 98) return ORB_ENTROPY;
+    if      (roll <= 35) return ORB_IDENTIFICATION;
+    else if (roll <= 58) return ORB_AWAKENING;
+    else if (roll <= 74) return ORB_REFORGING;
+    else if (roll <= 84) return ORB_ANNULMENT;
+    else if (roll <= 91) return ORB_AUGMENTATION;
+    else if (roll <= 95) return ORB_CLEANSING;
+    else if (roll <= 98) return ORB_ASCENSION;
+    else if (roll <= 99) return ORB_ENTROPY;
     else                 return ORB_CORRUPTION;
 }
 
@@ -35,6 +36,7 @@ const char* item_orb_display_name(OrbType type)
         "Orb of Augmentation",
         "Orb of Corruption",
         "Orb of Entropy",
+        "Scroll of Identification",
     };
     if (type > ORB_NONE && (int)type < ORB_COUNT) {
         return names[type];
@@ -54,6 +56,7 @@ const char* item_orb_description(OrbType type)
         "Adds one random magical property to an item with an open affix slot.",
         "Unleashes chaotic energy upon an item. The result is unpredictable.",
         "Reshuffles each magical property within its own category, preserving rarity and affix count.",
+        "Reveals the hidden magical properties of an unidentified item.",
     };
     if (type > ORB_NONE && (int)type < ORB_COUNT) {
         return descs[type];
@@ -270,6 +273,16 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
         } else {
             item_rarity_entropy(actual_target);
             orb_feedback("The enchantments blur and reform — familiar yet changed.");
+            consumed = true;
+        }
+        break;
+
+    case ORB_IDENTIFICATION:
+        if (item_rarity_is_identified(actual_target)) {
+            orb_feedback("This item holds no secrets left to reveal.");
+        } else {
+            item_rarity_identify(actual_target);
+            orb_feedback("The scroll dissolves in light — the item's true nature is revealed.");
             consumed = true;
         }
         break;
