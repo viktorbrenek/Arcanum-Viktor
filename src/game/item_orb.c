@@ -1,5 +1,6 @@
 #include "game/item_orb.h"
 
+#include "game/endgame_map.h"
 #include "game/item.h"
 #include "game/item_rarity.h"
 #include "game/obj.h"
@@ -37,6 +38,7 @@ const char* item_orb_display_name(OrbType type)
         "Orb of Corruption",
         "Orb of Entropy",
         "Scroll of Identification",
+        "Map of the Void",
     };
     if (type > ORB_NONE && (int)type < ORB_COUNT) {
         return names[type];
@@ -57,6 +59,7 @@ const char* item_orb_description(OrbType type)
         "Unleashes chaotic energy upon an item. The result is unpredictable.",
         "Reshuffles each magical property within its own category, preserving rarity and affix count.",
         "Reveals the hidden magical properties of an unidentified item.",
+        "Opens a rift to a pocket of the Void, filled with powerful creatures and rich rewards.",
     };
     if (type > ORB_NONE && (int)type < ORB_COUNT) {
         return descs[type];
@@ -114,9 +117,12 @@ void item_orb_set_type(int64_t item_obj, OrbType type)
     obj_field_int32_set(item_obj, OBJ_F_GENERIC_FLAGS, (int)flags);
     obj_field_int32_set(item_obj, OBJ_F_GENERIC_USAGE_BONUS, (int)type);
 
-    // Add flags so it can be right-clicked and targeted
+    // OIF_CAN_USE_BOX: right-click usable. OIF_NEEDS_TARGET: only for orbs that target an item.
     int item_flags = obj_field_int32_get(item_obj, OBJ_F_ITEM_FLAGS);
-    item_flags |= 0x00000004u | 0x00000040u; // OIF_CAN_USE_BOX | OIF_NEEDS_TARGET
+    item_flags |= 0x00000004u; // OIF_CAN_USE_BOX
+    if (type != ORB_MAP) {
+        item_flags |= 0x00000040u; // OIF_NEEDS_TARGET
+    }
     obj_field_int32_set(item_obj, OBJ_F_ITEM_FLAGS, item_flags);
 
     // Override the prototype description to prevent native UI from showing "Component 1"
@@ -283,6 +289,14 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
         } else {
             item_rarity_identify(actual_target);
             orb_feedback("The scroll dissolves in light — the item's true nature is revealed.");
+            consumed = true;
+        }
+        break;
+
+    case ORB_MAP:
+        // Map of the Void: targets nothing — consume immediately and open rift.
+        // actual_target check is skipped; endgame_map_enter handles all validation.
+        if (endgame_map_enter()) {
             consumed = true;
         }
         break;

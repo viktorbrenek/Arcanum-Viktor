@@ -71,7 +71,28 @@
       "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\shared\" -Recurse -Force | ForEach-Object { $_.FullName })",
       "Bash(cmake --build \"out/build/windows-x64\" --target arcanum)",
       "Bash(cmake --build \"out/build/windows-x64\" --target arcanum-ce)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(dir \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\maps\" /b)",
+      "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum3.lst\" | Select-String \"maps\" | Select-Object -First 50 | ForEach-Object { $_.Line })",
+      "PowerShell(Select-String *)",
+      "PowerShell(& \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\undat.exe\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum1.dat\" -l 2>&1 | Select-String \"map|Map|\\\\.sec|startloc\" | Select-Object -First 30 | ForEach-Object { $_.Line })",
+      "Bash(cmake --build out/build/windows-x64 --target arcanum-ce --config Release)",
+      "PowerShell(attrib *)",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\")",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v -u \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v -u . \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v -u \"C:\\\\Temp\\\\out.tmp\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
+      "Bash(mkdir -p \"C:\\\\Temp\\\\arcanum4_extract\")",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v -u \"C:\\\\Temp\\\\arcanum4_extract\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v -u \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\" \"maps\")",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -q -v -u \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v -u \"C:\\\\Temp\\\\x4out\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
+      "Read(//c/Temp/**)",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -u \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v \"C:\\\\Temp\\\\x4view\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\")",
+      "PowerShell(& \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\dbmaker\\\\dbmaker.exe\" -v -u \"C:\\\\Temp\\\\a4extract\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\Arcanum4.dat\" 2>&1 | Select-Object -First 10)",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\utilities\\\\DATBuilder\\\\datbuilder.exe\" --help)",
+      "Bash(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\utilities\\\\DATBuilder\\\\datbuilder.exe\" -h)"
     ]
   }
 }

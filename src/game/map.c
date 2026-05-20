@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "game/endgame_map.h"
 #include "game/anim.h"
 #include "game/critter.h"
 #include "game/critter_rarity.h"
@@ -281,6 +282,8 @@ bool map_mod_load(void)
     if (!map_list_info_load()) {
         return false;
     }
+
+    endgame_map_init();
 
     for (int index = 0; index < MAP_MODULE_COUNT; index++) {
         if (map_modules[index].mod_load_func != NULL) {
@@ -839,6 +842,8 @@ bool map_open_in_game(int map, bool a2, bool a3)
         tig_debug_println("Object system validate failed post-load in map_open_in_game.");
         tig_message_post_quit(0);
     }
+
+    endgame_map_on_map_opened(map);
 
     return true;
 }

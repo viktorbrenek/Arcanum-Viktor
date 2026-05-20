@@ -19,6 +19,7 @@ typedef enum OrbType {
     ORB_CORRUPTION   = 7,  // random chaotic effect: ascend / curse / augment / strip / nothing
     ORB_ENTROPY         = 8,  // reroll each affix within its own pool, keep rarity and count
     ORB_IDENTIFICATION  = 9,  // reveal magical properties of an unidentified item; most common drop
+    ORB_MAP             = 10, // open a rift to the endgame dungeon; NG+ only, not in random drop pool
     ORB_COUNT,
 } OrbType;
 

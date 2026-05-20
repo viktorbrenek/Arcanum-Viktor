@@ -329,6 +329,15 @@ void item_generate_inventory(int64_t critter_obj)
             item_rarity_roll(item_obj);
         }
     }
+
+    // DEBUG: give PC one Map of the Void for endgame dungeon testing.
+    {
+        int64_t orb_obj;
+        if (mp_object_create(BP_COMPONENT_1, loc, &orb_obj)) {
+            item_orb_set_type(orb_obj, ORB_MAP);
+            item_transfer(orb_obj, critter_obj);
+        }
+    }
 }
 
 // 0x4612A0

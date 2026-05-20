@@ -1,5 +1,6 @@
 #include "game/critter.h"
 
+#include "game/endgame_map.h"
 #include "game/critter_rarity.h"
 #include "game/descriptions.h"
 #include "game/item_orb.h"
@@ -722,6 +723,8 @@ void critter_notify_killed(int64_t victim_obj, int64_t killer_obj, int anim)
                         }
                     }
                 }
+
+                endgame_map_on_critter_killed(victim_obj);
 
                 // 20% of the experience cost for killing.
                 critter_give_xp(pc_killer_obj, 20 * obj_field_int32_get(victim_obj, OBJ_F_NPC_EXPERIENCE_WORTH) / 100);

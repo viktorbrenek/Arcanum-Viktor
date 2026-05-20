@@ -56,6 +56,8 @@ set(SRCS
     "src/game/critter.h"
     "src/game/critter_rarity.c"
     "src/game/critter_rarity.h"
+    "src/game/endgame_map.c"
+    "src/game/endgame_map.h"
     "src/game/curse.c"
     "src/game/curse.h"
     "src/game/damage_type.h"
