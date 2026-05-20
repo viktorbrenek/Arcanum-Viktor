@@ -991,7 +991,12 @@ void ai_attack(int64_t source_obj, int64_t target_obj, int loudness, unsigned in
                     obj_field_handle_set(target_obj, OBJ_F_NPC_WHO_HIT_ME_LAST, source_obj);
                 }
 
-                sub_4AF8C0(target_obj, source_obj);
+                // UAP fix: don't add source's party to target's shitlist for accidental hits
+                // from same faction (e.g. NPC splash catches a follower).
+                if ((flags & 0x01) == 0
+                    || !critter_faction_same(source_obj, target_obj)) {
+                    sub_4AF8C0(target_obj, source_obj);
+                }
 
                 if (source_obj_type == OBJ_TYPE_NPC) {
                     sub_4AF8C0(source_obj, target_obj);

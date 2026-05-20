@@ -1113,6 +1113,9 @@ static struct {
     /*  RACE_HALFLING */ { TIG_ART_CRITTER_BODY_TYPE_HALFLING, false },
     /*  RACE_HALF_ORC */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, true },
     /* RACE_HALF_OGRE */ { TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE, false },
+    /*  RACE_DARK_ELF */ { TIG_ART_CRITTER_BODY_TYPE_ELF, true },
+    /*      RACE_OGRE */ { TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE, false },
+    /*       RACE_ORC */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, false },
 };
 
 // 0x5C51B0
@@ -4129,7 +4132,7 @@ bool mainmenu_ui_new_char_prev_race(int64_t obj)
             return false;
         }
     } else {
-        race = 7;
+        race = RACE_ORC;
         if (stat_level_get(obj, STAT_GENDER) == GENDER_FEMALE) {
             while (race >= 0 && !stru_5C5170[race].available_for_female) {
                 race--;
@@ -4178,16 +4181,11 @@ bool mainmenu_ui_new_char_next_race(int64_t obj)
     int race;
 
     race = stat_level_get(obj, STAT_RACE);
-    if (race < 7) {
+    if (race < RACE_ORC) {
         if (stat_level_get(obj, STAT_GENDER) == GENDER_FEMALE) {
             do {
                 race++;
-            } while (race < 7 && !stru_5C5170[race].available_for_female);
-
-            if (race >= 8) {
-                // FIXME: Unreachable.
-                return false;
-            }
+            } while (race < RACE_ORC && !stru_5C5170[race].available_for_female);
 
             if (!stru_5C5170[race].available_for_female) {
                 race = RACE_HUMAN;
@@ -4198,12 +4196,11 @@ bool mainmenu_ui_new_char_next_race(int64_t obj)
     } else {
         race = RACE_HUMAN;
         if (stat_level_get(obj, STAT_GENDER) == GENDER_FEMALE) {
-            while (!stru_5C5170[race].available_for_female) {
+            while (race < RACE_COUNT && !stru_5C5170[race].available_for_female) {
                 race++;
             }
 
-            if (race >= 8) {
-                // FIXME: Unreachable.
+            if (race >= RACE_COUNT) {
                 return false;
             }
 
@@ -4213,7 +4210,7 @@ bool mainmenu_ui_new_char_next_race(int64_t obj)
         }
     }
 
-    if (race < 8) {
+    if (race < RACE_COUNT) {
         background_clear(obj);
         mainmenu_ui_new_char_set_race(obj, race);
         return true;

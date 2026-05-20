@@ -35,6 +35,9 @@ static const char* background_race_specifiers[] = {
     /*  RACE_HALFLING */ "HA",
     /*  RACE_HALF_ORC */ "HO",
     /* RACE_HALF_OGRE */ "HG",
+    /*  RACE_DARK_ELF */ "DE",
+    /*      RACE_OGRE */ "OG",
+    /*       RACE_ORC */ "OC",
 };
 
 /**

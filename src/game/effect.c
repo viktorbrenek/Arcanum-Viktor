@@ -10,8 +10,9 @@
 
 /**
  * Defines the maximum number of effects per effect type.
+ * UAP raised this from 400 to 1000 for mod support.
  */
-#define EFFECT_LIST_CAPACITY 400
+#define EFFECT_LIST_CAPACITY 1000
 
 typedef enum EffectSpecial {
     EFFECT_SPECIAL_MAX_HIT_POINTS,
@@ -274,8 +275,8 @@ bool effect_init(GameInitInfo* init_info)
     effect_tech_effects = (Effect*)CALLOC(EFFECT_LIST_CAPACITY, sizeof(*effect_tech_effects));
     effect_special_effects = (Effect*)CALLOC(EFFECT_LIST_CAPACITY, sizeof(*effect_special_effects));
 
-    // Parse effects from engine-wide range (50-400).
-    for (mes_file_entry.num = 50; mes_file_entry.num < 400; mes_file_entry.num++) {
+    // Parse effects from engine-wide range (50-1000).
+    for (mes_file_entry.num = 50; mes_file_entry.num < EFFECT_LIST_CAPACITY; mes_file_entry.num++) {
         if (mes_search(mes_file, &mes_file_entry)) {
             effect_parse(mes_file_entry.num, mes_file_entry.str);
         }

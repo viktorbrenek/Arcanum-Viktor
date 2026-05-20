@@ -22,9 +22,9 @@ static const char* portrait_race_specifiers[RACE_COUNT] = {
     /*  RACE_HALFLING */ "HA",
     /*  RACE_HALF_ORC */ "HO",
     /* RACE_HALF_OGRE */ "HG",
-    /*  RACE_DARK_ELF */ "EL",
-    /*      RACE_OGRE */ "HG",
-    /*       RACE_ORC */ "HO",
+    /*  RACE_DARK_ELF */ "DE",
+    /*      RACE_OGRE */ "OG",
+    /*       RACE_ORC */ "OC",
 };
 
 /**
