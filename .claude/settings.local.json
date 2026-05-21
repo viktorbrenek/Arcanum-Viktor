@@ -141,7 +141,9 @@
       "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\arcanum1\\\\art\\\\monster\\\\LIZ\\\\\" | ForEach-Object { Write-Host $_.Name })",
       "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\debug.txt\" -Tail 50 | Where-Object { $_ -match \"lim|LIm|LIZ|FAILURE|critter\" })",
       "PowerShell($f = Get-Item \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\debug.txt\"; Write-Host \"Size: $\\($f.Length\\), Modified: $\\($f.LastWriteTime\\)\")",
-      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release --target arcanum-ce 2>&1 | Select-Object -Last 10)"
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release --target arcanum-ce 2>&1 | Select-Object -Last 10)",
+      "Bash(grep -i \"monster.*orc\\\\|orc.*art\\\\|art.monster.OR\\\\|\\\\\\\\\\\\\\\\OR[Cc]\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/UnDAT_MatuX_TMS/Arcanum1.lst\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release --target arcanum-ce 2>&1 | Select-Object -Last 12)"
     ]
   }
 }

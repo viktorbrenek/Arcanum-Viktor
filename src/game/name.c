@@ -135,6 +135,7 @@ static const char* name_body_type_strs[TIG_ART_CRITTER_BODY_TYPE_COUNT] = {
     /*   TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE */ "HG",
     /*         TIG_ART_CRITTER_BODY_TYPE_ELF */ "EF",
     /* TIG_ART_CRITTER_BODY_TYPE_LIZARD_MAN */ "LI",
+    /*         TIG_ART_CRITTER_BODY_TYPE_ORC */ "OC",
 };
 
 // 0x5A11B8
@@ -891,6 +892,21 @@ int name_resolve_path(tig_art_id_t aid, char* path)
         if (body_type == TIG_ART_CRITTER_BODY_TYPE_LIZARD_MAN) {
             armor_type = TIG_ART_ARMOR_TYPE_UNDERWEAR;
         }
+        // OC (Orc) art only has UW, BN, PC armors.
+        if (body_type == TIG_ART_CRITTER_BODY_TYPE_ORC) {
+            switch (armor_type) {
+            case TIG_ART_ARMOR_TYPE_UNDERWEAR:
+            case TIG_ART_ARMOR_TYPE_BARBARIAN:
+                break;
+            case TIG_ART_ARMOR_TYPE_PLATE:
+            case TIG_ART_ARMOR_TYPE_PLATE_CLASSIC:
+                armor_type = TIG_ART_ARMOR_TYPE_PLATE_CLASSIC;
+                break;
+            default:
+                armor_type = TIG_ART_ARMOR_TYPE_BARBARIAN;
+                break;
+            }
+        }
         if (armor_type == TIG_ART_ARMOR_TYPE_PLATE
             || armor_type == TIG_ART_ARMOR_TYPE_PLATE_CLASSIC) {
             gender_code = name_gender_codes[2];
@@ -923,6 +939,25 @@ int name_resolve_path(tig_art_id_t aid, char* path)
             case TIG_ART_WEAPON_TYPE_SWORD:
             case TIG_ART_WEAPON_TYPE_BOW:
             case TIG_ART_WEAPON_TYPE_STAFF:
+                break;
+            default:
+                weapon = TIG_ART_WEAPON_TYPE_NO_WEAPON;
+                break;
+            }
+        }
+        // OC has art for: A B C D E F G H I K — missing N (staff) and J/X/Y/Z
+        if (body_type == TIG_ART_CRITTER_BODY_TYPE_ORC) {
+            switch (weapon) {
+            case TIG_ART_WEAPON_TYPE_NO_WEAPON:
+            case TIG_ART_WEAPON_TYPE_UNARMED:
+            case TIG_ART_WEAPON_TYPE_DAGGER:
+            case TIG_ART_WEAPON_TYPE_SWORD:
+            case TIG_ART_WEAPON_TYPE_AXE:
+            case TIG_ART_WEAPON_TYPE_MACE:
+            case TIG_ART_WEAPON_TYPE_PISTOL:
+            case TIG_ART_WEAPON_TYPE_TWO_HANDED_SWORD:
+            case TIG_ART_WEAPON_TYPE_BOW:
+            case TIG_ART_WEAPON_TYPE_RIFLE:
                 break;
             default:
                 weapon = TIG_ART_WEAPON_TYPE_NO_WEAPON;
