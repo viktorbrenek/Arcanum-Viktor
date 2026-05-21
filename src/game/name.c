@@ -886,6 +886,11 @@ int name_resolve_path(tig_art_id_t aid, char* path)
         }
 
         body_type = tig_art_critter_id_body_type_get(aid);
+        // LI (Lizard Man) art only exists as naked (UW) — force all armor to UW
+        // so the critter body always uses the Bedokaan lizard model.
+        if (body_type == TIG_ART_CRITTER_BODY_TYPE_LIZARD_MAN) {
+            armor_type = TIG_ART_ARMOR_TYPE_UNDERWEAR;
+        }
         if (armor_type == TIG_ART_ARMOR_TYPE_PLATE
             || armor_type == TIG_ART_ARMOR_TYPE_PLATE_CLASSIC) {
             gender_code = name_gender_codes[2];
@@ -903,9 +908,27 @@ int name_resolve_path(tig_art_id_t aid, char* path)
         }
 
         shield = tig_art_critter_id_shield_get(aid);
+        // LI has no shield animations
+        if (body_type == TIG_ART_CRITTER_BODY_TYPE_LIZARD_MAN) {
+            shield = 0;
+        }
         shield_code = name_shielding_codes[shield];
 
         weapon = tig_art_critter_id_weapon_get(aid);
+        // LI only has art for: A (none), B (unarmed), D (sword), I (bow), N (staff)
+        if (body_type == TIG_ART_CRITTER_BODY_TYPE_LIZARD_MAN) {
+            switch (weapon) {
+            case TIG_ART_WEAPON_TYPE_NO_WEAPON:
+            case TIG_ART_WEAPON_TYPE_UNARMED:
+            case TIG_ART_WEAPON_TYPE_SWORD:
+            case TIG_ART_WEAPON_TYPE_BOW:
+            case TIG_ART_WEAPON_TYPE_STAFF:
+                break;
+            default:
+                weapon = TIG_ART_WEAPON_TYPE_NO_WEAPON;
+                break;
+            }
+        }
         if (weapon == TIG_ART_WEAPON_TYPE_TWO_HANDED_SWORD
             && shield == 1) {
             weapon_code = name_weapon_type_codes[TIG_ART_WEAPON_TYPE_SWORD];

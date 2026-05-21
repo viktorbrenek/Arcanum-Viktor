@@ -126,7 +126,22 @@
       "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\subbrains\\\\\" -Force | ForEach-Object { $_.Name })",
       "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\subbrains\\\\arcanum\\\\\" -Force -Recurse | ForEach-Object { $_.FullName })",
       "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\shared\\\\\" -Force -Recurse | ForEach-Object { $_.FullName })",
-      "Bash(cmake --build \"out/build/windows-x64\" --config Release --target arcanum-ce)"
+      "Bash(cmake --build \"out/build/windows-x64\" --config Release --target arcanum-ce)",
+      "Bash(./undat.exe --help)",
+      "Bash(./undat.exe)",
+      "Bash(./undat.exe arcanum1.dat)",
+      "PowerShell(head *)",
+      "PowerShell($items = Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\\"; Write-Host \"Count: $\\($items.Count\\)\"; $items | Select-Object -First 5 | ForEach-Object { Write-Host $_.Name })",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\arcanum1\\\\\" | ForEach-Object { Write-Host $_.Name })",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\arcanum1\\\\art\\\\\" | ForEach-Object { Write-Host $_.Name })",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\arcanum1\\\\art\\\\critter\\\\\" | ForEach-Object { Write-Host $_.Name })",
+      "Bash(grep -v \"dfm\\\\|dfm\\\\\\\\\\\\\\\\\")",
+      "Bash(grep -v \"\\\\\\\\\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release --target arcanum-ce 2>&1 | Select-Object -Last 20)",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\arcanum1\\\\art\\\\monster\\\\LIZ\\\\\" | ForEach-Object { Write-Host $_.Name })",
+      "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\debug.txt\" -Tail 50 | Where-Object { $_ -match \"lim|LIm|LIZ|FAILURE|critter\" })",
+      "PowerShell($f = Get-Item \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\debug.txt\"; Write-Host \"Size: $\\($f.Length\\), Modified: $\\($f.LastWriteTime\\)\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release --target arcanum-ce 2>&1 | Select-Object -Last 10)"
     ]
   }
 }

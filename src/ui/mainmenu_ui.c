@@ -1116,7 +1116,7 @@ static struct {
     /*   RACE_DARK_ELF */ { TIG_ART_CRITTER_BODY_TYPE_ELF, true },
     /*       RACE_OGRE */ { TIG_ART_CRITTER_BODY_TYPE_HALF_OGRE, false },
     /*        RACE_ORC */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, false },
-    /* RACE_LIZARD_MAN */ { TIG_ART_CRITTER_BODY_TYPE_HUMAN, false },
+    /* RACE_LIZARD_MAN */ { TIG_ART_CRITTER_BODY_TYPE_LIZARD_MAN, false },
 };
 
 // 0x5C51B0
