@@ -352,6 +352,17 @@ static tig_font_handle_t dword_682418;
 // Rarity-colored font handles for item name display (UNCOMMON..UNIQUE).
 static tig_font_handle_t inven_rarity_fonts[ITEM_RARITY_COUNT];
 
+// Cached PC inventory weight; -1 = dirty (recompute next render).
+static int inven_ui_pc_weight_cache = -1;
+
+static inline int inven_ui_pc_weight_get(void)
+{
+    if (inven_ui_pc_weight_cache < 0) {
+        inven_ui_pc_weight_cache = item_total_weight(inven_ui_pc_obj);
+    }
+    return inven_ui_pc_weight_cache;
+}
+
 // 0x68241C
 static char byte_68241C[1000];
 
@@ -485,6 +496,7 @@ void inven_ui_reset(void)
     qword_681450 = 0;
     qword_681458 = 0;
     dword_6810E8 = -1;
+    inven_ui_pc_weight_cache = -1;
 }
 
 // 0x572240
@@ -2827,12 +2839,14 @@ void inven_ui_update(int64_t obj)
     }
 
     if (obj == inven_ui_pc_obj) {
+        inven_ui_pc_weight_cache = -1;
         item_inventory_slots_get(inven_ui_pc_obj, dword_68111C);
         redraw_inven(false);
     } else if (obj == qword_6813A8 || obj == qword_682C78) {
         item_inventory_slots_get(qword_6813A8, dword_681518);
         redraw_inven(false);
     } else if (obj == OBJ_HANDLE_NULL) {
+        inven_ui_pc_weight_cache = -1;
         item_inventory_slots_get(inven_ui_pc_obj, dword_68111C);
         if (qword_6813A8 != OBJ_HANDLE_NULL) {
             item_inventory_slots_get(qword_6813A8, dword_681518);
@@ -3205,7 +3219,7 @@ void redraw_inven(bool a1)
         sprintf(str,
             "%s: %d %s",
             mes_file_entry1.str,
-            item_total_weight(inven_ui_pc_obj),
+            inven_ui_pc_weight_get(),
             mes_file_entry2.str);
         tig_window_text_write(inven_ui_window_handle, str, &(text_rects[INVEN_UI_SUMMARY_WEIGHT]));
 

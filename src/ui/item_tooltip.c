@@ -27,6 +27,7 @@ static tig_font_handle_t tooltip_name_fonts[ITEM_RARITY_COUNT];
 static tig_font_handle_t tooltip_body_font;
 static tig_font_handle_t tooltip_gold_font;
 static tig_window_handle_t tooltip_window = TIG_WINDOW_HANDLE_INVALID;
+static int tooltip_last_h = 0;
 
 bool item_tooltip_init(void)
 {
@@ -77,6 +78,7 @@ void item_tooltip_hide(void)
     if (tooltip_window != TIG_WINDOW_HANDLE_INVALID) {
         tig_window_destroy(tooltip_window);
         tooltip_window = TIG_WINDOW_HANDLE_INVALID;
+        tooltip_last_h = 0;
     }
 }
 
@@ -199,8 +201,6 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
         }
     }
 
-    item_tooltip_hide();
-
     obj_type   = obj_field_int32_get(item_obj, OBJ_F_TYPE);
     rarity     = item_rarity_infer(item_obj);
     identified = item_rarity_is_identified(item_obj);
@@ -313,25 +313,30 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     if (wx < 0) wx = 0;
     if (wy < 0) wy = 0;
 
-    // --- Create window ---
-    memset(&wdata, 0, sizeof(wdata));
-    wdata.flags          = TIG_WINDOW_ALWAYS_ON_TOP;
-    wdata.rect.x         = wx;
-    wdata.rect.y         = wy;
-    wdata.rect.width     = TOOLTIP_WIDTH;
-    wdata.rect.height    = total_h;
-    wdata.background_color = tig_color_make(12, 12, 18);
-
-    if (tig_window_create(&wdata, &tooltip_window) != TIG_OK) {
-        tooltip_window = TIG_WINDOW_HANDLE_INVALID;
-        return;
-    }
-
-    // Background + border
+    // --- Create or reuse window ---
     bg.x = 0;
     bg.y = 0;
     bg.width  = TOOLTIP_WIDTH;
     bg.height = total_h;
+
+    if (tooltip_window != TIG_WINDOW_HANDLE_INVALID && total_h == tooltip_last_h) {
+        tig_window_move(tooltip_window, wx, wy);
+    } else {
+        item_tooltip_hide();
+        memset(&wdata, 0, sizeof(wdata));
+        wdata.flags          = TIG_WINDOW_ALWAYS_ON_TOP;
+        wdata.rect.x         = wx;
+        wdata.rect.y         = wy;
+        wdata.rect.width     = TOOLTIP_WIDTH;
+        wdata.rect.height    = total_h;
+        wdata.background_color = tig_color_make(12, 12, 18);
+        if (tig_window_create(&wdata, &tooltip_window) != TIG_OK) {
+            tooltip_window = TIG_WINDOW_HANDLE_INVALID;
+            return;
+        }
+        tooltip_last_h = total_h;
+    }
+
     tig_window_fill(tooltip_window, &bg, tig_color_make(12, 12, 18));
     tig_window_box(tooltip_window, &bg, tig_color_make(80, 80, 110));
 

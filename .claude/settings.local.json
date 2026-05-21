@@ -122,7 +122,11 @@
       "PowerShell(\\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_m2f.mes\" | Measure-Object -Line\\).Lines; \\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_f2m.mes\" | Measure-Object -Line\\).Lines; \\(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum3\\\\mes\\\\gd_rce_f2f.mes\" | Measure-Object -Line\\).Lines)",
       "Bash(cmake --build \"out/build/windows-x64\" --config Release)",
       "Bash(copy \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\\\\Release\\\\arcanum-ce.exe\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum-ce.exe\")",
-      "Bash(copy \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\\\\Release\\\\arcanum-ce.exe\" \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce-dist\\\\arcanum-ce.exe\")"
+      "Bash(copy \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\\\\Release\\\\arcanum-ce.exe\" \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce-dist\\\\arcanum-ce.exe\")",
+      "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\subbrains\\\\\" -Force | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\subbrains\\\\arcanum\\\\\" -Force -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"C:\\\\WEB\\\\ClaudeVault\\\\ClaudeVault\\\\shared\\\\\" -Force -Recurse | ForEach-Object { $_.FullName })",
+      "Bash(cmake --build \"out/build/windows-x64\" --config Release --target arcanum-ce)"
     ]
   }
 }
