@@ -25,6 +25,7 @@ typedef enum EffectSpecial {
     EFFECT_SPECIAL_BAD_REACTION_ADJUSTMENT,
     EFFECT_SPECIAL_GOOD_REACTION_ADJUSTMENT,
     EFFECT_SPECIAL_XP_GAIN,
+    EFFECT_SPECIAL_DUMB_DIALOG,
     EFFECT_SPECIAL_COUNT,
 } EffectSpecial;
 
@@ -183,6 +184,7 @@ static const char* effect_special_attributes_lookup_tbl[EFFECT_SPECIAL_COUNT] = 
     /*  EFFECT_SPECIAL_BAD_REACTION_ADJUSTMENT */ "badreactionadj",
     /* EFFECT_SPECIAL_GOOD_REACTION_ADJUSTMENT */ "goodreactionadj",
     /*                  EFFECT_SPECIAL_XP_GAIN */ "xpgain",
+    /*             EFFECT_SPECIAL_DUMB_DIALOG */ "dumbdialog",
 };
 
 /**
@@ -997,6 +999,11 @@ int effect_adjust_crit_fail_effect(int64_t obj, int value)
 int effect_adjust_xp_gain(int64_t obj, int value)
 {
     return effect_adjust_func(obj, EFFECT_SPECIAL_XP_GAIN, value, effect_special_effects, false);
+}
+
+bool effect_is_dumb_dialog(int64_t obj)
+{
+    return effect_adjust_func(obj, EFFECT_SPECIAL_DUMB_DIALOG, 0, effect_special_effects, false) > 0;
 }
 
 /**

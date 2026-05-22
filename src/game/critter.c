@@ -2450,6 +2450,11 @@ bool critter_is_dumb(int64_t critter_obj)
         return true;
     }
 
+    // Check for dumb dialog effect (applied by backgrounds, spells, or scripts).
+    if (effect_is_dumb_dialog(critter_obj)) {
+        return true;
+    }
+
     return false;
 }
 

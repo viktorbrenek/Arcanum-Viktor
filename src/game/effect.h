@@ -52,6 +52,7 @@ int effect_adjust_crit_hit_effect(int64_t obj, int value);
 int effect_adjust_crit_fail_chance(int64_t obj, int value);
 int effect_adjust_crit_fail_effect(int64_t obj, int value);
 int effect_adjust_xp_gain(int64_t obj, int value);
+bool effect_is_dumb_dialog(int64_t obj);
 void effect_debug_obj(int64_t obj);
 
 #endif /* ARCANUM_GAME_EFFECT_H_ */
