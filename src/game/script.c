@@ -2071,12 +2071,12 @@ int script_execute_action(ScriptAction* action, int line, ScriptState* state)
         return NEXT;
     }
     case SAT_DAMAGE: {
-
+        int64_t attacker = state->invocation->triggerer_obj;
         int cnt = script_resolve_focus_obj(action->op_type[0], action->op_value[0], state, handles, &objects);
         int damage = script_get_value(action->op_type[1], action->op_value[1], state);
         int type = script_get_value(action->op_type[2], action->op_value[2], state);
         for (int idx = 0; idx < cnt; idx++) {
-            sub_4B2210(OBJ_HANDLE_NULL, handles[idx], &combat);
+            sub_4B2210(attacker, handles[idx], &combat);
             combat.dam[type] = damage;
             combat_dmg(&combat);
         }
@@ -2785,11 +2785,12 @@ int script_execute_action(ScriptAction* action, int line, ScriptState* state)
         return NEXT;
     }
     case SAT_APPLY_UNRESISTABLE_DAMAGE: {
+        int64_t attacker = state->invocation->triggerer_obj;
         int cnt = script_resolve_focus_obj(action->op_type[0], action->op_value[0], state, handles, &objects);
         int damage = script_get_value(action->op_type[1], action->op_value[1], state);
         int type = script_get_value(action->op_type[2], action->op_value[2], state);
         for (int idx = 0; idx < cnt; idx++) {
-            sub_4B2210(OBJ_HANDLE_NULL, handles[idx], &combat);
+            sub_4B2210(attacker, handles[idx], &combat);
             combat.dam[type] = damage;
             combat.dam_flags |= CDF_IGNORE_RESISTANCE;
             combat_dmg(&combat);

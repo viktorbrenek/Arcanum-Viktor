@@ -36,6 +36,7 @@
 #include "game/skill.h"
 #include "game/snd.h"
 #include "game/spell.h"
+#include "game/item_tech_props.h"
 #include "game/stat.h"
 #include "game/target.h"
 #include "game/tc.h"
@@ -1662,7 +1663,7 @@ void intgame_draw_bar_rect(TigRect* rect)
     rects[INTGAME_BAR_FATIGUE] = intgame_fatigue_bar_frame;
 
     poison = stat_level_get(pc_obj, STAT_POISON_LEVEL);
-    nums[INTGAME_BAR_HEALTH] = poison > 0 ? 17 : 18;
+    nums[INTGAME_BAR_HEALTH] = (poison > 0 || dot_has_any_active(pc_obj)) ? 17 : 18;
     nums[INTGAME_BAR_FATIGUE] = 19;
 
     for (bar = 0; bar < INTGAME_BAR_COUNT; bar++) {
@@ -6556,7 +6557,7 @@ void intgame_examine_critter(int64_t pc_obj, int64_t critter_obj, char* str)
     int cur_hp = object_hp_current(critter_obj);
     int max_hp = object_hp_max(critter_obj);
     int hp_ratio = 100 * cur_hp / max_hp;
-    if (stat_level_get(critter_obj, STAT_POISON_LEVEL) > 0) {
+    if (stat_level_get(critter_obj, STAT_POISON_LEVEL) > 0 || dot_has_any_active(critter_obj)) {
         sub_554640(665, 666, &stru_5C70E8, hp_ratio);
     } else {
         sub_554640(463, 464, &stru_5C70E8, hp_ratio);

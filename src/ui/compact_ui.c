@@ -4,6 +4,7 @@
 
 #include "game/critter.h"
 #include "game/hrp.h"
+#include "game/item_tech_props.h"
 #include "game/player.h"
 #include "game/stat.h"
 #include "game/timeevent.h"
@@ -363,11 +364,25 @@ void compact_ui_health_bar_draw(int a1)
     rect1.height = 100 - rect1.y;
 
     poison = stat_level_get(pc_obj, STAT_POISON_LEVEL);
-    if (poison > 0) {
-        sub_569550(compact_ui_components[0].window_handle,
-            &rect1,
-            tig_color_make(0, 255, 0));
 
+    // Pick HP bar color: DoT priority fire > acid > poison_weapon > bleed > vanilla_poison > normal.
+    tig_color_t hp_bar_color;
+    if (dot_has_active(pc_obj, TIMEEVENT_TYPE_FIRE_DOT)) {
+        hp_bar_color = tig_color_make(255, 128, 0);   // orange
+    } else if (dot_has_active(pc_obj, TIMEEVENT_TYPE_ACID_DOT)) {
+        hp_bar_color = tig_color_make(160, 255, 0);   // acid green
+    } else if (dot_has_active(pc_obj, TIMEEVENT_TYPE_POISON_WEAPON_DOT)) {
+        hp_bar_color = tig_color_make(128, 0, 255);   // purple
+    } else if (dot_has_active(pc_obj, TIMEEVENT_TYPE_BLEED_DOT)) {
+        hp_bar_color = tig_color_make(200, 0, 30);    // crimson
+    } else if (poison > 0) {
+        hp_bar_color = tig_color_make(0, 255, 0);     // green (vanilla poison)
+    } else {
+        hp_bar_color = tig_color_make(255, 0, 0);     // normal red
+    }
+    sub_569550(compact_ui_components[0].window_handle, &rect1, hp_bar_color);
+
+    if (poison > 0) {
         sprintf(str, "%02d", poison);
         tig_font_push(mainmenu_ui_font(MM_FONT_FLARE12, MM_COLOR_WHITE));
         font_desc.width = 0;
@@ -380,10 +395,6 @@ void compact_ui_health_bar_draw(int a1)
         tig_window_text_write(compact_ui_components[0].window_handle, str, &rect1);
         tig_font_pop();
         rect1.y -= 40;
-    } else {
-        sub_569550(compact_ui_components[0].window_handle,
-            &rect1,
-            tig_color_make(255, 0, 0));
     }
 
     sprintf(str, "%02d", object_hp_current(pc_obj));

@@ -40,6 +40,7 @@
 #include "game/tile_script.h"
 #include "game/timeevent.h"
 #include "game/ui.h"
+#include "game/spell_ce.h"
 
 typedef void(MagicTechProc)(void);
 
@@ -2043,6 +2044,12 @@ void magictech_process(void)
             magictech_cur_is_fate_maximized = false;
         }
 
+        if (magictech_cur_run_info->action == MAGICTECH_ACTION_BEGIN) {
+            spell_ce_pre_begin(magictech_cur_run_info->spell,
+                               magictech_cur_run_info->parent_obj.obj,
+                               &magictech_cur_run_info->parent_obj.aptitude);
+        }
+
         if (stru_5E3518.cnt == 0) {
             dword_5E75DC = 1;
         }
@@ -2078,6 +2085,16 @@ void magictech_process(void)
                                 }
                             }
                         }
+                    }
+
+                    if (stru_5E6D28.target_obj != OBJ_HANDLE_NULL
+                        && obj_type_is_critter(magictech_cur_target_obj_type)
+                        && (magictech_cur_run_info->action == MAGICTECH_ACTION_BEGIN
+                            || magictech_cur_run_info->action == MAGICTECH_ACTION_MAINTAIN)) {
+                        spell_ce_on_target(magictech_cur_run_info->spell,
+                                           magictech_cur_run_info->action,
+                                           magictech_cur_run_info->parent_obj.obj,
+                                           stru_5E6D28.target_obj);
                     }
 
                     if (magictech_cur_run_info->source_obj.obj != qword_5E75B0) {

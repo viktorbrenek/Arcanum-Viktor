@@ -144,7 +144,24 @@
       "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release --target arcanum-ce 2>&1 | Select-Object -Last 10)",
       "Bash(grep -i \"monster.*orc\\\\|orc.*art\\\\|art.monster.OR\\\\|\\\\\\\\\\\\\\\\OR[Cc]\" \"D:/SteamLibrary/steamapps/common/Arcanum/Arcanum/UnDAT_MatuX_TMS/Arcanum1.lst\")",
       "PowerShell(& \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release --target arcanum-ce 2>&1 | Select-Object -Last 12)",
-      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"out/build/windows-x64\" --config Release)"
+      "Bash(\"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\2022\\\\Community\\\\Common7\\\\IDE\\\\CommonExtensions\\\\Microsoft\\\\CMake\\\\CMake\\\\bin\\\\cmake.exe\" --build \"out/build/windows-x64\" --config Release)",
+      "Bash(cmake --build \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\" --config Release)",
+      "Bash(Copy-Item \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\\\\Release\\\\arcanum-ce.exe\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\arcanum-ce.exe\" -Force)",
+      "Bash(Copy-Item \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce\\\\out\\\\build\\\\windows-x64\\\\Release\\\\arcanum-ce.exe\" \"C:\\\\Arcanum of Viktorworks and ARPG Obscura\\\\arcanum-ce-dist\\\\arcanum-ce.exe\" -Force)",
+      "Bash(Write-Host \"Done\")",
+      "Bash(grep -v \"//.*#define\")",
+      "Bash(grep -v \"//.*poison\")",
+      "Bash(grep -E \"error|warning|\\\\.exe$|item_tech|timeevent|combat\")",
+      "Bash(grep -E \"error C|\\\\.exe$|item_tech|compact_ui|intgame|follower\")",
+      "Bash(cmake --build build --config Release --target arcanum)",
+      "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\mes\" | Where-Object { $_.Name -match \"critter\" })",
+      "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum1.lst\" | Where-Object { $_ -match \"lst\" -and $_ -match \"critter\" } | Select-Object -First 20)",
+      "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum2.lst\" | Where-Object { $_ -match \"critter\" } | Select-Object -First 20)",
+      "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum1.lst\" | Where-Object { $_ -match \"critters\\\\.\" } | Select-Object -First 20)",
+      "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum1.lst\" | Where-Object { $_ -match \"\\\\.lst\" } | Select-Object -First 30)",
+      "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum2.lst\" | Where-Object { $_ -match \"\\\\.lst\" } | Select-Object -First 30)",
+      "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\mes\" | Where-Object { $_.Name -match \"effect\" })",
+      "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\rules\" | Where-Object { $_.Name -match \"effect\" })"
     ]
   }
 }

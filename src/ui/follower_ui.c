@@ -10,6 +10,7 @@
 #include "game/object.h"
 #include "game/player.h"
 #include "game/portrait.h"
+#include "game/item_tech_props.h"
 #include "game/stat.h"
 #include "game/target.h"
 #include "ui/charedit_ui.h"
@@ -1041,7 +1042,8 @@ void follower_ui_update(void)
 
         // Draw health bar.
         hp_percent = 100 * object_hp_current(follower_obj) / object_hp_max(follower_obj);
-        if (stat_level_get(follower_obj, STAT_POISON_LEVEL) > FOLLOWER_UI_POISON_LEVEL_THRESHOLD) {
+        if (stat_level_get(follower_obj, STAT_POISON_LEVEL) > FOLLOWER_UI_POISON_LEVEL_THRESHOLD
+                || dot_has_any_active(follower_obj)) {
             follower_ui_draw(follower_ui_windows[index], FOLLOWER_UI_POISON_BAR_ART, 3, 39, hp_percent, 100);
         } else {
             follower_ui_draw(follower_ui_windows[index], FOLLOWER_UI_HEALTH_BAR_ART, 3, 39, hp_percent, 100);
