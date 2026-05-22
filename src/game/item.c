@@ -331,14 +331,6 @@ void item_generate_inventory(int64_t critter_obj)
         }
     }
 
-    // DEBUG: give PC one Map of the Void for endgame dungeon testing.
-    {
-        int64_t orb_obj;
-        if (mp_object_create(BP_COMPONENT_1, loc, &orb_obj)) {
-            item_orb_set_type(orb_obj, ORB_MAP);
-            item_transfer(orb_obj, critter_obj);
-        }
-    }
 }
 
 // 0x4612A0
@@ -2218,6 +2210,13 @@ void sub_463E20(int64_t obj)
 
         if (obj_type == OBJ_TYPE_NPC) {
             item_wield_best_all(obj, OBJ_HANDLE_NULL);
+            int npc_cnt = obj_field_int32_get(obj, OBJ_F_CRITTER_INVENTORY_NUM);
+            for (int r = 0; r < npc_cnt; r++) {
+                int64_t inv_item = obj_arrayfield_handle_get(obj, OBJ_F_CRITTER_INVENTORY_LIST_IDX, r);
+                if (inv_item != OBJ_HANDLE_NULL) {
+                    item_rarity_roll(inv_item);
+                }
+            }
         } else if (obj_type == OBJ_TYPE_CONTAINER) {
             int cnt_roll = obj_field_int32_get(obj, OBJ_F_CONTAINER_INVENTORY_NUM);
             for (int r = 0; r < cnt_roll; r++) {

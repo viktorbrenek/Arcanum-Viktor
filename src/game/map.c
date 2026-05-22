@@ -6,6 +6,7 @@
 #include "game/anim.h"
 #include "game/critter.h"
 #include "game/critter_rarity.h"
+#include "game/item_rarity.h"
 #include "game/description.h"
 #include "game/descriptions.h"
 #include "game/effect.h"
@@ -1354,9 +1355,17 @@ void map_load_postprocess(void)
                 obj_field_int32_set(obj, OBJ_F_FLAGS, flags);
             }
 
-            if (obj_field_int32_get(obj, OBJ_F_TYPE) == OBJ_TYPE_NPC
-                && (obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1) & CRITTER_PAD_ROLLED_FLAG) == 0) {
-                critter_rarity_roll(obj);
+            if (obj_field_int32_get(obj, OBJ_F_TYPE) == OBJ_TYPE_NPC) {
+                if ((obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1) & CRITTER_PAD_ROLLED_FLAG) == 0) {
+                    critter_rarity_roll(obj);
+                }
+                int npc_inv_cnt = obj_field_int32_get(obj, OBJ_F_CRITTER_INVENTORY_NUM);
+                for (int r = 0; r < npc_inv_cnt; r++) {
+                    int64_t inv_item = obj_arrayfield_handle_get(obj, OBJ_F_CRITTER_INVENTORY_LIST_IDX, r);
+                    if (inv_item != OBJ_HANDLE_NULL) {
+                        item_rarity_roll(inv_item);
+                    }
+                }
             }
         } while (obj_inst_next(&obj, &iter));
     }
