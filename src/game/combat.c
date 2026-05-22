@@ -18,6 +18,7 @@
 #include "game/item.h"
 #include "game/critter_rarity.h"
 #include "game/item_rarity.h"
+#include "game/item_tech_props.h"
 #include "game/logbook.h"
 #include "game/magictech.h"
 #include "game/map.h"
@@ -36,6 +37,7 @@
 #include "game/script.h"
 #include "game/sfx.h"
 #include "game/skill.h"
+#include "game/spell_ce.h"
 #include "game/stat.h"
 #include "game/tf.h"
 #include "game/trap.h"
@@ -1796,6 +1798,7 @@ void combat_dmg(CombatContext* combat)
             if (critter_rarity_bonus_get(combat->attacker_obj) & CRITTER_BONUS_VAMPIRIC) {
                 loh += 2;
             }
+            loh += spell_ce_life_on_hit_bonus(combat->attacker_obj);
             if (loh > 0) {
                 int attacker_hp_dam = object_hp_damage_get(combat->attacker_obj) - loh;
                 if (attacker_hp_dam < 0) {
@@ -1807,6 +1810,7 @@ void combat_dmg(CombatContext* combat)
             if (critter_rarity_bonus_get(combat->target_obj) & CRITTER_BONUS_THORNED) {
                 thorns += 3;
             }
+            thorns += spell_ce_thorns_bonus(combat->target_obj);
             if (thorns > 0) {
                 int attacker_hp_dam = object_hp_damage_get(combat->attacker_obj) + thorns;
                 if (attacker_hp_dam < 0) {
@@ -1907,6 +1911,7 @@ void combat_dmg(CombatContext* combat)
 
             if ((combat->flags & 0x40000) != 0) {
                 mt_item_notify_parent_dmgs_obj(combat->attacker_obj, combat->weapon_obj, combat->target_obj);
+                tech_weapon_on_hit(combat->attacker_obj, combat->weapon_obj, combat->target_obj, combat->flags);
             } else {
                 mt_item_notify_parent_dmgs_obj(combat->attacker_obj, OBJ_HANDLE_NULL, combat->target_obj);
             }
