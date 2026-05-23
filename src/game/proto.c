@@ -9041,7 +9041,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 8);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, -10);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 500);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 600);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16006);
             obj_field_int32_set(obj, OBJ_F_CATEGORY, 6);
             break;
@@ -9060,7 +9060,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 12);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, -10);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 400);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 600);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16007);
             obj_field_int32_set(obj, OBJ_F_CATEGORY, 13);
             break;
@@ -9079,7 +9079,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 4);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 300);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 400);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16008);
             obj_field_int32_set(obj, OBJ_F_CATEGORY, 8);
             break;
@@ -9098,7 +9098,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 2);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_CLOTH);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 250);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 400);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16009);
             obj_field_int32_set(obj, OBJ_F_CATEGORY, 11);
             break;

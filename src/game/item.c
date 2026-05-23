@@ -320,16 +320,7 @@ void item_generate_inventory(int64_t critter_obj)
         }
     }
 
-    // TEST: give all 4 CE thorns set items to PC for testing
-    if (player_is_local_pc_obj(critter_obj)) {
-        static const int test_thorns[] = { BP_THORNVEST, BP_THORNYBULWARK, BP_CROWNOFTHORNS, BP_BRAMBLEDSHOES };
-        for (int ti = 0; ti < 4; ti++) {
-            proto_obj = sub_4685A0(test_thorns[ti]);
-            if (proto_obj != OBJ_HANDLE_NULL && object_create(proto_obj, loc, &item_obj)) {
-                item_transfer(item_obj, critter_obj);
-            }
-        }
-    }
+
 
     // Apply guaranteed unique drop if this critter's BP is mapped to one.
     item_rarity_try_boss_drop(critter_obj);

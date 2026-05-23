@@ -617,6 +617,41 @@ void invensource_inject_unarmed_entries(void)
         {  71,  3, BP_PINGLOVES }, // M3 Treasure Set
         { 103,  3, BP_PINGLOVES }, // GeneralMagicTreasure
         { 123,  3, BP_PINGLOVES }, // Multi-Magic Dark
+        // BP_THORNVEST — thorns chest armor, magic theme
+        {  12,  3, BP_THORNVEST },  // Smith Magical
+        {  15,  3, BP_THORNVEST },  // Magic General
+        {  17,  3, BP_THORNVEST },  // Magic Dark
+        {  18,  3, BP_THORNVEST },  // Black Market
+        {  70,  3, BP_THORNVEST },  // M2 Treasure Set
+        {  71,  4, BP_THORNVEST },  // M3 Treasure Set
+        { 103,  3, BP_THORNVEST },  // GeneralMagicTreasure
+        { 121,  2, BP_THORNVEST },  // Multi-Magic General
+        // BP_THORNYBULWARK — thorns shield
+        {  12,  3, BP_THORNYBULWARK }, // Smith Magical
+        {  15,  3, BP_THORNYBULWARK }, // Magic General
+        {  17,  3, BP_THORNYBULWARK }, // Magic Dark
+        {  18,  3, BP_THORNYBULWARK }, // Black Market
+        {  70,  3, BP_THORNYBULWARK }, // M2 Treasure Set
+        {  71,  4, BP_THORNYBULWARK }, // M3 Treasure Set
+        { 103,  3, BP_THORNYBULWARK }, // GeneralMagicTreasure
+        // BP_CROWNOFTHORNS — thorns helmet
+        {  15,  3, BP_CROWNOFTHORNS }, // Magic General
+        {  16,  2, BP_CROWNOFTHORNS }, // Magic Light
+        {  17,  3, BP_CROWNOFTHORNS }, // Magic Dark
+        {  18,  3, BP_CROWNOFTHORNS }, // Black Market
+        {  69,  2, BP_CROWNOFTHORNS }, // M1 Treasure Set
+        {  70,  3, BP_CROWNOFTHORNS }, // M2 Treasure Set
+        {  71,  3, BP_CROWNOFTHORNS }, // M3 Treasure Set
+        { 103,  3, BP_CROWNOFTHORNS }, // GeneralMagicTreasure
+        // BP_BRAMBLEDSHOES — thorns boots
+        {  15,  3, BP_BRAMBLEDSHOES }, // Magic General
+        {  16,  2, BP_BRAMBLEDSHOES }, // Magic Light
+        {  17,  3, BP_BRAMBLEDSHOES }, // Magic Dark
+        {  18,  3, BP_BRAMBLEDSHOES }, // Black Market
+        {  69,  2, BP_BRAMBLEDSHOES }, // M1 Treasure Set
+        {  70,  3, BP_BRAMBLEDSHOES }, // M2 Treasure Set
+        {  71,  3, BP_BRAMBLEDSHOES }, // M3 Treasure Set
+        { 103,  3, BP_BRAMBLEDSHOES }, // GeneralMagicTreasure
         { 0, 0, 0 },
     };
 
