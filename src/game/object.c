@@ -4241,6 +4241,13 @@ bool sub_4420D0(uint8_t* data, int64_t* obj_ptr, int64_t loc)
 // 0x442130
 bool object_create_func(int64_t proto_obj, int64_t loc, int64_t* obj_ptr, ObjectID oid)
 {
+    if (proto_obj == OBJ_HANDLE_NULL) {
+        if (obj_ptr) {
+            *obj_ptr = OBJ_HANDLE_NULL;
+        }
+        return false;
+    }
+
     if (oid.type == OID_TYPE_BLOCKED) {
         obj_create_inst(proto_obj, loc, obj_ptr);
     } else {
@@ -4253,6 +4260,13 @@ bool object_create_func(int64_t proto_obj, int64_t loc, int64_t* obj_ptr, Object
 // 0x4421A0
 bool object_duplicate_func(int64_t proto_obj, int64_t loc, ObjectID* oids, int64_t* obj_ptr)
 {
+    if (proto_obj == OBJ_HANDLE_NULL) {
+        if (obj_ptr) {
+            *obj_ptr = OBJ_HANDLE_NULL;
+        }
+        return false;
+    }
+
     if (oids->type == OID_TYPE_BLOCKED) {
         obj_perm_dup(obj_ptr, proto_obj);
     } else {

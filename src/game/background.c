@@ -381,6 +381,7 @@ void background_generate_inventory(int64_t obj)
             tok = strtok(NULL, " \t\n");
         }
     }
+
 }
 
 /**

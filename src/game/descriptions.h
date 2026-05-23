@@ -521,6 +521,14 @@
 #define BP_LARGE_MACHINED_PLATEMAIL 8291
 #define BP_LARGE_FEATHER_WEIGHT_CHAIN 8292
 
+// CE unarmed weapons (gauntlet slot, boost unarmed damage) — first 4 slots past vanilla armor range
+#define BP_CLAW        8300
+#define BP_BOXER       8301
+#define BP_THORNFIST   8302
+#define BP_STEAMCLAW   8303
+#define BP_RUNEFIST    8304
+#define BP_PINGLOVES   8305
+
 #define BP_GOLD 9056
 
 #define BP_BREAD 10057

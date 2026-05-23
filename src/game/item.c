@@ -320,6 +320,17 @@ void item_generate_inventory(int64_t critter_obj)
         }
     }
 
+    // TEST: give all 6 CE unarmed gauntlets to PC for testing — remove before ship
+    if (player_is_local_pc_obj(critter_obj)) {
+        static const int test_unarmed[] = { BP_CLAW, BP_BOXER, BP_THORNFIST, BP_STEAMCLAW, BP_RUNEFIST, BP_PINGLOVES };
+        for (int ti = 0; ti < 6; ti++) {
+            proto_obj = sub_4685A0(test_unarmed[ti]);
+            if (object_create(proto_obj, loc, &item_obj)) {
+                item_transfer(item_obj, critter_obj);
+            }
+        }
+    }
+
     // Apply guaranteed unique drop if this critter's BP is mapped to one.
     item_rarity_try_boss_drop(critter_obj);
 
@@ -597,6 +608,16 @@ void item_inv_icon_size(int64_t item_id, int* width, int* height)
 {
     tig_art_id_t aid;
     TigArtFrameData art_frame_data;
+    int desc = obj_field_int32_get(item_id, OBJ_F_DESCRIPTION);
+    if (desc >= BP_CLAW && desc <= BP_PINGLOVES) {
+        if (width != NULL) {
+            *width = 2;
+        }
+        if (height != NULL) {
+            *height = 2;
+        }
+        return;
+    }
 
     aid = obj_field_int32_get(item_id, OBJ_F_ITEM_INV_AID);
 
@@ -3367,6 +3388,20 @@ int item_weapon_magic_speed(int64_t item_obj, int64_t owner_obj)
     int training;
 
     if (item_obj == OBJ_HANDLE_NULL) {
+        if (owner_obj != OBJ_HANDLE_NULL) {
+            int64_t gauntlet = item_wield_get(owner_obj, ITEM_INV_LOC_GAUNTLET);
+            if (gauntlet != OBJ_HANDLE_NULL) {
+                int desc = obj_field_int32_get(gauntlet, OBJ_F_DESCRIPTION);
+                switch (desc) {
+                case BP_CLAW:      return 14;
+                case BP_BOXER:     return 8;
+                case BP_THORNFIST:  return 10;
+                case BP_STEAMCLAW:  return 9;
+                case BP_RUNEFIST:   return 10;
+                case BP_PINGLOVES:  return 11;
+                }
+            }
+        }
         return 10;
     }
 
@@ -3517,6 +3552,14 @@ void item_weapon_damage(int64_t weapon_obj, int64_t critter_obj, int damage_type
             max_dam = obj_arrayfield_uint32_get(critter_obj, OBJ_F_NPC_DAMAGE_IDX, 2 * damage_type + 1);
         } else {
             if (damage_type != DAMAGE_TYPE_NORMAL && damage_type != DAMAGE_TYPE_FATIGUE) {
+                if (damage_type == DAMAGE_TYPE_ELECTRICAL && skill == SKILL_MELEE && gauntlet_obj != OBJ_HANDLE_NULL) {
+                    int desc = obj_field_int32_get(gauntlet_obj, OBJ_F_DESCRIPTION);
+                    if (desc == BP_RUNEFIST) {
+                        *min_dam_ptr = 1;
+                        *max_dam_ptr = 4;
+                        return;
+                    }
+                }
                 *min_dam_ptr = 0;
                 *max_dam_ptr = 0;
                 return;

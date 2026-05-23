@@ -170,7 +170,14 @@
       "Bash(cmake --build out/build/windows-x64 --target arcanum --config Debug)",
       "Bash(cmake --build out/build/windows-x64 --config Debug)",
       "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\\\\028471 - NPC.pro\"\\); \"Size: $\\($bytes.Length\\) bytes\"; $bytes[0..31] | ForEach-Object { $_.ToString\\(\"X2\"\\) } | Join-String -Separator \" \")",
-      "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\\\\028471 - NPC.pro\"\\); \"Size: $\\($bytes.Length\\)\"; \\($bytes[0..63] | ForEach-Object { $_.ToString\\(\"X2\"\\) }\\) -join \" \")"
+      "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\\\\028471 - NPC.pro\"\\); \"Size: $\\($bytes.Length\\)\"; \\($bytes[0..63] | ForEach-Object { $_.ToString\\(\"X2\"\\) }\\) -join \" \")",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\art\\\\item\" | Where-Object { $_.Name -match \"steam|thorn|boxer|claw\" })",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\" | Where-Object { $_.Name -match \"^008052|^008175|^008176|^008177\" })",
+      "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\\\\008176 - Armor.pro\"\\); \"Size: $\\($bytes.Length\\)\"; \\($bytes | ForEach-Object { $_.ToString\\(\"X2\"\\) }\\) -join \" \")",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\" | Where-Object { $_.Name -match \"^015157\" })",
+      "Bash(awk '{print $3}')",
+      "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\" | Where-Object { $_.Name -match \"^00804[0-9]\" } | Sort-Object Name)",
+      "Bash(cmake --build out/build --config Release)"
     ]
   }
 }

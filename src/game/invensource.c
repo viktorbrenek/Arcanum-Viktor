@@ -20,6 +20,7 @@ static bool parse_invensource_entry(MesFileEntry* mes_file_entry, char* str);
 static bool parse_invensourcebuy_entry(MesFileEntry* mes_file_entry, char* str);
 static void show_error(const char* msg);
 static void invensource_inject_orb_entries(void);
+static void invensource_inject_unarmed_entries(void);
 
 /**
  * Path to the inventory source message file.
@@ -138,6 +139,7 @@ bool invensource_init(GameInitInfo* init_info)
         invensource_have_buy = false;
 
         invensource_inject_orb_entries();
+        invensource_inject_unarmed_entries();
 
         invensource_initialized = true;
     }
@@ -545,6 +547,69 @@ void invensource_inject_orb_entries(void)
         if (cnt < INVEN_SOURCE_SET_SIZE) {
             named_set->set.rate[cnt] = entries[i].rate;
             named_set->set.basic_prototype[cnt] = BP_COMPONENT_1;
+            named_set->set.cnt = cnt + 1;
+        }
+    }
+}
+
+/**
+ * Injects unarmed weapon (CE gauntlet-slot) entries into relevant loot sets.
+ */
+void invensource_inject_unarmed_entries(void)
+{
+    static const struct {
+        int set_id;
+        int rate;
+        int bp;
+    } entries[] = {
+        // BP_CLAW — basic, +3 unarmed
+        {   1,  3, BP_CLAW },   // General Store Rural
+        {   2,  4, BP_CLAW },   // General Store City
+        {  48,  2, BP_CLAW },   // Bandit 2 Sword
+        {  49,  2, BP_CLAW },   // Bandit 2 Mace
+        {  56,  3, BP_CLAW },   // T1 Low Tech Content
+        {  57,  2, BP_CLAW },   // T2 Med-Low Tech Content
+        { 112,  3, BP_CLAW },   // Multi-General Store
+        // BP_BOXER — medium, +5 unarmed
+        {   2,  3, BP_BOXER },  // General Store City
+        {  12,  3, BP_BOXER },  // Smith Magical
+        {  18,  3, BP_BOXER },  // Black Market
+        {  50,  3, BP_BOXER },  // Bandit 3 Sword
+        {  51,  3, BP_BOXER },  // Bandit 3 Mace
+        {  57,  3, BP_BOXER },  // T2 Med-Low Tech Content
+        {  58,  3, BP_BOXER },  // T3 Medium Tech Content
+        {  69,  2, BP_BOXER },  // M1 Treasure Set
+        { 117,  3, BP_BOXER },  // Multi-Smith Magical
+        // BP_THORNFIST — tech-magic, +7 unarmed
+        {  12,  3, BP_THORNFIST }, // Smith Magical
+        {  15,  3, BP_THORNFIST }, // Magic General
+        {  18,  3, BP_THORNFIST }, // Black Market
+        {  58,  3, BP_THORNFIST }, // T3 Medium Tech Content
+        {  59,  4, BP_THORNFIST }, // T4 Med-High Tech Content
+        {  70,  3, BP_THORNFIST }, // M2 Treasure Set
+        { 103,  3, BP_THORNFIST }, // GeneralMagicTreasure
+        { 121,  3, BP_THORNFIST }, // Multi-Magic General
+        // BP_STEAMCLAW — high tech, +12 unarmed
+        {   7,  3, BP_STEAMCLAW }, // Inventor
+        {  18,  4, BP_STEAMCLAW }, // Black Market
+        {  59,  3, BP_STEAMCLAW }, // T4 Med-High Tech Content
+        {  60,  5, BP_STEAMCLAW }, // T5 High Tech Content
+        {  71,  4, BP_STEAMCLAW }, // M3 Treasure Set
+        { 104,  5, BP_STEAMCLAW }, // GeneralTechTreasure
+        { 115,  3, BP_STEAMCLAW }, // Multi-Inventor
+        { 0, 0, 0 },
+    };
+
+    for (int i = 0; entries[i].set_id != 0; i++) {
+        int id = entries[i].set_id;
+        if (id < 1 || id > invensource_num_sets) {
+            continue;
+        }
+        NamedInvenSourceSet* named_set = &invensource_sets[id - 1];
+        int cnt = named_set->set.cnt;
+        if (cnt < INVEN_SOURCE_SET_SIZE) {
+            named_set->set.rate[cnt] = entries[i].rate;
+            named_set->set.basic_prototype[cnt] = entries[i].bp;
             named_set->set.cnt = cnt + 1;
         }
     }

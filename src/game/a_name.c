@@ -1070,10 +1070,19 @@ bool a_name_item_aid_to_fname(tig_art_id_t aid, char* fname)
 
     subtype = tig_art_item_id_subtype_get(aid);
     type = tig_art_item_id_type_get(aid);
+    int num = (int)tig_art_num_get(aid);
+
+    // CE unarmed weapons: claw(920), boxer(921), thornfist(922), steamclaw(923), runefist(924), pingloves(925)
+    if (num >= 920 && num <= 925) {
+        static const char* const unarmed_art_names[] = { "claw", "boxer", "thornfist", "steamclaw", "runefist", "pingloves" };
+        int disp = tig_art_item_id_disposition_get(aid);
+        const char* suffix = (disp == TIG_ART_ITEM_DISPOSITION_GROUND) ? "_ground" : "_inven";
+        sprintf(fname, "art\\item\\%s%s.art", unarmed_art_names[num - 920], suffix);
+        return true;
+    }
 
     // Crafting orbs: bypass mes lookup and return hardcoded paths.
     if (type == TIG_ART_ITEM_TYPE_GENERIC && subtype == 0) {
-        int num = (int)tig_art_num_get(aid);
         if (num >= ORB_ART_NUM_BASE && num < ORB_ART_NUM_BASE + ORB_COUNT - 1) {
             static const char* const orb_art_names[] = {
                 "orb1",

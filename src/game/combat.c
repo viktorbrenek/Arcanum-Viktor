@@ -1818,6 +1818,24 @@ void combat_dmg(CombatContext* combat)
                 }
                 object_hp_damage_set(combat->attacker_obj, attacker_hp_dam);
             }
+
+            // CE custom gauntlet on-hit procs
+            int64_t gauntlet = item_wield_get(combat->attacker_obj, ITEM_INV_LOC_GAUNTLET);
+            if (gauntlet != OBJ_HANDLE_NULL) {
+                int desc = obj_field_int32_get(gauntlet, OBJ_F_DESCRIPTION);
+                if (desc == BP_STEAMCLAW) {
+                    apply_fire_dot(combat->attacker_obj, combat->target_obj, 3, 3);
+                } else if (desc == BP_RUNEFIST) {
+                    int cur_fatigue = critter_fatigue_damage_get(combat->attacker_obj);
+                    int new_fatigue = cur_fatigue - 3;
+                    if (new_fatigue < 0) {
+                        new_fatigue = 0;
+                    }
+                    critter_fatigue_damage_set(combat->attacker_obj, new_fatigue);
+                } else if (desc == BP_PINGLOVES) {
+                    apply_poison_weapon_dot(combat->attacker_obj, combat->target_obj, 2, 3);
+                }
+            }
         }
 
         if (dam > 0) {

@@ -1,4 +1,5 @@
 #include "game/item_rarity.h"
+#include "game/descriptions.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -1417,6 +1418,9 @@ int item_rarity_thorns_get(int64_t critter_obj)
         int64_t item_obj = item_wield_get(critter_obj, wear_slots[s]);
         if (item_obj == OBJ_HANDLE_NULL) {
             continue;
+        }
+        if (obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION) == BP_THORNFIST) {
+            thorns += 5;
         }
         ItemRarity rarity = item_rarity_get(item_obj);
         if (rarity <= ITEM_RARITY_COMMON) {

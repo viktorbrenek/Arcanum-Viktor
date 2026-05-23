@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "game/description.h"
+#include "game/descriptions.h"
 #include "game/item_orb.h"
 #include "game/hrp.h"
 #include "game/item.h"
@@ -232,16 +233,55 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     // Affix descriptions
     affixes_buf[0] = '\0';
     has_affixes = false;
-    
+
+    int item_desc = obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION);
+    if (item_desc >= BP_CLAW && item_desc <= BP_PINGLOVES) {
+        switch (item_desc) {
+        case BP_CLAW:
+            strcpy(affixes_buf, "Unarmed only.\nVery fast attacks.");
+            break;
+        case BP_BOXER:
+            strcpy(affixes_buf, "Unarmed only.\nSlow but heavy hits.");
+            break;
+        case BP_THORNFIST:
+            strcpy(affixes_buf, "Unarmed only.\nReflects 5 damage (Thorns).");
+            break;
+        case BP_STEAMCLAW:
+            strcpy(affixes_buf, "Unarmed only.\nBurns target on hit (3s).");
+            break;
+        case BP_RUNEFIST:
+            strcpy(affixes_buf, "Unarmed only.\nSteals 3 Fatigue on hit.");
+            break;
+        case BP_PINGLOVES:
+            strcpy(affixes_buf, "Unarmed only.\nPoisons target on hit (3s).");
+            break;
+        }
+        has_affixes = true;
+    }
+
     OrbType orb_type = item_orb_get_type(item_obj);
     if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
         const char* orb_desc = item_orb_description(orb_type);
         if (orb_desc != NULL) {
-            strcpy(affixes_buf, orb_desc);
+            if (has_affixes) {
+                strcat(affixes_buf, "\n");
+                strcat(affixes_buf, orb_desc);
+            } else {
+                strcpy(affixes_buf, orb_desc);
+            }
         }
         has_affixes = affixes_buf[0] != '\0';
     } else if (is_magic && identified) {
-        item_rarity_format_tooltip_affixes(item_obj, affixes_buf, sizeof(affixes_buf));
+        char temp_affixes[256];
+        item_rarity_format_tooltip_affixes(item_obj, temp_affixes, sizeof(temp_affixes));
+        if (temp_affixes[0] != '\0') {
+            if (has_affixes) {
+                strcat(affixes_buf, "\n");
+                strcat(affixes_buf, temp_affixes);
+            } else {
+                strcpy(affixes_buf, temp_affixes);
+            }
+        }
         has_affixes = affixes_buf[0] != '\0';
     }
 
