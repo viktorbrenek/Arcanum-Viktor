@@ -1091,7 +1091,6 @@ bool a_name_item_aid_to_fname(tig_art_id_t aid, char* fname)
             int disp = tig_art_item_id_disposition_get(aid);
             const char* suffix = (disp == TIG_ART_ITEM_DISPOSITION_GROUND) ? "_ground" : "_inven";
             sprintf(fname, "art\\item\\%s%s.art", orb_art_names[orb_idx], suffix);
-            tig_debug_printf("CE DEBUG: Loading custom orb art: %s\n", fname);
             return true;
         }
     }

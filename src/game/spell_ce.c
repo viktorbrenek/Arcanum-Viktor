@@ -4,6 +4,7 @@
 
 #include "game/anim.h"
 #include "game/combat.h"
+#include "game/critter.h"
 #include "game/damage_type.h"
 #include "game/item_tech_props.h"
 #include "game/location.h"
@@ -291,8 +292,38 @@ static void proc_wind_strike(int64_t caster, int64_t target)
 
 // ─── public hooks ─────────────────────────────────────────────────────────────
 
+// Blood Magic: Black Necro spells cost HP instead of fatigue.
+// Called once per cast on BEGIN. Returns HP to drain from caster (0 = not blood magic).
+static int blood_magic_hp_cost(int spell)
+{
+    switch (spell) {
+    case SPELL_HARM:           return 12;
+    case SPELL_CONJURE_SPIRIT: return 25;
+    // SPELL_SUMMON_UNDEAD: no upfront cost — 5 HP per 10s tick via on_target MAINTAIN
+    case SPELL_CREATE_UNDEAD:  return 60;   // Lifetaker
+    case SPELL_QUENCH_LIFE:    return 120;  // Finger of Death
+    default:                   return 0;
+    }
+}
+
+static void blood_magic_pay(int64_t caster_obj, int hp_cost)
+{
+    CombatContext ctx;
+
+    sub_4B2210(caster_obj, caster_obj, &ctx);
+    ctx.dam[DAMAGE_TYPE_NORMAL] = hp_cost;
+    ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
+    combat_dmg(&ctx);
+    tb_add(caster_obj, TB_TYPE_RED, "Blood cost!");
+}
+
 void spell_ce_pre_begin(int spell, int64_t caster_obj, int* aptitude_ptr)
 {
+    int hp_cost = blood_magic_hp_cost(spell);
+    if (hp_cost > 0) {
+        blood_magic_pay(caster_obj, hp_cost);
+    }
+
     if (spell != SPELL_HARM) {
         return;
     }
@@ -394,6 +425,35 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
     case SPELL_CALL_WINDS:
         if (IS_BEGIN(action)) {
             proc_wind_strike(caster_obj, target_obj);
+        }
+        break;
+    case SPELL_SUMMON_UNDEAD:
+        // Blood Magic tick: 5 HP per maintain cycle (every 10s). Target == caster via [Maintain]AoE: Tgt_Self.
+        if (IS_MAINTAIN(action) && target_obj == caster_obj) {
+            blood_magic_pay(caster_obj, 5);
+        }
+        break;
+    case SPELL_CHARM:  // Meditation: spend 15 HP to restore 25 fatigue
+        if (IS_BEGIN(action)) {
+            CombatContext med_ctx;
+            int cur_fat_dmg;
+            int new_fat_dmg;
+
+            // HP cost — unresistable self-damage.
+            sub_4B2210(caster_obj, caster_obj, &med_ctx);
+            med_ctx.dam[DAMAGE_TYPE_NORMAL] = 15;
+            med_ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
+            combat_dmg(&med_ctx);
+
+            // Fatigue restore — reduce fatigue damage by 50, floor at 0.
+            cur_fat_dmg = critter_fatigue_damage_get(caster_obj);
+            new_fat_dmg = cur_fat_dmg - 25;
+            if (new_fat_dmg < 0) {
+                new_fat_dmg = 0;
+            }
+            critter_fatigue_damage_set(caster_obj, new_fat_dmg);
+
+            tb_add(caster_obj, TB_TYPE_WHITE, "Focus!");
         }
         break;
     case SPELL_CHARM_BEAST:  // Wolf Form (Lycanthropy)

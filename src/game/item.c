@@ -1,5 +1,6 @@
 #include "game/item.h"
 
+#include "tig/debug.h"
 #include "game/critter_rarity.h"
 #include "game/item_orb.h"
 #include "game/item_rarity.h"

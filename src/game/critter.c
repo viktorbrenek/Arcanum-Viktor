@@ -1,6 +1,7 @@
 #include "game/critter.h"
 
 #include "game/endgame_map.h"
+#include "game/item_rarity.h"
 #include "game/critter_rarity.h"
 #include "game/descriptions.h"
 #include "game/item_orb.h"
@@ -525,7 +526,8 @@ int critter_fatigue_max(int64_t obj)
     willpower = stat_level_get(obj, STAT_WILLPOWER);
 
     // PTS * 4 + ADJ + 2 * (LVL + CN) + WP + 4
-    return effect_adjust_max_fatigue(obj, fatigue_pts * 4 + fatigue_adj + 2 * (level + constitution) + willpower + 4);
+    int base = fatigue_pts * 4 + fatigue_adj + 2 * (level + constitution) + willpower + 4;
+    return effect_adjust_max_fatigue(obj, base) + item_rarity_bonus_fatigue_get(obj);
 }
 
 /**

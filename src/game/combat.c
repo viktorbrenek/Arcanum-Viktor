@@ -1848,17 +1848,27 @@ void combat_dmg(CombatContext* combat)
             tf_add(combat->target_obj, tf_type, str);
         }
 
-        int poison = stat_base_get(combat->target_obj, STAT_POISON_LEVEL) + combat->dam[DAMAGE_TYPE_POISON];
-        if (poison < 0) {
-            poison = 0;
-        }
-        stat_base_set(combat->target_obj, STAT_POISON_LEVEL, poison);
+        if (combat->dam[DAMAGE_TYPE_POISON] != 0) {
+            if (combat->weapon_obj != OBJ_HANDLE_NULL && combat->dam[DAMAGE_TYPE_POISON] > 0) {
+                // Weapon-based poison (affix) — CE DoT: direct HP damage, purple bar.
+                // STAT_POISON_LEVEL scale (200+ needed for effect) is wrong for small affix values.
+                apply_poison_weapon_dot(combat->attacker_obj, combat->target_obj,
+                    combat->dam[DAMAGE_TYPE_POISON], 3);
+            } else {
+                // Spell/script poison — vanilla STAT_POISON_LEVEL system (green bar, over time).
+                int poison = stat_base_get(combat->target_obj, STAT_POISON_LEVEL) + combat->dam[DAMAGE_TYPE_POISON];
+                if (poison < 0) {
+                    poison = 0;
+                }
+                stat_base_set(combat->target_obj, STAT_POISON_LEVEL, poison);
 
-        if (combat->dam[DAMAGE_TYPE_POISON] > 0 && tf_level_get() == TF_LEVEL_VERBOSE) {
-            mes_file_entry.num = 0;
-            mes_get_msg(combat_mes_file, &mes_file_entry);
-            sprintf(str, "%s %+d", mes_file_entry.str, combat->dam[DAMAGE_TYPE_POISON]);
-            tf_add(combat->target_obj, TF_TYPE_GREEN, str);
+                if (combat->dam[DAMAGE_TYPE_POISON] > 0 && tf_level_get() == TF_LEVEL_VERBOSE) {
+                    mes_file_entry.num = 0;
+                    mes_get_msg(combat_mes_file, &mes_file_entry);
+                    sprintf(str, "%s %+d", mes_file_entry.str, combat->dam[DAMAGE_TYPE_POISON]);
+                    tf_add(combat->target_obj, TF_TYPE_GREEN, str);
+                }
+            }
         }
 
         if (combat->field_30 != OBJ_HANDLE_NULL

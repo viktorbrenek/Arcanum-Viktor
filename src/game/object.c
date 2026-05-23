@@ -1655,6 +1655,7 @@ int object_hp_max(int64_t obj)
     obj_type = obj_field_int32_get(obj, OBJ_F_TYPE);
     if (obj_type_is_critter(obj_type)) {
         value = effect_adjust_max_hit_points(obj, sub_43D630(obj) + value);
+        value += item_rarity_bonus_hp_get(obj);
     }
     return value;
 }

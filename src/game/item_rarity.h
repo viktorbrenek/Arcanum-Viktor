@@ -120,6 +120,12 @@ typedef enum ItemAffix {
     ITEM_AFFIX_OF_THE_VAMPIRE,      // +1 life on hit
     // --- Thorns (epic-only rare suffix, armor only) ---
     ITEM_AFFIX_OF_THORNS,           // +2 damage reflected to attacker on hit
+    // --- Max HP bonus suffixes ---
+    ITEM_AFFIX_OF_VITALITY,         // +10 max HP
+    ITEM_AFFIX_OF_HARDINESS,        // +20 max HP (rare)
+    // --- Max Fatigue bonus suffixes ---
+    ITEM_AFFIX_OF_VIGOR,            // +10 max fatigue
+    ITEM_AFFIX_OF_STAMINA,          // +20 max fatigue (rare)
     ITEM_AFFIX_COUNT,
 } ItemAffix;
 
@@ -197,6 +203,12 @@ int item_rarity_life_on_hit_get(int64_t critter_obj);
 
 // Sum thorns value across all equipped items. Returns 0 if none.
 int item_rarity_thorns_get(int64_t critter_obj);
+
+// Sum max HP bonus across all equipped items with HP affixes. Returns 0 if none.
+int item_rarity_bonus_hp_get(int64_t critter_obj);
+
+// Sum max fatigue bonus across all equipped items with fatigue affixes. Returns 0 if none.
+int item_rarity_bonus_fatigue_get(int64_t critter_obj);
 
 // Tooltip: compact line of equipped stat bonuses e.g. "+2 STR | -2 DEX (equipped)".
 // buf[0] = '\0' if no stat bonuses.

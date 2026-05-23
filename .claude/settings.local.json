@@ -162,7 +162,15 @@
       "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum2.lst\" | Where-Object { $_ -match \"\\\\.lst\" } | Select-Object -First 30)",
       "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\mes\" | Where-Object { $_.Name -match \"effect\" })",
       "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\rules\" | Where-Object { $_.Name -match \"effect\" })",
-      "Bash(cmake --build out\\\\build\\\\windows-x64 --target arcanum --config Debug)"
+      "Bash(cmake --build out\\\\build\\\\windows-x64 --target arcanum --config Debug)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\petrb\\\\Downloads\\\\equalibriom\\\\f-man\\\\Module Integration-23-0-1a-1775226560\" -Recurse -File | Group-Object { $_.Extension } | Select-Object Name, Count | Sort-Object Count -Descending)",
+      "Bash(grep -v \"tig_debug\\\\|//\")",
+      "Bash(xargs grep -l \"dat\\\\|repository\")",
+      "Bash(.\\\\undat.exe \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\Arcanum.dat\" \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\extracted_rules\" \"Rules\\\\WMap_Rnd.mes\")",
+      "Bash(cmake --build out/build/windows-x64 --target arcanum --config Debug)",
+      "Bash(cmake --build out/build/windows-x64 --config Debug)",
+      "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\\\\028471 - NPC.pro\"\\); \"Size: $\\($bytes.Length\\) bytes\"; $bytes[0..31] | ForEach-Object { $_.ToString\\(\"X2\"\\) } | Join-String -Separator \" \")",
+      "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\(\"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\\\\028471 - NPC.pro\"\\); \"Size: $\\($bytes.Length\\)\"; \\($bytes[0..63] | ForEach-Object { $_.ToString\\(\"X2\"\\) }\\) -join \" \")"
     ]
   }
 }
