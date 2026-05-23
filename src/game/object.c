@@ -29,6 +29,7 @@
 #include "game/proto.h"
 #include "game/reaction.h"
 #include "game/resistance.h"
+#include "game/spell_ce.h"
 #include "game/roof.h"
 #include "game/scroll.h"
 #include "game/sector.h"
@@ -1747,6 +1748,11 @@ int object_get_resistance(int64_t obj, int resistance_type, bool a2)
                     value -= 10;
                 }
             }
+        }
+
+        if ((resistance_type == RESISTANCE_TYPE_FIRE || resistance_type == RESISTANCE_TYPE_ELECTRICAL)
+            && spell_ce_has_wolf_form(obj)) {
+            value -= 20;
         }
 
         if (resistance_type == RESISTANCE_TYPE_POISON) {

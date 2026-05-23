@@ -22,4 +22,10 @@ int spell_ce_life_on_hit_bonus(int64_t attacker_obj);
 // Called from combat_dmg to get Bear God Form thorns bonus (6 if active, else 0).
 int spell_ce_thorns_bonus(int64_t target_obj);
 
+// True if obj is currently in Wolf Form (Lycanthropy) — apply bleed on hit.
+bool spell_ce_has_wolf_form(int64_t attacker_obj);
+
+// True if obj is currently in Lizard Form — apply poison on hit.
+bool spell_ce_has_lizard_form(int64_t attacker_obj);
+
 #endif /* ARCANUM_GAME_SPELL_CE_H_ */

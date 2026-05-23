@@ -1870,6 +1870,14 @@ void combat_dmg(CombatContext* combat)
                 }
             }
 
+            // Transform form DoTs: Wolf → bleed, Lizard → poison
+            if (spell_ce_has_wolf_form(combat->attacker_obj)) {
+                apply_bleed_dot(combat->attacker_obj, combat->target_obj, 4, 10);
+            }
+            if (spell_ce_has_lizard_form(combat->attacker_obj)) {
+                apply_poison_weapon_dot(combat->attacker_obj, combat->target_obj, 4, 10);
+            }
+
             unique_procs_on_hit(combat->attacker_obj, combat->target_obj, dam, was_concealed);
             unique_procs_on_damage_received(combat->target_obj, combat->attacker_obj, dam);
         }

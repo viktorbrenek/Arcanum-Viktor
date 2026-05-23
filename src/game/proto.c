@@ -4183,8 +4183,6 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_WOOD);
             obj_field_int32_set(obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY, 60);
             obj_field_int32_set(obj, OBJ_F_ITEM_SPELL_1, 62);
-            obj_field_int32_set(obj, OBJ_F_ITEM_SPELL_2, 50);
-            obj_field_int32_set(obj, OBJ_F_ITEM_SPELL_3, 54);
             obj_field_int32_set(obj, OBJ_F_ITEM_SPELL_MANA_STORE, 20);
             obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 100);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_UNKNOWN, 29692);

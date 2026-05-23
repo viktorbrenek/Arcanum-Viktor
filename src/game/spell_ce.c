@@ -105,31 +105,40 @@ static bool target_is_alive(int64_t obj)
 
 // ─── transform form tracking ─────────────────────────────────────────────────
 
-static int64_t wolf_form_holder = OBJ_HANDLE_NULL;
-static int64_t bear_form_holder = OBJ_HANDLE_NULL;
+static int64_t wolf_form_holder   = OBJ_HANDLE_NULL;
+static int64_t bear_form_holder   = OBJ_HANDLE_NULL;
+static int64_t lizard_form_holder = OBJ_HANDLE_NULL;
+
+static bool form_holder_check(int64_t obj, int64_t* holder)
+{
+    if (obj != *holder) {
+        return false;
+    }
+    if (!(obj_field_int32_get(obj, OBJ_F_SPELL_FLAGS) & (int)OSF_POLYMORPHED)) {
+        *holder = OBJ_HANDLE_NULL;
+        return false;
+    }
+    return true;
+}
 
 int spell_ce_life_on_hit_bonus(int64_t attacker_obj)
 {
-    if (attacker_obj != wolf_form_holder) {
-        return 0;
-    }
-    if (!(obj_field_int32_get(attacker_obj, OBJ_F_SPELL_FLAGS) & (int)OSF_POLYMORPHED)) {
-        wolf_form_holder = OBJ_HANDLE_NULL;
-        return 0;
-    }
-    return 2;
+    return form_holder_check(attacker_obj, &wolf_form_holder) ? 2 : 0;
 }
 
 int spell_ce_thorns_bonus(int64_t target_obj)
 {
-    if (target_obj != bear_form_holder) {
-        return 0;
-    }
-    if (!(obj_field_int32_get(target_obj, OBJ_F_SPELL_FLAGS) & (int)OSF_POLYMORPHED)) {
-        bear_form_holder = OBJ_HANDLE_NULL;
-        return 0;
-    }
-    return 6;
+    return form_holder_check(target_obj, &bear_form_holder) ? 15 : 0;
+}
+
+bool spell_ce_has_wolf_form(int64_t attacker_obj)
+{
+    return form_holder_check(attacker_obj, &wolf_form_holder);
+}
+
+bool spell_ce_has_lizard_form(int64_t attacker_obj)
+{
+    return form_holder_check(attacker_obj, &lizard_form_holder);
 }
 
 // ─── per-school procs ─────────────────────────────────────────────────────────
@@ -463,6 +472,11 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
     case SPELL_CHARM_BEAST:  // Wolf Form (Lycanthropy)
         if (IS_BEGIN(action)) {
             wolf_form_holder = caster_obj;
+        }
+        break;
+    case SPELL_CONTROL_BEAST:  // Lizard Form
+        if (IS_BEGIN(action)) {
+            lizard_form_holder = caster_obj;
         }
         break;
     case SPELL_REGENERATE:  // Bear God Form

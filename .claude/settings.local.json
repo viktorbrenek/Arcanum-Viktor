@@ -178,7 +178,11 @@
       "Bash(awk '{print $3}')",
       "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\" | Where-Object { $_.Name -match \"^00804[0-9]\" } | Sort-Object Name)",
       "Bash(cmake --build out/build --config Release)",
-      "Bash(copy *)"
+      "Bash(copy *)",
+      "Bash(Copy-Item *)",
+      "Bash(powershell *)",
+      "PowerShell(Head *)",
+      "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\" -Recurse | Where-Object { $_.Name -match \"spell\" -or $_.Name -match \"desc\" } | Select-Object -First 20 FullName)"
     ]
   }
 }

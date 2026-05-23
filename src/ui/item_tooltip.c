@@ -280,7 +280,7 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
             staff_desc = "Restores 1 fatigue on hit.";
             break;
         case BP_SHOCKING_STAFF:
-            staff_desc = "Restores 3 fatigue on hit.\nEquipped: grants Bolt of Lightning.";
+            staff_desc = "Restores 3 fatigue on hit.\nEquipped: grants Jolt.";
             break;
         case BP_STAFF_OF_HEALING:
             staff_desc = "Restores 2 fatigue on hit.\nEquipped: grants Minor Healing.";

@@ -321,7 +321,6 @@ void item_generate_inventory(int64_t critter_obj)
     }
 
 
-
     // Apply guaranteed unique drop if this critter's BP is mapped to one.
     item_rarity_try_boss_drop(critter_obj);
 
@@ -4373,7 +4372,7 @@ static int staff_granted_spell(int64_t item_obj)
         return -1;
     }
     static const struct { int bp; int spell; } tbl[] = {
-        { BP_SHOCKING_STAFF,  SPELL_BOLT_OF_LIGHTNING },
+        { BP_SHOCKING_STAFF,  SPELL_JOLT              },
         { BP_STAFF_OF_HEALING, SPELL_MINOR_HEALING    },
         { BP_SHAMANS_STAFF,   SPELL_ENTANGLE          },
         { BP_MAGES_STAFF,     SPELL_FIREFLASH         },
