@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "game/item_rarity.h"
 #include "game/ai.h"
 #include "game/anim.h"
 #include "game/anim_private.h"

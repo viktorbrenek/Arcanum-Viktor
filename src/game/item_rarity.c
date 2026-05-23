@@ -617,6 +617,22 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     },
 };
 
+// Proc description per unique — shown in tooltip after affix list.
+// Indexed by UniqueItemId.
+static const char* unique_proc_descs[UNIQUE_ITEM_COUNT] = {
+    NULL,                                                              // UNIQUE_ITEM_NONE
+    "30% on hit: +15 unresisted + Stun (Shockwave)",                  // BLADE_OF_ALBERICH
+    "Backstab: 2x damage when attacking from concealment",            // VEIL_OF_SHADOWS
+    "On hit taken: reflect 15% damage to attacker",                   // IRONCLAD_COGPLATE
+    "On kill: Soul Harvest (+10 HP, +15 fatigue)",                    // RING_OF_MEPHISTIS
+    "25% Spell Echo: +15-25 unresisted bonus spell hit",              // TULLIAN_FOCUS
+    "On hit poisoned/burning foe: Fire Burst (15 dmg, r2)",           // WYRMFANG
+    "Every 4th hit: Overclock (repeat damage unresisted)",            // COGSWORTH_REPEATER
+    "Immune to knockdown & stun; <40% HP: restore 15% dmg taken",    // STONEHIDE_MANTLE
+    "25% on spell received: restore fatigue + charge +20 elec hit",  // GALATEA_MIRROR
+    "25% on hit taken: Bramble Nova (poison DoT, r2)",                // THORNWEAVE
+};
+
 // ---------------------------------------------------------------------------
 // Boss drop
 // ---------------------------------------------------------------------------
@@ -787,17 +803,21 @@ static void bake_extra(int64_t item_obj, int field, int field_idx, int value)
 // ---------------------------------------------------------------------------
 
 // NG+ rarity thresholds (cumulative, out of 100):
-// [level] { CURSED, UNIQUE, EPIC, RARE, UNCOMMON }
+// [level] { CURSED, UNIQUE, EPIC, RARE, UNCOMMON } — out of 1000
+// NG+0: CURSED 0.5%, UNIQUE 0.1%, EPIC 5%, RARE 10%, UNCOMMON 25%
+// NG+1: CURSED 1.0%, UNIQUE 0.2%, EPIC 6%, RARE 13%, UNCOMMON 25%
+// NG+2: CURSED 1.5%, UNIQUE 0.5%, EPIC 8%, RARE 15%, UNCOMMON 25%
+// NG+3: CURSED 2.0%, UNIQUE 1.0%, EPIC 10%, RARE 16%, UNCOMMON 25%
 static const int ng_plus_item_thresholds[4][5] = {
-    {  1,  3,  8, 20, 45 },  // NG+0 (vanilla)
-    {  2,  5, 13, 30, 55 },  // NG+1
-    {  3,  8, 18, 38, 60 },  // NG+2
-    {  4, 12, 24, 45, 65 },  // NG+3
+    {   5,   6,  56, 156, 406 },  // NG+0
+    {  10,  12,  72, 202, 452 },  // NG+1
+    {  15,  20,  95, 245, 495 },  // NG+2
+    {  20,  30, 130, 290, 540 },  // NG+3
 };
 
 static ItemRarity roll_rarity(void)
 {
-    int r = random_between(1, 100);
+    int r = random_between(1, 1000);
     const int* t = ng_plus_item_thresholds[ng_plus_get_level()];
     if (r <= t[0]) return ITEM_RARITY_CURSED;
     if (r <= t[1]) return ITEM_RARITY_UNIQUE;
@@ -1308,6 +1328,16 @@ void item_rarity_describe_affixes(int64_t item_obj, char* buf, int buf_size)
             break;
         }
     }
+
+    if (rarity == ITEM_RARITY_UNIQUE) {
+        int uid = item_affix_get(item_obj, UNIQUE_ID_SLOT);
+        if (uid > 0 && uid < UNIQUE_ITEM_COUNT && unique_proc_descs[uid] != NULL) {
+            pos += snprintf(buf + pos, buf_size - pos, "  [Proc] %s\n", unique_proc_descs[uid]);
+            if (pos >= buf_size) {
+                pos = buf_size - 1;
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1448,6 +1478,9 @@ int item_rarity_thorns_get(int64_t critter_obj)
 
     if (background_get(critter_obj) == BACKGROUND_THORNED_SKIN) {
         thorns += 7;
+    }
+    if (item_rarity_has_unique(critter_obj, UNIQUE_THORNWEAVE)) {
+        thorns += 15;
     }
 
     return thorns;
@@ -1878,8 +1911,51 @@ void item_rarity_format_tooltip_affixes(int64_t item_obj, char* buf, int buf_siz
         }
     }
 
+    if (rarity == ITEM_RARITY_UNIQUE) {
+        int uid = item_affix_get(item_obj, UNIQUE_ID_SLOT);
+        if (uid > 0 && uid < UNIQUE_ITEM_COUNT && unique_proc_descs[uid] != NULL) {
+            pos += snprintf(buf + pos, buf_size - pos, "[Proc] %s\n", unique_proc_descs[uid]);
+            if (pos >= buf_size) {
+                pos = buf_size - 1;
+            }
+        }
+    }
+
     // Trim trailing newline.
     if (pos > 0 && buf[pos - 1] == '\n') {
         buf[pos - 1] = '\0';
     }
+}
+
+bool item_rarity_has_unique(int64_t critter_obj, UniqueItemId uid)
+{
+    static const int wear_slots[] = {
+        ITEM_INV_LOC_HELMET,
+        ITEM_INV_LOC_RING1,
+        ITEM_INV_LOC_RING2,
+        ITEM_INV_LOC_MEDALLION,
+        ITEM_INV_LOC_WEAPON,
+        ITEM_INV_LOC_SHIELD,
+        ITEM_INV_LOC_ARMOR,
+        ITEM_INV_LOC_GAUNTLET,
+        ITEM_INV_LOC_BOOTS,
+    };
+    int num_slots = (int)(sizeof(wear_slots) / sizeof(wear_slots[0]));
+
+    if (critter_obj == OBJ_HANDLE_NULL || !obj_type_is_critter(obj_field_int32_get(critter_obj, OBJ_F_TYPE))) {
+        return false;
+    }
+
+    for (int s = 0; s < num_slots; s++) {
+        int64_t item_obj = item_wield_get(critter_obj, wear_slots[s]);
+        if (item_obj == OBJ_HANDLE_NULL) {
+            continue;
+        }
+        if (item_rarity_get(item_obj) == ITEM_RARITY_UNIQUE) {
+            if (item_affix_get(item_obj, UNIQUE_ID_SLOT) == (int)uid) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

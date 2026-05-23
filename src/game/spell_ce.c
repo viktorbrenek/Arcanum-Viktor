@@ -18,6 +18,7 @@
 #include "game/stat.h"
 #include "game/tb.h"
 #include "game/timeevent.h"
+#include "game/unique_procs.h"
 
 #define IS_BEGIN(a)    ((a) == MAGICTECH_ACTION_BEGIN)
 #define IS_MAINTAIN(a) ((a) == MAGICTECH_ACTION_MAINTAIN)
@@ -80,6 +81,9 @@ static void schedule_stat_restore_spell(int64_t obj, int stat, int restore_val, 
 
 static void spell_ce_apply_stun(int64_t target)
 {
+    if (!unique_procs_can_knockdown(target)) {
+        return;
+    }
     unsigned int flags = (unsigned int)obj_field_int32_get(target, OBJ_F_CRITTER_FLAGS);
     if ((flags & OCF_STUNNED) != 0) {
         return;
@@ -270,7 +274,7 @@ static void proc_unseen_force(int64_t caster, int64_t target)
     sub_4B2210(caster, target, &ctx);
     ctx.dam[DAMAGE_TYPE_NORMAL] = random_between(8, 15);
     combat_dmg(&ctx);
-    if (random_between(0, 99) < 40) {
+    if (random_between(0, 99) < 40 && unique_procs_can_knockdown(target)) {
         anim_goal_make_knockdown(target);
         tb_add(target, TB_TYPE_RED, "Hurled!");
     }
@@ -284,7 +288,7 @@ static void proc_wind_strike(int64_t caster, int64_t target)
     sub_4B2210(caster, target, &ctx);
     ctx.dam[DAMAGE_TYPE_NORMAL] = random_between(10, 18);
     combat_dmg(&ctx);
-    if (random_between(0, 99) < 25) {
+    if (random_between(0, 99) < 25 && unique_procs_can_knockdown(target)) {
         anim_goal_make_knockdown(target);
         tb_add(target, TB_TYPE_RED, "Blown Back!");
     }
@@ -468,5 +472,16 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
         break;
     default:
         break;
+    }
+
+    if (IS_BEGIN(action) && caster_obj != target_obj) {
+        if (unique_procs_on_spell_hit(spell, caster_obj, target_obj)) {
+            CombatContext echo_ctx;
+            sub_4B2210(caster_obj, target_obj, &echo_ctx);
+            echo_ctx.dam[DAMAGE_TYPE_NORMAL] = random_between(15, 25);
+            echo_ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
+            combat_dmg(&echo_ctx);
+        }
+        unique_procs_on_spell_received(caster_obj, target_obj, 0);
     }
 }

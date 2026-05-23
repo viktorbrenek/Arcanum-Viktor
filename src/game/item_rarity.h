@@ -187,6 +187,9 @@ void item_rarity_apply_unique(int64_t item_obj, UniqueItemId uid);
 // to the first inventory item of matching type. Call before item_rarity_roll loop.
 void item_rarity_try_boss_drop(int64_t critter_obj);
 
+// Helper to check if critter has a unique item equipped.
+bool item_rarity_has_unique(int64_t critter_obj, UniqueItemId uid);
+
 // Identification: Uncommon+ items spawn unidentified.
 // item_rarity_is_identified returns true for COMMON/NONE always.
 bool item_rarity_is_identified(int64_t item_obj);

@@ -39,6 +39,7 @@
 #include "game/skill.h"
 #include "game/spell_ce.h"
 #include "game/stat.h"
+#include "game/unique_procs.h"
 #include "game/tf.h"
 #include "game/trap.h"
 #include "game/ui.h"
@@ -1400,6 +1401,8 @@ void combat_dmg(CombatContext* combat)
     char str[80];
     unsigned int spell_flags = 0;
     bool weapon_dropped = false;
+    bool was_concealed = (combat->attacker_obj != OBJ_HANDLE_NULL)
+        && ((unsigned int)obj_field_int32_get(combat->attacker_obj, OBJ_F_CRITTER_FLAGS) & OCF_IS_CONCEALED) != 0;
 
     if (combat->target_obj == OBJ_HANDLE_NULL) {
         return;
@@ -1841,6 +1844,9 @@ void combat_dmg(CombatContext* combat)
                     apply_poison_weapon_dot(combat->attacker_obj, combat->target_obj, 2, 3);
                 }
             }
+
+            unique_procs_on_hit(combat->attacker_obj, combat->target_obj, dam, was_concealed);
+            unique_procs_on_damage_received(combat->target_obj, combat->attacker_obj, dam);
         }
 
         if (dam > 0) {
@@ -1926,6 +1932,10 @@ void combat_dmg(CombatContext* combat)
             }
 
             critter_notify_killed(combat->target_obj, combat->field_30, anim);
+
+            if (combat->attacker_obj != OBJ_HANDLE_NULL) {
+                unique_procs_on_kill(combat->attacker_obj, combat->target_obj);
+            }
 
             if (obj_type == OBJ_TYPE_NPC
                 && critter_pc_leader_get(combat->target_obj) == player_get_local_pc_obj()) {

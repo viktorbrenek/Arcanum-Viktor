@@ -102,6 +102,8 @@ set(SRCS
     "src/game/item_tech_props.h"
     "src/game/spell_ce.c"
     "src/game/spell_ce.h"
+    "src/game/unique_procs.c"
+    "src/game/unique_procs.h"
     "src/game/item.c"
     "src/game/item.h"
     "src/game/jumppoint.c"
