@@ -253,7 +253,7 @@ int tech_degree_inc(int64_t obj, int tech)
     }
 
     // Check if the critter has sufficient intelligence for the next degree.
-    if (tech_degree_min_intelligence_get(degree + 1) > stat_level_get(obj, STAT_INTELLIGENCE)) {
+    if (tech_degree_min_intelligence_get(degree + 1) > stat_level_get_no_items(obj, STAT_INTELLIGENCE)) {
         return degree;
     }
 

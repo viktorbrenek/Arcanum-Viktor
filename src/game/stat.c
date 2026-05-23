@@ -335,7 +335,7 @@ void stat_set_defaults(int64_t obj)
  *
  * 0x4B0490
  */
-int stat_level_get(int64_t obj, int stat)
+int stat_level_get_internal(int64_t obj, int stat, bool ignore_temp)
 {
     int value;
     int64_t loc;
@@ -513,11 +513,17 @@ int stat_level_get(int64_t obj, int stat)
     }
 
     // Apply effects.
-    value = effect_adjust_stat_level(obj, stat, value);
+    if (ignore_temp) {
+        value = effect_adjust_stat_level_no_temp(obj, stat, value);
+    } else {
+        value = effect_adjust_stat_level(obj, stat, value);
+    }
 
-    // Apply stat bonuses from equipped magic items.
-    value = item_rarity_adjust_stat(obj, stat, value);
-    value = item_set_adjust_stat(obj, stat, value);
+    if (!ignore_temp) {
+        // Apply stat bonuses from equipped magic items.
+        value = item_rarity_adjust_stat(obj, stat, value);
+        value = item_set_adjust_stat(obj, stat, value);
+    }
 
     // Clamp the final value to min/max bounds.
     min_value = stat_level_min(obj, stat);
@@ -532,13 +538,16 @@ int stat_level_get(int64_t obj, int stat)
     return value;
 }
 
-// Like stat_level_get but subtracts equipped-item stat bonuses.
-// Use for skill cap checks: backgrounds/spells count, items don't.
+int stat_level_get(int64_t obj, int stat)
+{
+    return stat_level_get_internal(obj, stat, false);
+}
+
+// Like stat_level_get but subtracts equipped-item/temporary stat bonuses.
+// Use for skill cap checks: backgrounds count, temporary effects/items don't.
 int stat_level_get_no_items(int64_t obj, int stat)
 {
-    int item_bonus = item_rarity_adjust_stat(obj, stat, 0)
-                   + item_set_adjust_stat(obj, stat, 0);
-    return stat_level_get(obj, stat) - item_bonus;
+    return stat_level_get_internal(obj, stat, true);
 }
 
 /**

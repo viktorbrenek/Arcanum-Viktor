@@ -66,6 +66,7 @@ bool stat_init(GameInitInfo* init_info);
 void stat_exit(void);
 void stat_set_defaults(int64_t obj);
 int stat_level_get(int64_t obj, int stat);
+int stat_level_get_internal(int64_t obj, int stat, bool ignore_temp);
 int stat_level_get_no_items(int64_t obj, int stat);
 int stat_base_get(int64_t obj, int stat);
 int stat_base_set(int64_t obj, int stat, int value);

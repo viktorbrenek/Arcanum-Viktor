@@ -25,6 +25,12 @@ typedef enum EffectCause {
     EFFECT_CAUSE_COUNT,
 } EffectCause;
 
+typedef enum EffectFilterMode {
+    EFFECT_FILTER_NONE = 0,
+    EFFECT_FILTER_INNATE = 1,
+    EFFECT_FILTER_TEMPORARY = 2,
+} EffectFilterMode;
+
 extern const char* effect_cause_lookup_tbl[EFFECT_CAUSE_COUNT];
 
 bool effect_init(GameInitInfo* init_info);
@@ -39,6 +45,7 @@ void effect_remove_all_caused_by(int64_t obj, int cause);
 int effect_count_effects_of_type(int64_t obj, int effect);
 int effect_adjust_stat_level(int64_t obj, int stat, int value);
 int effect_adjust_stat_level_no_innate(int64_t obj, int stat, int value);
+int effect_adjust_stat_level_no_temp(int64_t obj, int stat, int value);
 int effect_adjust_basic_skill_level(int64_t obj, int skill, int value);
 int effect_adjust_tech_skill_level(int64_t obj, int skill, int value);
 int effect_adjust_resistance(int64_t obj, int resistance, int value);

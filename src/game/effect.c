@@ -81,7 +81,7 @@ typedef struct Effect {
 
 static void effect_parse(int num, char* text);
 static void effect_remove_internal(int64_t obj, int index);
-static int effect_adjust_func(int64_t obj, int id, int value, Effect* tbl, bool ignore_innate_effects);
+static int effect_adjust_func(int64_t obj, int id, int value, Effect* tbl, int filter_mode);
 
 /**
  * 0x5B9BA8
@@ -734,7 +734,7 @@ void effect_remove_internal(int64_t obj, int index)
  */
 int effect_adjust_stat_level(int64_t obj, int stat, int value)
 {
-    return effect_adjust_func(obj, stat, value, effect_stat_effects, false);
+    return effect_adjust_func(obj, stat, value, effect_stat_effects, EFFECT_FILTER_NONE);
 }
 
 /**
@@ -742,7 +742,7 @@ int effect_adjust_stat_level(int64_t obj, int stat, int value)
  *
  * 0x4EA6C0
  */
-int effect_adjust_func(int64_t obj, int id, int value, Effect* tbl, bool ignore_innate_effects)
+int effect_adjust_func(int64_t obj, int id, int value, Effect* tbl, int filter_mode)
 {
     int cnt;
     int index;
@@ -772,14 +772,22 @@ int effect_adjust_func(int64_t obj, int id, int value, Effect* tbl, bool ignore_
     for (index = 0; index < cnt; index++) {
         effect = obj_arrayfield_uint32_get(obj, OBJ_F_CRITTER_EFFECTS_IDX, index);
 
-        // Filter out innate effects.
-        if (ignore_innate_effects) {
+        // Filter out effects.
+        if (filter_mode == EFFECT_FILTER_INNATE) {
             cause = obj_arrayfield_uint32_get(obj, OBJ_F_CRITTER_EFFECT_CAUSE_IDX, index);
             switch (cause) {
             case EFFECT_CAUSE_RACE:
             case EFFECT_CAUSE_BACKGROUND:
             case EFFECT_CAUSE_CLASS:
             case EFFECT_CAUSE_GENDER:
+                continue;
+            }
+        } else if (filter_mode == EFFECT_FILTER_TEMPORARY) {
+            cause = obj_arrayfield_uint32_get(obj, OBJ_F_CRITTER_EFFECT_CAUSE_IDX, index);
+            switch (cause) {
+            case EFFECT_CAUSE_SPELL:
+            case EFFECT_CAUSE_ITEM:
+            case EFFECT_CAUSE_TECH:
                 continue;
             }
         }
@@ -862,7 +870,12 @@ int effect_adjust_func(int64_t obj, int id, int value, Effect* tbl, bool ignore_
  */
 int effect_adjust_stat_level_no_innate(int64_t obj, int stat, int value)
 {
-    return effect_adjust_func(obj, stat, value, effect_stat_effects, true);
+    return effect_adjust_func(obj, stat, value, effect_stat_effects, EFFECT_FILTER_INNATE);
+}
+
+int effect_adjust_stat_level_no_temp(int64_t obj, int stat, int value)
+{
+    return effect_adjust_func(obj, stat, value, effect_stat_effects, EFFECT_FILTER_TEMPORARY);
 }
 
 /**

@@ -164,6 +164,14 @@ static const int ng_plus_thresholds[4][3] = {
 
 void critter_rarity_roll(int64_t obj)
 {
+    if (obj == OBJ_HANDLE_NULL) {
+        return;
+    }
+    int type = obj_field_int32_get(obj, OBJ_F_TYPE);
+    if (!obj_type_is_critter(type)) {
+        return;
+    }
+
     int roll = random_between(1, 100);
     int ng = ng_plus_get_level();
     const int* thr = ng_plus_thresholds[ng];
