@@ -4366,6 +4366,31 @@ int find_free_inv_loc_vertical(int64_t item_obj, int64_t parent_obj, int* slots)
     return -1;
 }
 
+// Returns the CE spell granted by equipping a staff, or -1 if none.
+static int staff_granted_spell(int64_t item_obj)
+{
+    if (obj_field_int32_get(item_obj, OBJ_F_CATEGORY) != 6) {
+        return -1;
+    }
+    static const struct { int bp; int spell; } tbl[] = {
+        { BP_SHOCKING_STAFF,  SPELL_BOLT_OF_LIGHTNING },
+        { BP_STAFF_OF_HEALING, SPELL_MINOR_HEALING    },
+        { BP_SHAMANS_STAFF,   SPELL_ENTANGLE          },
+        { BP_MAGES_STAFF,     SPELL_FIREFLASH         },
+        { BP_CHARMED_STAFF,   SPELL_FLASH             },
+        { BP_MAGICK_STAFF,    SPELL_CONGEAL_TIME      },
+        { BP_MYSTIC_STAFF,    SPELL_READ_AURA         },
+        { BP_ARCANE_STAFF,    SPELL_UNSEEN_FORCE      },
+    };
+    int bp = obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION);
+    for (int i = 0; i < (int)(sizeof(tbl) / sizeof(tbl[0])); i++) {
+        if (tbl[i].bp == bp) {
+            return tbl[i].spell;
+        }
+    }
+    return -1;
+}
+
 // 0x4677B0
 void item_equipped(int64_t item_obj, int64_t parent_obj, int inventory_location)
 {
@@ -4392,6 +4417,13 @@ void item_equipped(int64_t item_obj, int64_t parent_obj, int inventory_location)
     item_set_on_equip(item_obj, parent_obj);
     item_recalc_light(item_obj, parent_obj);
     object_script_execute(parent_obj, item_obj, OBJ_HANDLE_NULL, SAP_WIELD_ON, 0);
+
+    {
+        int granted = staff_granted_spell(item_obj);
+        if (granted >= 0) {
+            spell_add(parent_obj, granted, true);
+        }
+    }
 }
 
 // 0x467860
@@ -4530,6 +4562,13 @@ void item_unequipped(int64_t item_obj, int64_t parent_obj, int inventory_locatio
     item_set_on_unequip(item_obj, parent_obj);
     item_recalc_light(item_obj, parent_obj);
     object_script_execute(parent_obj, item_obj, OBJ_HANDLE_NULL, SAP_WIELD_OFF, 0);
+
+    {
+        int granted = staff_granted_spell(item_obj);
+        if (granted >= 0) {
+            spell_remove(parent_obj, granted);
+        }
+    }
 }
 
 // 0x467E70

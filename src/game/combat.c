@@ -1845,6 +1845,31 @@ void combat_dmg(CombatContext* combat)
                 }
             }
 
+            // Staff on-hit: fatigue restore, tiered by abs(magic_tech_complexity)
+            if (combat->weapon_obj != OBJ_HANDLE_NULL
+                && obj_field_int32_get(combat->weapon_obj, OBJ_F_CATEGORY) == 6) {
+                int complexity = obj_field_int32_get(combat->weapon_obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY);
+                int abs_c = (complexity < 0) ? -complexity : complexity;
+                int fat_restore = (abs_c > 60) ? 3 : (abs_c > 0) ? 2 : 1;
+                int new_fat = critter_fatigue_damage_get(combat->attacker_obj) - fat_restore;
+                if (new_fat < 0) {
+                    new_fat = 0;
+                }
+                critter_fatigue_damage_set(combat->attacker_obj, new_fat);
+            }
+
+            // Throwing weapon DoT: daggers (cat 1) → poison, chakrams (cat 7) → bleed
+            if (combat->weapon_obj != OBJ_HANDLE_NULL
+                && obj_field_int32_get(combat->weapon_obj, OBJ_F_WEAPON_MISSILE_AID) != -1
+                && obj_field_int32_get(combat->weapon_obj, OBJ_F_WEAPON_AMMO_CONSUMPTION) == 0) {
+                int throwing_cat = obj_field_int32_get(combat->weapon_obj, OBJ_F_CATEGORY);
+                if (throwing_cat == 1) {
+                    apply_poison_weapon_dot(combat->attacker_obj, combat->target_obj, 2, 3);
+                } else if (throwing_cat == 7) {
+                    apply_bleed_dot(combat->attacker_obj, combat->target_obj, 2, 3);
+                }
+            }
+
             unique_procs_on_hit(combat->attacker_obj, combat->target_obj, dam, was_concealed);
             unique_procs_on_damage_received(combat->target_obj, combat->attacker_obj, dam);
         }

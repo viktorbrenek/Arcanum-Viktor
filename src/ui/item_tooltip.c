@@ -271,6 +271,74 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
         has_affixes = true;
     }
 
+    // Staff descriptions (category 6)
+    if (obj_field_int32_get(item_obj, OBJ_F_CATEGORY) == 6) {
+        const char* staff_desc = NULL;
+        switch (item_desc) {
+        case BP_STAFF:
+        case BP_QUALITY_STAFF:
+            staff_desc = "Restores 1 fatigue on hit.";
+            break;
+        case BP_SHOCKING_STAFF:
+            staff_desc = "Restores 3 fatigue on hit.\nEquipped: grants Bolt of Lightning.";
+            break;
+        case BP_STAFF_OF_HEALING:
+            staff_desc = "Restores 2 fatigue on hit.\nEquipped: grants Minor Healing.";
+            break;
+        case BP_SHAMANS_STAFF:
+            staff_desc = "Restores 2 fatigue on hit.\nEquipped: grants Entangle.";
+            break;
+        case BP_MAGES_STAFF:
+            staff_desc = "Restores 2 fatigue on hit.\nEquipped: grants Fireflash.";
+            break;
+        case BP_CHARMED_STAFF:
+            staff_desc = "Restores 2 fatigue on hit.\nEquipped: grants Flash.";
+            break;
+        case BP_MAGICK_STAFF:
+            staff_desc = "Restores 2 fatigue on hit.\nEquipped: grants Congeal Time.";
+            break;
+        case BP_MYSTIC_STAFF:
+            staff_desc = "Restores 2 fatigue on hit.\nEquipped: grants Read Aura.";
+            break;
+        case BP_ARCANE_STAFF:
+            staff_desc = "Restores 2 fatigue on hit.\nEquipped: grants Unseen Force.";
+            break;
+        default:
+            staff_desc = "Restores 1 fatigue on hit.";
+            break;
+        }
+        if (staff_desc != NULL) {
+            if (has_affixes) {
+                strcat(affixes_buf, "\n");
+                strcat(affixes_buf, staff_desc);
+            } else {
+                strcpy(affixes_buf, staff_desc);
+            }
+            has_affixes = true;
+        }
+    }
+
+    // Throwing weapon descriptions (missile, no ammo consumption)
+    if (obj_field_int32_get(item_obj, OBJ_F_WEAPON_MISSILE_AID) != -1
+        && obj_field_int32_get(item_obj, OBJ_F_WEAPON_AMMO_CONSUMPTION) == 0) {
+        int throwing_cat = obj_field_int32_get(item_obj, OBJ_F_CATEGORY);
+        const char* throw_desc = NULL;
+        if (throwing_cat == 1) {
+            throw_desc = "Poisons target on hit.";
+        } else if (throwing_cat == 7) {
+            throw_desc = "Inflicts bleed on hit.";
+        }
+        if (throw_desc != NULL) {
+            if (has_affixes) {
+                strcat(affixes_buf, "\n");
+                strcat(affixes_buf, throw_desc);
+            } else {
+                strcpy(affixes_buf, throw_desc);
+            }
+            has_affixes = true;
+        }
+    }
+
     OrbType orb_type = item_orb_get_type(item_obj);
     if (orb_type != ORB_NONE && (int)orb_type < ORB_COUNT) {
         const char* orb_desc = item_orb_description(orb_type);
