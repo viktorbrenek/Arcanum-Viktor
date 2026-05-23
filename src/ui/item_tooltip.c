@@ -235,7 +235,7 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     has_affixes = false;
 
     int item_desc = obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION);
-    if (item_desc >= BP_CLAW && item_desc <= BP_PINGLOVES) {
+    if (item_desc >= BP_CLAW && item_desc <= BP_BRAMBLEDSHOES) {
         switch (item_desc) {
         case BP_CLAW:
             strcpy(affixes_buf, "Unarmed only.\nVery fast attacks.");
@@ -254,6 +254,18 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
             break;
         case BP_PINGLOVES:
             strcpy(affixes_buf, "Unarmed only.\nPoisons target on hit (3s).");
+            break;
+        case BP_THORNVEST:
+            strcpy(affixes_buf, "Reflects 5 damage (Thorns).\nMax HP: -5, Speed: -1");
+            break;
+        case BP_THORNYBULWARK:
+            strcpy(affixes_buf, "Reflects 5 damage (Thorns).\nMax HP: -5, Dexterity: -1");
+            break;
+        case BP_CROWNOFTHORNS:
+            strcpy(affixes_buf, "Reflects 5 damage (Thorns).\nMax HP: -5, Perception: -1");
+            break;
+        case BP_BRAMBLEDSHOES:
+            strcpy(affixes_buf, "Reflects 5 damage (Thorns).\nMax HP: -5, Speed: -1");
             break;
         }
         has_affixes = true;

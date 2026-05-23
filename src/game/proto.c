@@ -119,7 +119,7 @@ static int dword_5B384C[OBJ_TYPE_COUNT] = {
     /*    OBJ_TYPE_PROJECTILE */ 5029,
     /*        OBJ_TYPE_WEAPON */ 6179,
     /*          OBJ_TYPE_AMMO */ 7042,
-    /*         OBJ_TYPE_ARMOR */ 8306,
+    /*         OBJ_TYPE_ARMOR */ 8310,
     /*          OBJ_TYPE_GOLD */ 9057,
     /*          OBJ_TYPE_FOOD */ 10145,
     /*        OBJ_TYPE_SCROLL */ 11143,
@@ -8884,7 +8884,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 120);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 200);
             obj_field_int32_set(obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY, 0);
             obj_field_int32_set(obj, OBJ_F_ARMOR_UNARMED_BONUS_DAMAGE, 3);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16000);
@@ -8910,7 +8910,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 2);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 200);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 250);
             obj_field_int32_set(obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY, 0);
             obj_field_int32_set(obj, OBJ_F_ARMOR_UNARMED_BONUS_DAMAGE, 8);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16001);
@@ -8936,7 +8936,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 350);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 400);
             obj_field_int32_set(obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY, 0);
             obj_field_int32_set(obj, OBJ_F_ARMOR_UNARMED_BONUS_DAMAGE, 5);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16002);
@@ -8962,7 +8962,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 3);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, -5);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 600);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 800);
             obj_field_int32_set(obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY, -15);
             obj_field_int32_set(obj, OBJ_F_ARMOR_UNARMED_BONUS_DAMAGE, 10);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16003);
@@ -8988,7 +8988,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 1);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 400);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 800);
             obj_field_int32_set(obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY, 30);
             obj_field_int32_set(obj, OBJ_F_ARMOR_UNARMED_BONUS_DAMAGE, 6);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16004);
@@ -9014,7 +9014,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 1);
             obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_CLOTH);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 150);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 400);
             obj_field_int32_set(obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY, 0);
             obj_field_int32_set(obj, OBJ_F_ARMOR_UNARMED_BONUS_DAMAGE, 4);
             obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16005);
@@ -9025,6 +9025,78 @@ void sub_468930(int64_t obj, int description)
             obj_arrayfield_script_set(obj, OBJ_F_SCRIPTS_IDX, SAP_WIELD_ON, &scr);
             scr.num = 28015;
             obj_arrayfield_script_set(obj, OBJ_F_SCRIPTS_IDX, SAP_WIELD_OFF, &scr);
+            break;
+        case BP_THORNVEST:
+            tig_art_item_id_create(926, 0, 0, 0, 3, 2, 0, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_AID, art_id);
+            obj_field_int32_set(obj, OBJ_F_CURRENT_AID, art_id);
+            tig_art_item_id_create(926, 1, 0, 0, 3, 2, 0, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_INV_AID, art_id);
+            tig_art_item_id_create(0, 2, 0, 0, 3, 2, 0, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_PAPER_DOLL_AID, art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_USE_AID_FRAGMENT, art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 150);
+            obj_field_int32_set(obj, OBJ_F_HP_PTS, 100);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 8);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, -10);
+            obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 500);
+            obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16006);
+            obj_field_int32_set(obj, OBJ_F_CATEGORY, 6);
+            break;
+        case BP_THORNYBULWARK:
+            tig_art_item_id_create(927, 0, 0, 0, 0, 2, 1, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_AID, art_id);
+            obj_field_int32_set(obj, OBJ_F_CURRENT_AID, art_id);
+            tig_art_item_id_create(927, 1, 0, 0, 0, 2, 1, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_INV_AID, art_id);
+            tig_art_item_id_create(2, 2, 0, 0, 0, 2, 1, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_PAPER_DOLL_AID, art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_USE_AID_FRAGMENT, art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 100);
+            obj_field_int32_set(obj, OBJ_F_HP_PTS, 180);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 12);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, -10);
+            obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 400);
+            obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16007);
+            obj_field_int32_set(obj, OBJ_F_CATEGORY, 13);
+            break;
+        case BP_CROWNOFTHORNS:
+            tig_art_item_id_create(928, 0, 0, 0, 0, 2, 2, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_AID, art_id);
+            obj_field_int32_set(obj, OBJ_F_CURRENT_AID, art_id);
+            tig_art_item_id_create(928, 1, 0, 0, 0, 2, 2, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_INV_AID, art_id);
+            tig_art_item_id_create(7, 2, 0, 0, 0, 2, 2, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_PAPER_DOLL_AID, art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_USE_AID_FRAGMENT, art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 30);
+            obj_field_int32_set(obj, OBJ_F_HP_PTS, 80);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 4);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
+            obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 300);
+            obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16008);
+            obj_field_int32_set(obj, OBJ_F_CATEGORY, 8);
+            break;
+        case BP_BRAMBLEDSHOES:
+            tig_art_item_id_create(929, 0, 0, 0, 0, 2, 4, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_AID, art_id);
+            obj_field_int32_set(obj, OBJ_F_CURRENT_AID, art_id);
+            tig_art_item_id_create(929, 1, 0, 0, 0, 2, 4, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_INV_AID, art_id);
+            tig_art_item_id_create(5, 2, 0, 0, 0, 2, 4, 0, &art_id);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_PAPER_DOLL_AID, art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_USE_AID_FRAGMENT, art_id);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 15);
+            obj_field_int32_set(obj, OBJ_F_HP_PTS, 60);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_AC_ADJ, 2);
+            obj_field_int32_set(obj, OBJ_F_ARMOR_SILENT_MOVE_ADJ, 0);
+            obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_CLOTH);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 250);
+            obj_field_int32_set(obj, OBJ_F_ITEM_DESCRIPTION_EFFECTS, 16009);
+            obj_field_int32_set(obj, OBJ_F_CATEGORY, 11);
             break;
         case BP_CHAIN_GLOVES:
             tig_art_item_id_create(4, 0, 0, 0, 0, 2, 3, 0, &art_id);
@@ -11349,7 +11421,7 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 1);
             obj_field_int32_set(obj, OBJ_F_HP_PTS, 5);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
-            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 600);
+            obj_field_int32_set(obj, OBJ_F_ITEM_WORTH, 800);
             obj_field_int32_set(obj, OBJ_F_CATEGORY, 10);
             break;
         case BP_RUBY_NECKLACE:

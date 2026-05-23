@@ -1072,12 +1072,15 @@ bool a_name_item_aid_to_fname(tig_art_id_t aid, char* fname)
     type = tig_art_item_id_type_get(aid);
     int num = (int)tig_art_num_get(aid);
 
-    // CE unarmed weapons: claw(920), boxer(921), thornfist(922), steamclaw(923), runefist(924), pingloves(925)
-    if (num >= 920 && num <= 925) {
-        static const char* const unarmed_art_names[] = { "claw", "boxer", "thornfist", "steamclaw", "runefist", "pingloves" };
+    // CE unarmed weapons & thorns set: claw(920), boxer(921), thornfist(922), steamclaw(923), runefist(924), pingloves(925), thornvest(926), thornybulwark(927), crownofthorns(928), brabledshoes(929)
+    if (num >= 920 && num <= 929) {
+        static const char* const custom_art_names[] = {
+            "claw", "boxer", "thornfist", "steamclaw", "runefist", "pingloves",
+            "thornvest", "thornybulwark", "crownofthorns", "brabledshoes"
+        };
         int disp = tig_art_item_id_disposition_get(aid);
         const char* suffix = (disp == TIG_ART_ITEM_DISPOSITION_GROUND) ? "_ground" : "_inven";
-        sprintf(fname, "art\\item\\%s%s.art", unarmed_art_names[num - 920], suffix);
+        sprintf(fname, "art\\item\\%s%s.art", custom_art_names[num - 920], suffix);
         return true;
     }
 

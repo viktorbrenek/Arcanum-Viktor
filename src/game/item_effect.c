@@ -108,7 +108,7 @@ char* item_effect_get(int num)
     mes_file_handle_t mes_file;
     MesFileEntry mes_file_entry;
 
-    if (num >= 16000 && num <= 16005) {
+    if (num >= 16000 && num <= 16009) {
         switch (num) {
         case 16000: return "Unarmed only.\nVery fast attacks.";
         case 16001: return "Unarmed only.\nSlow but heavy hits.";
@@ -116,6 +116,10 @@ char* item_effect_get(int num)
         case 16003: return "Unarmed only.\nBurns target on hit (3s).";
         case 16004: return "Unarmed only.\nSteals 3 Fatigue on hit.";
         case 16005: return "Unarmed only.\nPoisons target on hit (3s).";
+        case 16006: return "Reflects 5 damage (Thorns).\nMax HP: -5, Speed: -1";
+        case 16007: return "Reflects 5 damage (Thorns).\nMax HP: -5, Dexterity: -1";
+        case 16008: return "Reflects 5 damage (Thorns).\nMax HP: -5, Perception: -1";
+        case 16009: return "Reflects 5 damage (Thorns).\nMax HP: -5, Speed: -1";
         }
     }
 

@@ -1656,6 +1656,19 @@ int object_hp_max(int64_t obj)
     if (obj_type_is_critter(obj_type)) {
         value = effect_adjust_max_hit_points(obj, sub_43D630(obj) + value);
         value += item_rarity_bonus_hp_get(obj);
+
+        // Custom thorns set HP penalty: -5 HP per item equipped
+        static const int thorns_set_protos[] = { BP_THORNVEST, BP_THORNYBULWARK, BP_CROWNOFTHORNS, BP_BRAMBLEDSHOES };
+        int wear_slots[] = { ITEM_INV_LOC_ARMOR, ITEM_INV_LOC_SHIELD, ITEM_INV_LOC_HELMET, ITEM_INV_LOC_BOOTS };
+        for (int i = 0; i < 4; i++) {
+            int64_t item = item_wield_get(obj, wear_slots[i]);
+            if (item != OBJ_HANDLE_NULL) {
+                int desc = obj_field_int32_get(item, OBJ_F_DESCRIPTION);
+                if (desc == thorns_set_protos[i]) {
+                    value -= 5;
+                }
+            }
+        }
     }
     return value;
 }
@@ -1719,6 +1732,19 @@ int object_get_resistance(int64_t obj, int resistance_type, bool a2)
                     || item_is_identified(item_obj)) {
                     adj = obj_arrayfield_int32_get(item_obj, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, resistance_type);
                     value += item_adjust_magic(item_obj, obj, adj);
+                }
+            }
+        }
+
+        // Custom thorns set resistance penalty: -10 to all resistances per equipped thorns item
+        static const int thorns_set_protos[] = { BP_THORNVEST, BP_THORNYBULWARK, BP_CROWNOFTHORNS, BP_BRAMBLEDSHOES };
+        int wear_slots[] = { ITEM_INV_LOC_ARMOR, ITEM_INV_LOC_SHIELD, ITEM_INV_LOC_HELMET, ITEM_INV_LOC_BOOTS };
+        for (int i = 0; i < 4; i++) {
+            int64_t item = item_wield_get(obj, wear_slots[i]);
+            if (item != OBJ_HANDLE_NULL) {
+                int desc = obj_field_int32_get(item, OBJ_F_DESCRIPTION);
+                if (desc == thorns_set_protos[i]) {
+                    value -= 10;
                 }
             }
         }

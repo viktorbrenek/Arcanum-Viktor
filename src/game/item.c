@@ -320,12 +320,12 @@ void item_generate_inventory(int64_t critter_obj)
         }
     }
 
-    // TEST: give all 6 CE unarmed gauntlets to PC for testing — remove before ship
+    // TEST: give all 4 CE thorns set items to PC for testing
     if (player_is_local_pc_obj(critter_obj)) {
-        static const int test_unarmed[] = { BP_CLAW, BP_BOXER, BP_THORNFIST, BP_STEAMCLAW, BP_RUNEFIST, BP_PINGLOVES };
-        for (int ti = 0; ti < 6; ti++) {
-            proto_obj = sub_4685A0(test_unarmed[ti]);
-            if (object_create(proto_obj, loc, &item_obj)) {
+        static const int test_thorns[] = { BP_THORNVEST, BP_THORNYBULWARK, BP_CROWNOFTHORNS, BP_BRAMBLEDSHOES };
+        for (int ti = 0; ti < 4; ti++) {
+            proto_obj = sub_4685A0(test_thorns[ti]);
+            if (proto_obj != OBJ_HANDLE_NULL && object_create(proto_obj, loc, &item_obj)) {
                 item_transfer(item_obj, critter_obj);
             }
         }

@@ -1419,7 +1419,10 @@ int item_rarity_thorns_get(int64_t critter_obj)
         if (item_obj == OBJ_HANDLE_NULL) {
             continue;
         }
-        if (obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION) == BP_THORNFIST) {
+        int desc = obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION);
+        if (desc == BP_THORNFIST) {
+            thorns += 5;
+        } else if (desc >= BP_THORNVEST && desc <= BP_BRAMBLEDSHOES) {
             thorns += 5;
         }
         ItemRarity rarity = item_rarity_get(item_obj);

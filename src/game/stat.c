@@ -1,4 +1,5 @@
 #include "game/stat.h"
+#include "game/descriptions.h"
 
 #include "game/item_rarity.h"
 #include "game/item_set.h"
@@ -355,6 +356,28 @@ int stat_level_get_internal(int64_t obj, int stat, bool ignore_temp)
 
     // Obtain base value.
     value = stat_base_get(obj, stat);
+
+    // Apply custom thorns set stat penalties
+    if (stat == STAT_SPEED) {
+        int64_t vest = item_wield_get(obj, ITEM_INV_LOC_ARMOR);
+        if (vest != OBJ_HANDLE_NULL && obj_field_int32_get(vest, OBJ_F_DESCRIPTION) == BP_THORNVEST) {
+            value -= 1;
+        }
+        int64_t boots = item_wield_get(obj, ITEM_INV_LOC_BOOTS);
+        if (boots != OBJ_HANDLE_NULL && obj_field_int32_get(boots, OBJ_F_DESCRIPTION) == BP_BRAMBLEDSHOES) {
+            value -= 1;
+        }
+    } else if (stat == STAT_PERCEPTION) {
+        int64_t helm = item_wield_get(obj, ITEM_INV_LOC_HELMET);
+        if (helm != OBJ_HANDLE_NULL && obj_field_int32_get(helm, OBJ_F_DESCRIPTION) == BP_CROWNOFTHORNS) {
+            value -= 1;
+        }
+    } else if (stat == STAT_DEXTERITY) {
+        int64_t shield = item_wield_get(obj, ITEM_INV_LOC_SHIELD);
+        if (shield != OBJ_HANDLE_NULL && obj_field_int32_get(shield, OBJ_F_DESCRIPTION) == BP_THORNYBULWARK) {
+            value -= 1;
+        }
+    }
 
     switch (stat) {
     case STAT_SPEED:
