@@ -28,4 +28,6 @@ void endgame_map_on_map_opened(int map_id);
 // True when the current map is the endgame dungeon.
 bool endgame_map_is_active(void);
 
+int endgame_map_get_tier(void);
+
 #endif /* ARCANUM_GAME_ENDGAME_MAP_H_ */

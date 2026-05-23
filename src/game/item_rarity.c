@@ -1252,8 +1252,14 @@ void item_rarity_describe_affixes(int64_t item_obj, char* buf, int buf_size)
         "", "Common", "Uncommon", "Rare", "Epic", "Unique", "Cursed", "Set"
     };
     pos = (int)strlen(buf);
+    if (pos >= buf_size) {
+        pos = buf_size - 1;
+    }
     pos += snprintf(buf + pos, buf_size - pos, "\n[%s]\n",
         (rarity < ITEM_RARITY_COUNT) ? rarity_names[rarity] : "?");
+    if (pos >= buf_size) {
+        pos = buf_size - 1;
+    }
 
     for (int slot = 0; slot < ITEM_RARITY_MAX_AFFIXES; slot++) {
         affix_id = item_affix_get(item_obj, slot);
@@ -1272,6 +1278,10 @@ void item_rarity_describe_affixes(int64_t item_obj, char* buf, int buf_size)
         } else if (def->equip_stat >= 0 && def->equip_stat < (int)(sizeof(stat_names) / sizeof(stat_names[0]))) {
             pos += snprintf(buf + pos, buf_size - pos,
                 "  %+d %s (equipped)\n", def->equip_stat_val, stat_names[def->equip_stat]);
+        }
+
+        if (pos >= buf_size) {
+            pos = buf_size - 1;
         }
 
         if (pos >= buf_size - 1) {
@@ -1743,6 +1753,10 @@ void item_rarity_format_tooltip_affixes(int64_t item_obj, char* buf, int buf_siz
             && def->equip_stat < (int)(sizeof(stat_names) / sizeof(stat_names[0]))) {
             pos += snprintf(buf + pos, buf_size - pos, "%+d %s (equipped)\n",
                 def->equip_stat_val, stat_names[def->equip_stat]);
+        }
+
+        if (pos >= buf_size) {
+            pos = buf_size - 1;
         }
 
         if (pos >= buf_size - 1) {

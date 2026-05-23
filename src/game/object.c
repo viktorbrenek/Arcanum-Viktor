@@ -4228,6 +4228,7 @@ bool sub_4420D0(uint8_t* data, int64_t* obj_ptr, int64_t loc)
     }
 
     obj_load_postprocess(*obj_ptr);
+    obj_regenerate_oids_recursive(*obj_ptr);
     obj_field_int64_set(*obj_ptr, OBJ_F_LOCATION, loc);
     if (!sub_442260(*obj_ptr, loc)) {
         return false;

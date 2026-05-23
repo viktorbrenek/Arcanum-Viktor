@@ -177,6 +177,22 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
         return false;
     }
 
+    if (orb_type == ORB_MAP) {
+        if (endgame_map_enter()) {
+            int cnt = item_orb_stack_count_get(item_obj);
+            if (cnt > 1) {
+                item_orb_stack_count_set(item_obj, cnt - 1);
+            } else {
+                int64_t parent_obj;
+                if (item_parent(item_obj, &parent_obj)) {
+                    item_remove(item_obj);
+                }
+                object_destroy(item_obj);
+            }
+        }
+        return true;
+    }
+
     int64_t actual_target = resolve_target(source_obj, target_obj);
     if (actual_target == OBJ_HANDLE_NULL || actual_target == source_obj) {
         orb_feedback("Hover an item in your inventory, then use the orb.");
@@ -293,13 +309,7 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
         }
         break;
 
-    case ORB_MAP:
-        // Map of the Void: targets nothing — consume immediately and open rift.
-        // actual_target check is skipped; endgame_map_enter handles all validation.
-        if (endgame_map_enter()) {
-            consumed = true;
-        }
-        break;
+
 
     default:
         return false;

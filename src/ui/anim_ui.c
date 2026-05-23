@@ -4,6 +4,10 @@
 #include "game/ng_plus.h"
 #include "game/gamelib.h"
 #include "game/stat.h"
+#include "game/descriptions.h"
+#include "game/item.h"
+#include "game/item_orb.h"
+#include "game/mp_utils.h"
 #include "game/gfade.h"
 #include "game/light_scheme.h"
 #include "game/player.h"
@@ -198,53 +202,43 @@ bool anim_ui_bkg_process_callback(TimeEvent* timeevent)
 
             slide_ui_start(SLIDE_UI_TYPE_END_GAME);
 
-            // CE: Offer in-place NG+ upgrade — player keeps their character.
+            // CE: Award Map of the Void to continue to the Rift endgame!
             {
-                int next_level = ng_plus_get_level() + 1;
-                bool upgraded = false;
+                TigWindowModalDialogInfo modal_info;
+                TigWindowModalDialogChoice choice;
+                int64_t pc = player_get_local_pc_obj();
 
-                if (next_level <= NG_PLUS_MAX_LEVEL) {
-                    char msg_buf[256];
-                    TigWindowModalDialogInfo modal_info;
-                    TigWindowModalDialogChoice choice;
-                    int64_t pc = player_get_local_pc_obj();
+                ng_plus_unlock();
 
-                    snprintf(msg_buf, sizeof(msg_buf),
-                        "Ascend to NG+%d?\n"
-                        "Enemies %d%% stronger, better loot.\n"
-                        "Bonus character point: +1\n"
-                        "No = return to main menu.",
-                        next_level, next_level * 25);
-
-                    modal_info.type = TIG_WINDOW_MODAL_DIALOG_TYPE_OK_CANCEL;
-                    modal_info.x = 237;
-                    modal_info.y = 232;
-                    modal_info.text = msg_buf;
-                    modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_OK] = 'y';
-                    modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_CANCEL] = 'n';
-                    modal_info.process = NULL;
-                    modal_info.redraw = gamelib_redraw;
-                    hrp_center(&(modal_info.x), &(modal_info.y));
-
-                    tig_window_modal_dialog(&modal_info, &choice);
-
-                    if (choice == TIG_WINDOW_MODAL_DIALOG_CHOICE_OK) {
-                        ng_plus_increment();
-                        if (pc != OBJ_HANDLE_NULL) {
-                            stat_base_set(pc, STAT_UNSPENT_POINTS,
-                                stat_base_get(pc, STAT_UNSPENT_POINTS) + 1);
+                if (pc != OBJ_HANDLE_NULL) {
+                    int64_t orb_obj;
+                    int64_t loc = obj_field_int64_get(pc, OBJ_F_LOCATION);
+                    if (mp_object_create(BP_COMPONENT_1, loc, &orb_obj)) {
+                        item_orb_set_type(orb_obj, ORB_MAP);
+                        if (!item_transfer(orb_obj, pc)) {
+                            object_destroy(orb_obj);
                         }
-                        ng_hud_ui_refresh();
-                        upgraded = true;
                     }
                 }
 
-                if (!upgraded) {
-                    tig_debug_printf("EndGame: Resetting game!\n");
-                    gamelib_reset();
-                    gameuilib_reset();
-                    mainmenu_ui_start(MM_TYPE_DEFAULT);
-                }
+                modal_info.type = TIG_WINDOW_MODAL_DIALOG_TYPE_OK;
+                modal_info.x = 237;
+                modal_info.y = 232;
+                modal_info.text = 
+                    "Congratulations!\n\n"
+                    "You have completed the campaign.\n"
+                    "You have been awarded a Map of the Void.\n"
+                    "Use it from your inventory to open a rift\n"
+                    "and challenge the repeating rifts of the Void!";
+                modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_OK] = 'y';
+                modal_info.process = NULL;
+                modal_info.redraw = gamelib_redraw;
+                hrp_center(&(modal_info.x), &(modal_info.y));
+
+                tig_window_modal_dialog(&modal_info, &choice);
+
+                // Let the player continue in their current world
+                tig_debug_printf("EndGame: Continuing to Rift endgame!\n");
             }
 
             fade_data.flags = FADE_IN;

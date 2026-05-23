@@ -2,6 +2,7 @@
 
 #include "game/hrp.h"
 #include "game/ng_plus.h"
+#include "game/endgame_map.h"
 #include "tig/color.h"
 #include "tig/window.h"
 #include "ui/intgame.h"
@@ -64,7 +65,11 @@ void ng_hud_ui_refresh(void)
     tig_window_fill(ng_hud_window, &full, tig_color_make(20, 15, 8));
     tig_window_box(ng_hud_window, &full, tig_color_make(140, 110, 40));
 
-    snprintf(buf, sizeof(buf), "NG+%d", ng_plus_get_level());
+    if (endgame_map_is_active()) {
+        snprintf(buf, sizeof(buf), "Tier %d", ng_plus_get_level());
+    } else {
+        snprintf(buf, sizeof(buf), "NG+%d", ng_plus_get_level());
+    }
     tig_font_push(intgame_morph15_gold_font);
     tig_window_text_write(ng_hud_window, buf, &full);
     tig_font_pop();

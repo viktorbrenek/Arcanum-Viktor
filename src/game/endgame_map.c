@@ -14,6 +14,9 @@
 #include "game/obj_flags.h"
 #include "game/player.h"
 #include "game/random.h"
+#include "game/item.h"
+#include "game/item_orb.h"
+#include "game/light.h"
 #include "game/settings.h"
 #include "game/teleport.h"
 #include "game/ui.h"
@@ -77,8 +80,17 @@ static void endgame_cfg_ensure_init(void)
     }
     settings_init(&endgame_cfg, ENDGAME_CFG_PATH);
     settings_register(&endgame_cfg, CFG_KEY_RETURN_MAP, "0", NULL);
+    settings_register(&endgame_cfg, "rift_tier", "1", NULL);
     settings_load(&endgame_cfg);
     endgame_cfg_initialized = true;
+}
+
+int endgame_map_get_tier(void)
+{
+    endgame_cfg_ensure_init();
+    int tier = settings_get_value(&endgame_cfg, "rift_tier");
+    if (tier < 1) tier = 1;
+    return tier;
 }
 
 // Delete all files in the dungeon save directory (forces fresh load on next entry).
@@ -241,7 +253,29 @@ void endgame_map_on_critter_killed(int64_t critter_obj)
     tig_debug_printf("endgame_map: %d critters remaining\n", endgame_critters_remaining);
 
     if (endgame_critters_remaining == 0) {
-        endgame_feedback("The last enemy falls. The rift collapses — you are cast back into the world.");
+        int tier = endgame_map_get_tier();
+        tier++;
+        settings_set_value(&endgame_cfg, "rift_tier", tier);
+        settings_save(&endgame_cfg);
+
+        // Award a new Map of the Void to the player
+        int64_t pc = player_get_local_pc_obj();
+        if (pc != OBJ_HANDLE_NULL) {
+            int64_t orb_obj;
+            int64_t loc = obj_field_int64_get(pc, OBJ_F_LOCATION);
+            if (mp_object_create(BP_COMPONENT_1, loc, &orb_obj)) {
+                item_orb_set_type(orb_obj, ORB_MAP);
+                if (!item_transfer(orb_obj, pc)) {
+                    object_destroy(orb_obj);
+                }
+            }
+        }
+
+        char msg_buf[256];
+        snprintf(msg_buf, sizeof(msg_buf),
+            "The last enemy falls. The rift collapses — you are cast back into the world.\n"
+            "Rift Tier increased to %d!", tier);
+        endgame_feedback(msg_buf);
         endgame_map_exit();
     }
 }

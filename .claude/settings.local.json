@@ -161,7 +161,8 @@
       "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum1.lst\" | Where-Object { $_ -match \"\\\\.lst\" } | Select-Object -First 30)",
       "PowerShell(Get-Content \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\UnDAT_MatuX_TMS\\\\Arcanum2.lst\" | Where-Object { $_ -match \"\\\\.lst\" } | Select-Object -First 30)",
       "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\mes\" | Where-Object { $_.Name -match \"effect\" })",
-      "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\rules\" | Where-Object { $_.Name -match \"effect\" })"
+      "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\rules\" | Where-Object { $_.Name -match \"effect\" })",
+      "Bash(cmake --build out\\\\build\\\\windows-x64 --target arcanum --config Debug)"
     ]
   }
 }

@@ -1,6 +1,7 @@
 #include "game/ng_plus.h"
 
 #include "game/settings.h"
+#include "game/endgame_map.h"
 #include "tig/file.h"
 
 #include <stdio.h>
@@ -103,18 +104,22 @@ void ng_plus_save(void)
 
 int ng_plus_get_level(void)
 {
-    int level = settings_get_value(&ng_save, NG_KEY_LEVEL);
-    if (level < 0) return 0;
-    if (level > NG_PLUS_MAX_LEVEL) return NG_PLUS_MAX_LEVEL;
-    return level;
+    if (endgame_map_is_active()) {
+        int tier = endgame_map_get_tier();
+        if (tier > NG_PLUS_MAX_LEVEL) return NG_PLUS_MAX_LEVEL;
+        return tier;
+    }
+    return 0;
 }
 
 int ng_plus_get_last_level(void)
 {
-    int level = settings_get_value(&ng_global, NG_KEY_LAST_LEVEL);
-    if (level < 0) return 0;
-    if (level > NG_PLUS_MAX_LEVEL) return NG_PLUS_MAX_LEVEL;
-    return level;
+    if (endgame_map_is_active()) {
+        int tier = endgame_map_get_tier();
+        if (tier > NG_PLUS_MAX_LEVEL) return NG_PLUS_MAX_LEVEL;
+        return tier;
+    }
+    return 0;
 }
 
 bool ng_plus_is_unlocked(void)

@@ -1,5 +1,6 @@
 #include "game/map.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 
 #include "game/endgame_map.h"
@@ -816,6 +817,7 @@ bool map_open_in_game(int map, bool a2, bool a3)
     if (!obj_validate_system(1)) {
         tig_debug_println("Object system validate failed pre-load in map_open_in_game.");
         tig_message_post_quit(0);
+        return false;
         // FIXME: Execution continues after quit.
     }
 
@@ -842,6 +844,7 @@ bool map_open_in_game(int map, bool a2, bool a3)
     if (!obj_validate_system(1)) {
         tig_debug_println("Object system validate failed post-load in map_open_in_game.");
         tig_message_post_quit(0);
+        return false;
     }
 
     endgame_map_on_map_opened(map);
@@ -1360,8 +1363,11 @@ void map_load_postprocess(void)
                     critter_rarity_roll(obj);
                 }
                 int npc_inv_cnt = obj_field_int32_get(obj, OBJ_F_CRITTER_INVENTORY_NUM);
+                tig_debug_printf("MLP: NPC handle=%" PRIx64 " AID=%d inv_cnt=%d\n",
+                    obj, obj_field_int32_get(obj, OBJ_F_AID), npc_inv_cnt);
                 for (int r = 0; r < npc_inv_cnt; r++) {
                     int64_t inv_item = obj_arrayfield_handle_get(obj, OBJ_F_CRITTER_INVENTORY_LIST_IDX, r);
+                    tig_debug_printf("MLP:   slot %d inv_item=%" PRIx64 "\n", r, inv_item);
                     if (inv_item != OBJ_HANDLE_NULL) {
                         item_rarity_roll(inv_item);
                     }

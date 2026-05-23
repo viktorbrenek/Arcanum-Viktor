@@ -698,7 +698,10 @@ bool obj_validate_system(unsigned int flags)
                 if (inventory_num_fld != -1) {
                     cnt = obj_field_int32_get(obj, inventory_num_fld);
                     if (cnt != obj_arrayfield_length_get(obj, inventory_list_fld)) {
-                        tig_debug_println("!VS  obj_f_critter_inventory_num doesn't match count for obj_f_critter_inventory_list_idx.");
+                        tig_debug_printf("!VS  obj_f_critter_inventory_num doesn't match count for obj_f_critter_inventory_list_idx. "
+                            "owner handle: %" PRIx64 " type: %d AID: %d cnt: %d array_len: %d\n",
+                            obj, obj_type, obj_field_int32_get(obj, OBJ_F_AID), cnt,
+                            obj_arrayfield_length_get(obj, inventory_list_fld));
 
                         object = obj_lock(obj);
                         obj_field_store(object, inventory_num_fld, &cnt);
@@ -720,7 +723,9 @@ bool obj_validate_system(unsigned int flags)
                             if (oid.type == OID_TYPE_HANDLE) {
                                 item_obj = oid.d.h;
                                 if (!obj_handle_is_valid(item_obj)) {
-                                    tig_debug_printf("!VS  Inventory entry is an invalid handle.  handle: %" PRIx64 "\n", oid.d.h);
+                                    tig_debug_printf("!VS  Inventory entry is an invalid handle.  "
+                                        "owner handle: %" PRIx64 " type: %d AID: %d slot: %d item_handle: %" PRIx64 "\n",
+                                        obj, obj_type, obj_field_int32_get(obj, OBJ_F_AID), idx, oid.d.h);
                                     return false;
                                 }
 
@@ -737,7 +742,18 @@ bool obj_validate_system(unsigned int flags)
                             }
 
                             if ((flags & 0x1) != 0 && !is_handle) {
-                                tig_debug_println("!VS  Inventory entry isn't a handle");
+                                char owner_oid_str[260] = {0};
+                                char item_oid_str[260] = {0};
+                                char proto_oid_str[260] = {0};
+                                int64_t proto_handle = obj_field_handle_get(obj, OBJ_F_PROTOTYPE_HANDLE);
+                                objid_id_to_str(owner_oid_str, obj_get_id(obj));
+                                objid_id_to_str(item_oid_str, oid);
+                                objid_id_to_str(proto_oid_str, obj_get_id(proto_handle));
+                                int owner_flags = obj_field_int32_get(obj, OBJ_F_FLAGS);
+
+                                tig_debug_printf("!VS  Inventory entry isn't a handle. "
+                                    "owner handle: %" PRIx64 " type: %d AID: %d flags: 0x%x proto: %s owner_oid: %s slot: %d item_oid: %s\n",
+                                    obj, obj_type, obj_field_int32_get(obj, OBJ_F_AID), owner_flags, proto_oid_str, owner_oid_str, idx, item_oid_str);
                                 return false;
                             }
 
@@ -1175,12 +1191,37 @@ void obj_save_preprocess(int64_t obj)
     object = obj_lock(obj);
     obj_field_fetch(object, OBJ_F_INTERNAL_FLAGS, &flags);
     if ((flags & 0x1) == 0) {
+        int inventory_num_fld;
+        int inventory_list_fld;
+        int64_t* items = NULL;
+        int cnt = 0;
+        if (inventory_fields_from_obj_type(obj_field_int32_get(obj, OBJ_F_TYPE), &inventory_num_fld, &inventory_list_fld)) {
+            cnt = obj_field_int32_get(obj, inventory_num_fld);
+            if (cnt > 0) {
+                items = (int64_t*)MALLOC(cnt * sizeof(int64_t));
+                if (items != NULL) {
+                    for (int idx = 0; idx < cnt; idx++) {
+                        items[idx] = obj_arrayfield_handle_get(obj, inventory_list_fld, idx);
+                    }
+                }
+            }
+        }
+
         object_convert_scalar_handles_to_ids(object);
         object_convert_array_handles_to_ids(object);
         flags |= 0x1;
         obj_field_store(object, OBJ_F_INTERNAL_FLAGS, &flags);
-        // NOTE: Probably should be outside of this condition block, otherwise
-        // object might remain locked.
+        obj_unlock(obj);
+
+        if (items != NULL) {
+            for (int idx = 0; idx < cnt; idx++) {
+                if (items[idx] != OBJ_HANDLE_NULL) {
+                    obj_save_preprocess(items[idx]);
+                }
+            }
+            FREE(items);
+        }
+    } else {
         obj_unlock(obj);
     }
 }
@@ -1198,8 +1239,20 @@ void obj_load_postprocess(int64_t obj)
         object_convert_array_ids_to_handles(object);
         flags &= ~0x1;
         obj_field_store(object, OBJ_F_INTERNAL_FLAGS, &flags);
-        // NOTE: Probably should be outside of this condition block, otherwise
-        // object might remain locked.
+        obj_unlock(obj);
+
+        int inventory_num_fld;
+        int inventory_list_fld;
+        if (inventory_fields_from_obj_type(obj_field_int32_get(obj, OBJ_F_TYPE), &inventory_num_fld, &inventory_list_fld)) {
+            int cnt = obj_field_int32_get(obj, inventory_num_fld);
+            for (int idx = 0; idx < cnt; idx++) {
+                int64_t item_obj = obj_arrayfield_handle_get(obj, inventory_list_fld, idx);
+                if (item_obj != OBJ_HANDLE_NULL) {
+                    obj_load_postprocess(item_obj);
+                }
+            }
+        }
+    } else {
         obj_unlock(obj);
     }
 }
@@ -1513,6 +1566,16 @@ void obj_field_int32_set(int64_t obj, int fld, int value)
         object_field_not_exists(object, fld);
         obj_unlock(obj);
         return;
+    }
+
+    if (fld == OBJ_F_CONTAINER_FLAGS && (value & OCOF_INVEN_SPAWN_ONCE) != 0) {
+        int old_flags = 0;
+        obj_field_fetch(object, OBJ_F_CONTAINER_FLAGS, &old_flags);
+        if ((old_flags & OCOF_INVEN_SPAWN_ONCE) == 0) {
+            obj_unlock(obj);
+            sub_463B30(obj, false);
+            object = obj_lock(obj);
+        }
     }
 
     obj_field_store(object, fld, &value);
@@ -5220,4 +5283,37 @@ void obj_arrayfield_ptr_set(int64_t obj, int fld, int index, void* value)
 
     obj_arrayfield_store(object, fld, index, &value);
     obj_unlock(obj);
+}
+
+void obj_regenerate_oids_recursive(int64_t obj)
+{
+    if (obj == OBJ_HANDLE_NULL) {
+        return;
+    }
+
+    Object* object = obj_lock(obj);
+    if (object == NULL) {
+        return;
+    }
+
+    if (object->oid.type != OID_TYPE_NULL) {
+        obj_pool_perm_oid_remove(object->oid);
+        objid_create_guid(&(object->oid));
+        obj_pool_perm_oid_set(object->oid, obj);
+    }
+
+    int obj_type = object->type;
+    obj_unlock(obj);
+
+    int inventory_num_fld;
+    int inventory_list_fld;
+    if (inventory_fields_from_obj_type(obj_type, &inventory_num_fld, &inventory_list_fld)) {
+        int cnt = obj_field_int32_get(obj, inventory_num_fld);
+        for (int idx = 0; idx < cnt; idx++) {
+            int64_t item_obj = obj_arrayfield_handle_get(obj, inventory_list_fld, idx);
+            if (item_obj != OBJ_HANDLE_NULL) {
+                obj_regenerate_oids_recursive(item_obj);
+            }
+        }
+    }
 }

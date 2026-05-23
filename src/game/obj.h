@@ -429,6 +429,7 @@ ObjectID obj_get_id(int64_t obj);
 ObjectID sub_408020(int64_t obj, int a2);
 bool obj_inst_first(int64_t* obj_ptr, int* iter_ptr);
 bool obj_inst_next(int64_t* obj_ptr, int* iter_ptr);
+void obj_regenerate_oids_recursive(int64_t obj);
 
 void* obj_field_ptr_get(int64_t obj, int field);
 void obj_field_ptr_set(int64_t obj, int field, void* value);
