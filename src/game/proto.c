@@ -9032,8 +9032,9 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_CURRENT_AID, art_id);
             tig_art_item_id_create(926, 1, 0, 0, 3, 2, 0, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_INV_AID, art_id);
-            tig_art_item_id_create(0, 2, 0, 0, 3, 2, 0, 0, &art_id);
+            tig_art_item_id_create(926, 2, 0, 0, 3, 2, 0, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ARMOR_PAPER_DOLL_AID, art_id);
+            tig_art_item_id_create(0, 2, 0, 0, 3, 2, 0, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_USE_AID_FRAGMENT, art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 150);
             obj_field_int32_set(obj, OBJ_F_HP_PTS, 100);
@@ -9050,8 +9051,9 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_CURRENT_AID, art_id);
             tig_art_item_id_create(927, 1, 0, 0, 0, 2, 1, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_INV_AID, art_id);
-            tig_art_item_id_create(2, 2, 0, 0, 0, 2, 1, 0, &art_id);
+            tig_art_item_id_create(927, 2, 0, 0, 0, 2, 1, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ARMOR_PAPER_DOLL_AID, art_id);
+            tig_art_item_id_create(2, 2, 0, 0, 0, 2, 1, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_USE_AID_FRAGMENT, art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 100);
             obj_field_int32_set(obj, OBJ_F_HP_PTS, 180);
@@ -9068,8 +9070,9 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_CURRENT_AID, art_id);
             tig_art_item_id_create(928, 1, 0, 0, 0, 2, 2, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_INV_AID, art_id);
-            tig_art_item_id_create(7, 2, 0, 0, 0, 2, 2, 0, &art_id);
+            tig_art_item_id_create(928, 2, 0, 0, 0, 2, 2, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ARMOR_PAPER_DOLL_AID, art_id);
+            tig_art_item_id_create(7, 2, 0, 0, 0, 2, 2, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_USE_AID_FRAGMENT, art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 30);
             obj_field_int32_set(obj, OBJ_F_HP_PTS, 80);
@@ -9086,8 +9089,9 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_CURRENT_AID, art_id);
             tig_art_item_id_create(929, 1, 0, 0, 0, 2, 4, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_INV_AID, art_id);
-            tig_art_item_id_create(5, 2, 0, 0, 0, 2, 4, 0, &art_id);
+            tig_art_item_id_create(929, 2, 0, 0, 0, 2, 4, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ARMOR_PAPER_DOLL_AID, art_id);
+            tig_art_item_id_create(5, 2, 0, 0, 0, 2, 4, 0, &art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_USE_AID_FRAGMENT, art_id);
             obj_field_int32_set(obj, OBJ_F_ITEM_WEIGHT, 15);
             obj_field_int32_set(obj, OBJ_F_HP_PTS, 60);
