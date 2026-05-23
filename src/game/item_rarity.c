@@ -1,5 +1,6 @@
 #include "game/item_rarity.h"
 #include "game/descriptions.h"
+#include "game/background.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -1395,6 +1396,10 @@ int item_rarity_life_on_hit_get(int64_t critter_obj)
         }
     }
 
+    if (background_get(critter_obj) == BACKGROUND_THORNED_SKIN) {
+        loh += 1;
+    }
+
     return loh;
 }
 
@@ -1439,6 +1444,10 @@ int item_rarity_thorns_get(int64_t critter_obj)
             }
             thorns += affix_table[affix_id].equip_thorns;
         }
+    }
+
+    if (background_get(critter_obj) == BACKGROUND_THORNED_SKIN) {
+        thorns += 7;
     }
 
     return thorns;

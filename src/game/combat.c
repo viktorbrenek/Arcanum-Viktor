@@ -1806,17 +1806,22 @@ void combat_dmg(CombatContext* combat)
                 }
                 object_hp_damage_set(combat->attacker_obj, attacker_hp_dam);
             }
-            int thorns = item_rarity_thorns_get(combat->target_obj);
-            if (critter_rarity_bonus_get(combat->target_obj) & CRITTER_BONUS_THORNED) {
-                thorns += 3;
-            }
-            thorns += spell_ce_thorns_bonus(combat->target_obj);
-            if (thorns > 0) {
-                int attacker_hp_dam = object_hp_damage_get(combat->attacker_obj) + thorns;
-                if (attacker_hp_dam < 0) {
-                    attacker_hp_dam = 0;
+            static bool inside_thorns = false;
+            if (!inside_thorns) {
+                int thorns = item_rarity_thorns_get(combat->target_obj);
+                if (critter_rarity_bonus_get(combat->target_obj) & CRITTER_BONUS_THORNED) {
+                    thorns += 3;
                 }
-                object_hp_damage_set(combat->attacker_obj, attacker_hp_dam);
+                thorns += spell_ce_thorns_bonus(combat->target_obj);
+                if (thorns > 0) {
+                    inside_thorns = true;
+                    CombatContext thorns_ctx;
+                    sub_4B2210(combat->target_obj, combat->attacker_obj, &thorns_ctx);
+                    thorns_ctx.dam[DAMAGE_TYPE_NORMAL] = thorns;
+                    thorns_ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
+                    combat_dmg(&thorns_ctx);
+                    inside_thorns = false;
+                }
             }
 
             // CE custom gauntlet on-hit procs

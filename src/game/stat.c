@@ -1022,6 +1022,10 @@ int stat_level_max(int64_t obj, int stat)
         break;
     }
 
+    if (obj != OBJ_HANDLE_NULL && stat == STAT_BEAUTY && background_get(obj) == BACKGROUND_THORNED_SKIN) {
+        return 2;
+    }
+
     return stat_max_values[stat];
 }
 

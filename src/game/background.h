@@ -18,6 +18,7 @@
 #define BACKGROUND_FRANKENSTEIN_MONSTER 74
 #define BACKGROUND_BRIDE_OF_FRANKENSTEIN 75
 #define BACKGROUND_DARK_SIGHT 78
+#define BACKGROUND_THORNED_SKIN 89
 
 bool background_init(GameInitInfo* init_info);
 void background_exit(void);
