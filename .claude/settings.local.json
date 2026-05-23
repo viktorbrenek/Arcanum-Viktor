@@ -177,7 +177,8 @@
       "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\" | Where-Object { $_.Name -match \"^015157\" })",
       "Bash(awk '{print $3}')",
       "PowerShell(ls \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\\\\proto\" | Where-Object { $_.Name -match \"^00804[0-9]\" } | Sort-Object Name)",
-      "Bash(cmake --build out/build --config Release)"
+      "Bash(cmake --build out/build --config Release)",
+      "Bash(copy *)"
     ]
   }
 }

@@ -597,6 +597,26 @@ void invensource_inject_unarmed_entries(void)
         {  71,  4, BP_STEAMCLAW }, // M3 Treasure Set
         { 104,  5, BP_STEAMCLAW }, // GeneralTechTreasure
         { 115,  3, BP_STEAMCLAW }, // Multi-Inventor
+        // BP_RUNEFIST — rune/magic, fatigue steal on hit
+        {  15,  3, BP_RUNEFIST },  // Magic General
+        {  16,  3, BP_RUNEFIST },  // Magic Light
+        {  17,  3, BP_RUNEFIST },  // Magic Dark
+        {  18,  3, BP_RUNEFIST },  // Black Market
+        {  70,  3, BP_RUNEFIST },  // M2 Treasure Set
+        {  71,  3, BP_RUNEFIST },  // M3 Treasure Set
+        { 103,  3, BP_RUNEFIST },  // GeneralMagicTreasure
+        { 121,  3, BP_RUNEFIST },  // Multi-Magic General
+        { 122,  2, BP_RUNEFIST },  // Multi-Magic Light
+        { 123,  2, BP_RUNEFIST },  // Multi-Magic Dark
+        // BP_PINGLOVES — poison on hit, dark/assassin theme
+        {  17,  3, BP_PINGLOVES }, // Magic Dark
+        {  18,  4, BP_PINGLOVES }, // Black Market
+        {  50,  2, BP_PINGLOVES }, // Bandit 3 Sword
+        {  51,  2, BP_PINGLOVES }, // Bandit 3 Mace
+        {  70,  2, BP_PINGLOVES }, // M2 Treasure Set
+        {  71,  3, BP_PINGLOVES }, // M3 Treasure Set
+        { 103,  3, BP_PINGLOVES }, // GeneralMagicTreasure
+        { 123,  3, BP_PINGLOVES }, // Multi-Magic Dark
         { 0, 0, 0 },
     };
 
