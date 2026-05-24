@@ -319,7 +319,8 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
     }
 
     // Throwing weapon descriptions (missile, no ammo consumption)
-    if (obj_field_int32_get(item_obj, OBJ_F_WEAPON_MISSILE_AID) != -1
+    if (obj_type == OBJ_TYPE_WEAPON
+        && obj_field_int32_get(item_obj, OBJ_F_WEAPON_MISSILE_AID) != -1
         && obj_field_int32_get(item_obj, OBJ_F_WEAPON_AMMO_CONSUMPTION) == 0) {
         int throwing_cat = obj_field_int32_get(item_obj, OBJ_F_CATEGORY);
         const char* throw_desc = NULL;
