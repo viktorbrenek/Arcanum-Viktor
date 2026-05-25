@@ -88,13 +88,13 @@ A work-in-progress map system inspired by Path of Exile. Vormatown is implemente
 * **Return Home:** Right-click the Void Portal Stone (consumed) or the Map of the Void to teleport back to your exact entry point in the main world.
 
 ## Screenshots
-*(Insert your screenshots here)*
+[*(Mod Page)*](https://brenek.art/releases/arcanum-new-balance.html)
 
 ## Installation
-Put all files into the game directory and replace everything. Simple.
+[*(Mod Page)*](https://brenek.art/releases/arcanum-new-balance.html) Simply download the latest release and extract all files into main game directory. Raplace all when prompted.
 
 ## Requirements
-Same as the original game.
+Own the original game.
 
 ## Shoutouts
 Big thanks to everyone keeping Arcanum alive over the years:
@@ -114,7 +114,7 @@ The game is ready, but I haven't tested everything - just the speedrun - and tha
 
 Regarding the source code, about half of the modules (not half of the code) are in good shape. All APIs have meaningful names, along with brief documentation, annotations, and explanations (see `skill.c` and `quest.c` as examples). The other half may have cryptic names, little to no symbols , and no documentation at all (`anim.c` is extremely large and hard to understand).
 
-## Installation
+## Installation (if you want to build yourself, but it will not work, without my modified .art files .protos and other stuff, that are not distributed via github yet)
 
 You must own the game to play. Purchase your copy on [GOG](https://www.gog.com/game/arcanum_of_steamworks_and_magick_obscura) or [Steam](https://store.steampowered.com/app/500810).
 
