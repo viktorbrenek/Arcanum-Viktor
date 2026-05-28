@@ -319,7 +319,7 @@ static int blood_magic_hp_cost(int spell)
     }
 }
 
-static void blood_magic_pay(int64_t caster_obj, int hp_cost)
+void spell_ce_blood_magic_pay(int64_t caster_obj, int hp_cost)
 {
     CombatContext ctx;
 
@@ -334,7 +334,7 @@ void spell_ce_pre_begin(int spell, int64_t caster_obj, int* aptitude_ptr)
 {
     int hp_cost = blood_magic_hp_cost(spell);
     if (hp_cost > 0) {
-        blood_magic_pay(caster_obj, hp_cost);
+        spell_ce_blood_magic_pay(caster_obj, hp_cost);
     }
 
     if (spell != SPELL_HARM) {
@@ -440,12 +440,7 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
             proc_wind_strike(caster_obj, target_obj);
         }
         break;
-    case SPELL_SUMMON_UNDEAD:
-        // Blood Magic tick: 5 HP per maintain cycle (every 10s). Target == caster via [Maintain]AoE: Tgt_Self.
-        if (IS_MAINTAIN(action) && target_obj == caster_obj) {
-            blood_magic_pay(caster_obj, 5);
-        }
-        break;
+
     case SPELL_CREATE_UNDEAD: // Lifetaker: maintained AoE siphons HP from surrounding enemies.
         if (IS_MAINTAIN(action) && target_obj != caster_obj && !critter_party_same(caster_obj, target_obj)) {
             CombatContext drain_ctx;

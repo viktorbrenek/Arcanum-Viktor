@@ -13,6 +13,9 @@ void spell_ce_pre_begin(int spell, int64_t caster_obj, int* aptitude_ptr);
 // action: MAGICTECH_ACTION_BEGIN or MAGICTECH_ACTION_MAINTAIN
 void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t target_obj);
 
+// Inflicts unresistable Blood Magic HP damage cost on the caster.
+void spell_ce_blood_magic_pay(int64_t caster_obj, int hp_cost);
+
 // Timeevent processor for Harm cooldown — just expires, no-op.
 bool spell_ce_harm_cooldown_process(TimeEvent* timeevent);
 
