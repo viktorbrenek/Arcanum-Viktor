@@ -310,11 +310,11 @@ static void proc_wind_strike(int64_t caster, int64_t target)
 static int blood_magic_hp_cost(int spell)
 {
     switch (spell) {
-    case SPELL_HARM:           return 12;
+    case SPELL_HARM:           return 7;
     case SPELL_CONJURE_SPIRIT: return 25;
     // SPELL_SUMMON_UNDEAD: no upfront cost — 5 HP per 10s tick via on_target MAINTAIN
     case SPELL_CREATE_UNDEAD:  return 60;   // Lifetaker
-    case SPELL_QUENCH_LIFE:    return 120;  // Finger of Death
+    case SPELL_QUENCH_LIFE:    return 70;   // Finger of Death
     default:                   return 0;
     }
 }
@@ -444,6 +444,30 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
         // Blood Magic tick: 5 HP per maintain cycle (every 10s). Target == caster via [Maintain]AoE: Tgt_Self.
         if (IS_MAINTAIN(action) && target_obj == caster_obj) {
             blood_magic_pay(caster_obj, 5);
+        }
+        break;
+    case SPELL_CREATE_UNDEAD: // Lifetaker: maintained AoE siphons HP from surrounding enemies.
+        if (IS_MAINTAIN(action) && target_obj != caster_obj && !critter_party_same(caster_obj, target_obj)) {
+            CombatContext drain_ctx;
+            int heal_amount = random_between(5, 10);
+            
+            // Damage enemy
+            sub_4B2210(caster_obj, target_obj, &drain_ctx);
+            drain_ctx.dam[DAMAGE_TYPE_NORMAL] = heal_amount;
+            drain_ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
+            combat_dmg(&drain_ctx);
+            
+            // Heal caster
+            int cur_hp = object_hp_current(caster_obj);
+            int max_hp = object_hp_max(caster_obj);
+            if (cur_hp < max_hp) {
+                int new_hp = cur_hp + heal_amount;
+                if (new_hp > max_hp) new_hp = max_hp;
+                object_hp_damage_set(caster_obj, max_hp - new_hp);
+            }
+            
+            tb_add(target_obj, TB_TYPE_RED, "Siphoned!");
+            tb_add(caster_obj, TB_TYPE_WHITE, "Healed!");
         }
         break;
     case SPELL_CHARM:  // Meditation: spend 15 HP to restore 25 fatigue
