@@ -8268,6 +8268,7 @@ bool sub_42B440(AnimRunInfo* run_info)
 
         art_id = tig_art_id_frame_set(art_id, 0);
         object_set_current_aid(obj, art_id);
+        object_set_current_aid(obj, sub_465020(obj));
 
         sub_430490(obj, 0, 0);
 
@@ -8633,10 +8634,32 @@ bool sub_42BD40(AnimRunInfo* run_info)
     }
 
     art_id = obj_field_int32_get(obj, OBJ_F_CURRENT_AID);
-    art_id = tig_art_id_anim_set(art_id, run_info->params[2].data);
+    int req_anim = run_info->params[2].data;
+    art_id = tig_art_id_anim_set(art_id, req_anim);
     art_id = tig_art_id_frame_set(art_id, 0);
     if (tig_art_exists(art_id) != TIG_OK) {
-        return false;
+        if (req_anim == TIG_ART_ANIM_THROW) {
+            art_id = tig_art_id_anim_set(art_id, TIG_ART_ANIM_ATTACK);
+            if (tig_art_exists(art_id) != TIG_OK) {
+                art_id = tig_art_id_anim_set(art_id, TIG_ART_ANIM_ATTACK_LOW);
+                if (tig_art_exists(art_id) != TIG_OK) {
+                    art_id = tig_art_critter_id_weapon_set(art_id, TIG_ART_WEAPON_TYPE_UNARMED);
+                    art_id = tig_art_id_anim_set(art_id, TIG_ART_ANIM_ATTACK);
+                    if (tig_art_exists(art_id) != TIG_OK) {
+                        art_id = tig_art_id_anim_set(art_id, TIG_ART_ANIM_ATTACK_LOW);
+                        if (tig_art_exists(art_id) != TIG_OK) {
+                            art_id = tig_art_critter_id_weapon_set(art_id, TIG_ART_WEAPON_TYPE_NO_WEAPON);
+                            art_id = tig_art_id_anim_set(art_id, TIG_ART_ANIM_STAND);
+                            if (tig_art_exists(art_id) != TIG_OK) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
     }
 
     object_set_current_aid(obj, art_id);

@@ -30,76 +30,76 @@ unsigned int tig_color_index_of(tig_color_t color);
 // Creates platform-specific color from RGB components (0-255).
 static inline tig_color_t tig_color_make(int red, int green, int blue)
 {
-    return tig_color_alpha_mask
-        | (red << tig_color_red_shift)
-        | (green << tig_color_green_shift)
-        | (blue << tig_color_blue_shift);
+    return 0xFF000000
+        | (red << 16)
+        | (green << 8)
+        | (blue << 0);
 }
 
 // Extracts the 8-bit red component from a platform color.
 static inline int tig_color_get_red(tig_color_t color)
 {
-    return (int)((color & tig_color_red_mask) >> tig_color_red_shift);
+    return (int)((color & 0x00FF0000) >> 16);
 }
 
 // Extracts the 8-bit green component from a platform color.
 static inline int tig_color_get_green(tig_color_t color)
 {
-    return (int)((color & tig_color_green_mask) >> tig_color_green_shift);
+    return (int)((color & 0x0000FF00) >> 8);
 }
 
 // Extracts the 8-bit blue component from a platform color.
 static inline int tig_color_get_blue(tig_color_t color)
 {
-    return (int)((color & tig_color_blue_mask) >> tig_color_blue_shift);
+    return (int)((color & 0x000000FF) >> 0);
 }
 
 // Multiply the components of two platform-specific colors.
 static inline tig_color_t tig_color_mul(tig_color_t src, tig_color_t dst)
 {
-    unsigned int r1 = (src & tig_color_red_mask) >> tig_color_red_shift;
-    unsigned int g1 = (src & tig_color_green_mask) >> tig_color_green_shift;
-    unsigned int b1 = (src & tig_color_blue_mask) >> tig_color_blue_shift;
+    unsigned int r1 = (src & 0x00FF0000) >> 16;
+    unsigned int g1 = (src & 0x0000FF00) >> 8;
+    unsigned int b1 = (src & 0x000000FF) >> 0;
 
-    unsigned int r2 = (dst & tig_color_red_mask) >> tig_color_red_shift;
-    unsigned int g2 = (dst & tig_color_green_mask) >> tig_color_green_shift;
-    unsigned int b2 = (dst & tig_color_blue_mask) >> tig_color_blue_shift;
+    unsigned int r2 = (dst & 0x00FF0000) >> 16;
+    unsigned int g2 = (dst & 0x0000FF00) >> 8;
+    unsigned int b2 = (dst & 0x000000FF) >> 0;
 
-    return tig_color_alpha_mask
-        | (tig_color_mult_table[256 * r1 + r2] << tig_color_red_shift)
-        | (tig_color_mult_table[256 * g1 + g2] << tig_color_green_shift)
-        | (tig_color_mult_table[256 * b1 + b2] << tig_color_blue_shift);
+    return 0xFF000000
+        | (tig_color_mult_table[256 * r1 + r2] << 16)
+        | (tig_color_mult_table[256 * g1 + g2] << 8)
+        | (tig_color_mult_table[256 * b1 + b2] << 0);
 }
 
 // Sum the components of two platform-specific colors.
 static inline tig_color_t tig_color_add(tig_color_t src, tig_color_t dst)
 {
-    unsigned int r1 = src & tig_color_red_mask;
-    unsigned int g1 = src & tig_color_green_mask;
-    unsigned int b1 = src & tig_color_blue_mask;
+    unsigned int r1 = src & 0x00FF0000;
+    unsigned int g1 = src & 0x0000FF00;
+    unsigned int b1 = src & 0x000000FF;
 
-    unsigned int r2 = dst & tig_color_red_mask;
-    unsigned int g2 = dst & tig_color_green_mask;
-    unsigned int b2 = dst & tig_color_blue_mask;
+    unsigned int r2 = dst & 0x00FF0000;
+    unsigned int g2 = dst & 0x0000FF00;
+    unsigned int b2 = dst & 0x000000FF;
 
-    return tig_color_alpha_mask
-        | SDL_min(r1 + r2, tig_color_red_mask)
-        | SDL_min(g1 + g2, tig_color_green_mask)
-        | SDL_min(b1 + b2, tig_color_blue_mask);
+    return 0xFF000000
+        | SDL_min(r1 + r2, 0x00FF0000)
+        | SDL_min(g1 + g2, 0x0000FF00)
+        | SDL_min(b1 + b2, 0x000000FF);
 }
 
 // Subtract the components of `src` color from `dst` color.
 static inline tig_color_t tig_color_sub(tig_color_t src, tig_color_t dst)
 {
-    unsigned int r1 = src & tig_color_red_mask;
-    unsigned int g1 = src & tig_color_green_mask;
-    unsigned int b1 = src & tig_color_blue_mask;
+    unsigned int r1 = src & 0x00FF0000;
+    unsigned int g1 = src & 0x0000FF00;
+    unsigned int b1 = src & 0x000000FF;
 
-    unsigned int r2 = dst & tig_color_red_mask;
-    unsigned int g2 = dst & tig_color_green_mask;
-    unsigned int b2 = dst & tig_color_blue_mask;
+    unsigned int r2 = dst & 0x00FF0000;
+    unsigned int g2 = dst & 0x0000FF00;
+    unsigned int b2 = dst & 0x000000FF;
 
-    return tig_color_alpha_mask
+    return 0xFF000000
         | ((r2 < r1 ? r1 : r2) - r1)
         | ((g2 < g1 ? g1 : g2) - g1)
         | ((b2 < b1 ? b1 : b2) - b1);
@@ -112,23 +112,23 @@ static inline tig_color_t tig_color_sub(tig_color_t src, tig_color_t dst)
 // - `255`: src is completely opaque
 static inline tig_color_t tig_color_blend_alpha(tig_color_t src, tig_color_t dst, int alpha)
 {
-    unsigned int r1 = (src & tig_color_red_mask);
-    unsigned int g1 = (src & tig_color_green_mask);
-    unsigned int b1 = (src & tig_color_blue_mask);
+    unsigned int r1 = (src & 0x00FF0000);
+    unsigned int g1 = (src & 0x0000FF00);
+    unsigned int b1 = (src & 0x000000FF);
 
-    unsigned int r2 = (dst & tig_color_red_mask);
-    unsigned int g2 = (dst & tig_color_green_mask);
-    unsigned int b2 = (dst & tig_color_blue_mask);
+    unsigned int r2 = (dst & 0x00FF0000);
+    unsigned int g2 = (dst & 0x0000FF00);
+    unsigned int b2 = (dst & 0x000000FF);
 
-    return tig_color_alpha_mask
-        | ((r2 + ((alpha * (r1 - r2)) >> 8)) & tig_color_red_mask)
-        | ((g2 + ((alpha * (g1 - g2)) >> 8)) & tig_color_green_mask)
-        | ((b2 + ((alpha * (b1 - b2)) >> 8)) & tig_color_blue_mask);
+    return 0xFF000000
+        | ((r2 + ((alpha * (r1 - r2)) >> 8)) & 0x00FF0000)
+        | ((g2 + ((alpha * (g1 - g2)) >> 8)) & 0x0000FF00)
+        | ((b2 + ((alpha * (b1 - b2)) >> 8)) & 0x000000FF);
 }
 
 static inline int tig_color_alpha(tig_color_t color)
 {
-    return (color & tig_color_red_mask) >> tig_color_red_shift;
+    return (color & 0x00FF0000) >> 16;
 }
 
 #ifdef __cplusplus

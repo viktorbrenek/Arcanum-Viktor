@@ -1087,31 +1087,74 @@ int tig_video_buffer_tint(TigVideoBuffer* video_buffer, TigRect* rect, tig_color
         case 32:
             if (1) {
                 uint32_t* dst = (uint32_t*)video_buffer->surface->pixels + (video_buffer->surface->pitch / 4) * (y + frame.y) + frame.x;
-                uint32_t src_color;
 
                 switch (mode) {
                 case TIG_VIDEO_BUFFER_TINT_MODE_ADD:
-                    for (x = 0; x < frame.width; ++x) {
-                        src_color = *dst;
-                        *dst++ = tig_color_add(tint_color, src_color);
+                    {
+                        uint32_t tr = (tint_color & 0x00FF0000) >> 16;
+                        uint32_t tg = (tint_color & 0x0000FF00) >> 8;
+                        uint32_t tb = (tint_color & 0x000000FF);
+                        for (x = 0; x < frame.width; ++x) {
+                            uint32_t src = *dst;
+                            uint32_t sr = (src & 0x00FF0000) >> 16;
+                            uint32_t sg = (src & 0x0000FF00) >> 8;
+                            uint32_t sb = (src & 0x000000FF);
+                            
+                            uint32_t dr = sr + tr; if (dr > 255) dr = 255;
+                            uint32_t dg = sg + tg; if (dg > 255) dg = 255;
+                            uint32_t db = sb + tb; if (db > 255) db = 255;
+                            
+                            *dst++ = 0xFF000000 | (dr << 16) | (dg << 8) | db;
+                        }
                     }
                     break;
                 case TIG_VIDEO_BUFFER_TINT_MODE_SUB:
-                    for (x = 0; x < frame.width; ++x) {
-                        src_color = *dst;
-                        *dst++ = tig_color_sub(tint_color, src_color);
+                    {
+                        uint32_t tr = (tint_color & 0x00FF0000) >> 16;
+                        uint32_t tg = (tint_color & 0x0000FF00) >> 8;
+                        uint32_t tb = (tint_color & 0x000000FF);
+                        for (x = 0; x < frame.width; ++x) {
+                            uint32_t src = *dst;
+                            uint32_t sr = (src & 0x00FF0000) >> 16;
+                            uint32_t sg = (src & 0x0000FF00) >> 8;
+                            uint32_t sb = (src & 0x000000FF);
+                            
+                            uint32_t dr = (sr < tr) ? 0 : (sr - tr);
+                            uint32_t dg = (sg < tg) ? 0 : (sg - tg);
+                            uint32_t db = (sb < tb) ? 0 : (sb - tb);
+                            
+                            *dst++ = 0xFF000000 | (dr << 16) | (dg << 8) | db;
+                        }
                     }
                     break;
                 case TIG_VIDEO_BUFFER_TINT_MODE_MUL:
-                    for (x = 0; x < frame.width; ++x) {
-                        src_color = *dst;
-                        *dst++ = tig_color_mul(tint_color, src_color);
+                    {
+                        uint32_t tr = (tint_color & 0x00FF0000) >> 16;
+                        uint32_t tg = (tint_color & 0x0000FF00) >> 8;
+                        uint32_t tb = (tint_color & 0x000000FF);
+                        uint8_t* mult_table = tig_color_mult_table;
+                        for (x = 0; x < frame.width; ++x) {
+                            uint32_t src = *dst;
+                            uint32_t sr = (src & 0x00FF0000) >> 16;
+                            uint32_t sg = (src & 0x0000FF00) >> 8;
+                            uint32_t sb = (src & 0x000000FF);
+                            
+                            uint32_t dr = mult_table[(tr << 8) | sr];
+                            uint32_t dg = mult_table[(tg << 8) | sg];
+                            uint32_t db = mult_table[(tb << 8) | sb];
+                            
+                            *dst++ = 0xFF000000 | (dr << 16) | (dg << 8) | db;
+                        }
                     }
                     break;
                 case TIG_VIDEO_BUFFER_TINT_MODE_GRAYSCALE:
                     for (x = 0; x < frame.width; ++x) {
-                        src_color = *dst;
-                        *dst++ = tig_color_rgb_to_grayscale(src_color);
+                        uint32_t src = *dst;
+                        uint32_t sr = (src & 0x00FF0000) >> 16;
+                        uint32_t sg = (src & 0x0000FF00) >> 8;
+                        uint32_t sb = (src & 0x000000FF);
+                        uint32_t gray = (sr * 77 + sg * 150 + sb * 28) / 255;
+                        *dst++ = 0xFF000000 | (gray << 16) | (gray << 8) | gray;
                     }
                     break;
                 default:
