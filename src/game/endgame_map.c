@@ -5,6 +5,7 @@
 #include <windows.h>
 
 #include "game/critter_rarity.h"
+#include "game/item_rarity.h"
 #include "game/descriptions.h"
 #include "game/location.h"
 #include "game/map.h"
@@ -22,6 +23,8 @@
 #include "game/ui.h"
 #include "ui/inven_ui.h"
 #include "tig/debug.h"
+#include "tig/art.h"
+#include "tig/file.h"
 
 #define ENDGAME_MAP_NAME  "endgame_dungeon"
 #define ENDGAME_SAVE_DIR  "Save\\Current\\maps\\" ENDGAME_MAP_NAME
@@ -80,7 +83,10 @@ static void endgame_cfg_ensure_init(void)
     }
     settings_init(&endgame_cfg, ENDGAME_CFG_PATH);
     settings_register(&endgame_cfg, CFG_KEY_RETURN_MAP, "0", NULL);
+    settings_register(&endgame_cfg, "return_x", "0", NULL);
+    settings_register(&endgame_cfg, "return_y", "0", NULL);
     settings_register(&endgame_cfg, "rift_tier", "1", NULL);
+    settings_register(&endgame_cfg, "rift_type", "0", NULL);
     settings_load(&endgame_cfg);
     endgame_cfg_initialized = true;
 }
@@ -93,40 +99,174 @@ int endgame_map_get_tier(void)
     return tier;
 }
 
-// Delete all files in the dungeon save directory (forces fresh load on next entry).
+RiftType endgame_map_get_type(void)
+{
+    endgame_cfg_ensure_init();
+    int rtype = settings_get_value(&endgame_cfg, "rift_type");
+    if (rtype < 0 || rtype >= RIFT_COUNT) rtype = RIFT_PHYSICAL;
+    return (RiftType)rtype;
+}
+
 static void endgame_clear_save_dir(void)
 {
-    WIN32_FIND_DATAA fd;
-    char pattern[MAX_PATH];
-    char full[MAX_PATH];
-    HANDLE h;
-
-    snprintf(pattern, sizeof(pattern), "%s\\*", ENDGAME_SAVE_DIR);
-    h = FindFirstFileA(pattern, &fd);
-    if (h == INVALID_HANDLE_VALUE) {
-        return;
-    }
-    do {
-        if (fd.cFileName[0] == '.') {
-            continue;
-        }
-        snprintf(full, sizeof(full), "%s\\%s", ENDGAME_SAVE_DIR, fd.cFileName);
-        DeleteFileA(full);
-    } while (FindNextFileA(h, &fd));
-    FindClose(h);
-    RemoveDirectoryA(ENDGAME_SAVE_DIR);
+    tig_file_empty_directory(ENDGAME_SAVE_DIR);
+    tig_file_rmdir(ENDGAME_SAVE_DIR);
 }
 
 // ---- critter spawn ----------------------------------------------------------
 
+static void endgame_spawn_scenery(void)
+{
+    RiftType type = endgame_map_get_type();
+    
+    int protos[4];
+    int proto_count = 0;
+    
+    switch (type) {
+    case RIFT_PHYSICAL:
+        protos[0] = BP_BIG_STONE;
+        protos[1] = BP_STONE;
+        protos[2] = BP_SMALL_STONE;
+        protos[3] = BP_WALL_OF_STONE;
+        proto_count = 4;
+        break;
+    case RIFT_FIRE:
+        protos[0] = BP_WALL_OF_FIRE;
+        protos[1] = BP_TORCH_FLAME;
+        protos[2] = BP_DEAD_TREE;
+        protos[3] = BP_WALL_OF_FIRE;
+        proto_count = 4;
+        break;
+    case RIFT_POISON:
+        protos[0] = BP_PLANT_SCENERY;
+        protos[1] = BP_STINKING_CLOUD;
+        protos[2] = BP_PLANT_SCENERY;
+        protos[3] = BP_DEAD_TREE;
+        proto_count = 4;
+        break;
+    case RIFT_MAGIC:
+        protos[0] = BP_WALL_OF_FORCE;
+        protos[1] = BP_LIGHT_2;
+        protos[2] = BP_LIGHT_3;
+        protos[3] = BP_WALL_OF_FORCE;
+        proto_count = 4;
+        break;
+    case RIFT_VOID:
+        protos[0] = BP_DEAD_TREE;
+        protos[1] = BP_POOL_OF_BLOOD;
+        protos[2] = BP_DEAD_TREE;
+        protos[3] = BP_POOL_OF_BLOOD;
+        proto_count = 4;
+        break;
+    default:
+        break;
+    }
+    
+    if (proto_count == 0) return;
+    
+    static const int scenery_offsets[][2] = {
+        { 8,  8 }, { -8,  8 }, {  8, -8 }, { -8, -8 },
+        { 12,  4 }, { -12,  4 }, { 12, -4 }, { -12, -4 },
+        {  4, 12 }, {  -4, 12 }, {  4,-12 }, {  -4,-12 }
+    };
+    int count = (int)(sizeof(scenery_offsets) / sizeof(scenery_offsets[0]));
+    
+    for (int i = 0; i < count; i++) {
+        int proto = protos[random_between(0, proto_count - 1)];
+        int dx = scenery_offsets[i][0];
+        int dy = scenery_offsets[i][1];
+        int64_t loc = location_make(ENDGAME_START_X + dx, ENDGAME_START_Y + dy);
+        int64_t sc_obj;
+        mp_object_create(proto, loc, &sc_obj);
+    }
+}
+
 static void endgame_spawn_critters(void)
 {
-    int ng = ng_plus_get_level();
-    int count = ENDGAME_CRITTERS_BASE + ng * 2;
+    int tier = endgame_map_get_tier();
+    int count = ENDGAME_CRITTERS_BASE + 2 * tier;
+    if (count > 30) count = 30;
     endgame_critters_remaining = 0;
 
+    RiftType type = endgame_map_get_type();
+
+    static const int pool_physical[] = {
+        BP_LESSER_BOAR,
+        BP_GREATER_BOAR,
+        BP_EARTH_ELEMENTAL,
+        BP_ENRAGED_BOAR,
+        BP_RABID_BOAR,
+        BP_ORE_GOLEM
+    };
+    static const int pool_fire[] = {
+        BP_FIRE_SPIDER,
+        BP_FLAMESHADE,
+        BP_MOLTEN_ARACHNID,
+        BP_FIRE_ELEMENTAL,
+        BP_LESSER_DEMON,
+        BP_DEMON
+    };
+    static const int pool_poison[] = {
+        BP_SPIDER,
+        BP_VENOM_HOUND,
+        BP_GREATER_SPIDER,
+        BP_DREAD_SPIDER,
+        BP_SLIME_DEMON
+    };
+    static const int pool_magic[] = {
+        BP_AIR_ELEMENTAL,
+        BP_WATER_ELEMENTAL,
+        BP_STORM_FURY,
+        BP_EVIL_TEMPEST,
+        BP_AUTOMATON_1,
+        BP_AUTOMATON_2
+    };
+    static const int pool_void[] = {
+        BP_SHADOW,
+        BP_LESSER_VOID_LIZARD,
+        BP_GREATER_VOID_LIZARD,
+        BP_DREAD_LIZARD,
+        BP_DEATH_STRIKER,
+        BP_TERROR_CLAW,
+        BP_FOE_MANGLER,
+        BP_GREATER_DEMON_2
+    };
+
+    const int* pool = pool_physical;
+    int pool_size = 6;
+
+    switch (type) {
+    case RIFT_FIRE:
+        pool = pool_fire;
+        pool_size = 6;
+        break;
+    case RIFT_POISON:
+        pool = pool_poison;
+        pool_size = 5;
+        break;
+    case RIFT_MAGIC:
+        pool = pool_magic;
+        pool_size = 6;
+        break;
+    case RIFT_VOID:
+        pool = pool_void;
+        pool_size = 8;
+        break;
+    default:
+        pool = pool_physical;
+        pool_size = 6;
+        break;
+    }
+
+    int max_idx = tier;
+    if (max_idx >= pool_size) max_idx = pool_size - 1;
+    if (max_idx < 0) max_idx = 0;
+
+    // Decorate map with thematic scenery
+    endgame_spawn_scenery();
+
     for (int i = 0; i < count; i++) {
-        int proto = endgame_critter_pool[random_between(0, ENDGAME_POOL_SIZE - 1)];
+        int proto = pool[random_between(0, max_idx)];
         int dx = scatter_offsets[i % SCATTER_COUNT][0];
         int dy = scatter_offsets[i % SCATTER_COUNT][1];
         int64_t loc = location_make(ENDGAME_START_X + dx, ENDGAME_START_Y + dy);
@@ -137,8 +277,8 @@ static void endgame_spawn_critters(void)
         }
     }
 
-    tig_debug_printf("endgame_map: spawned %d critters (NG+%d)\n",
-        endgame_critters_remaining, ng);
+    tig_debug_printf("endgame_map: spawned %d critters (Tier %d, type %d)\n",
+        endgame_critters_remaining, tier, (int)type);
 }
 
 // ---- public API -------------------------------------------------------------
@@ -189,9 +329,21 @@ bool endgame_map_enter(void)
         inven_ui_destroy();
     }
 
+    // Roll a random Rift Type and save it
+    RiftType rtype = (RiftType)random_between(0, RIFT_COUNT - 1);
+    settings_set_value(&endgame_cfg, "rift_type", (int)rtype);
+
     // Save return map; PC tile gets serialised into mobile.mdy by teleport_do.
     int return_map = map_current_map();
     settings_set_value(&endgame_cfg, CFG_KEY_RETURN_MAP, return_map);
+    int64_t pc = player_get_local_pc_obj();
+    if (pc != OBJ_HANDLE_NULL) {
+        int64_t return_loc = obj_field_int64_get(pc, OBJ_F_LOCATION);
+        int64_t rx = location_get_x(return_loc);
+        int64_t ry = location_get_y(return_loc);
+        settings_set_value(&endgame_cfg, "return_x", (int)rx);
+        settings_set_value(&endgame_cfg, "return_y", (int)ry);
+    }
     settings_save(&endgame_cfg);
 
     // Wipe dungeon save so the sector data is fresh.
@@ -219,9 +371,15 @@ bool endgame_map_enter(void)
 
 void endgame_map_exit(void)
 {
+    if (inven_ui_is_created()) {
+        inven_ui_destroy();
+    }
+
     endgame_cfg_ensure_init();
 
     int return_map = settings_get_value(&endgame_cfg, CFG_KEY_RETURN_MAP);
+    int rx = settings_get_value(&endgame_cfg, "return_x");
+    int ry = settings_get_value(&endgame_cfg, "return_y");
     endgame_critters_remaining = 0;
 
     if (return_map <= 0) {
@@ -233,18 +391,126 @@ void endgame_map_exit(void)
     settings_set_value(&endgame_cfg, CFG_KEY_RETURN_MAP, 0);
     settings_save(&endgame_cfg);
 
-    // PC tile is restored automatically from the return map's sector save.
-    if (!map_open_in_game(return_map, false, false)) {
-        tig_debug_println("endgame_map_exit: map_open_in_game failed");
+    int64_t pc = player_get_local_pc_obj();
+    if (pc != OBJ_HANDLE_NULL) {
+        if (rx <= 0 || ry <= 0) {
+            int64_t sx, sy;
+            if (map_get_starting_location(return_map, &sx, &sy)) {
+                rx = (int)sx;
+                ry = (int)sy;
+            }
+        }
+
+        TeleportData td;
+        memset(&td, 0, sizeof(td));
+        td.flags = 0;
+        td.obj = pc;
+        td.loc = location_make(rx, ry);
+        td.map = return_map;
+
+        if (!teleport_do(&td)) {
+            tig_debug_println("endgame_map_exit: teleport_do failed");
+        }
     }
 
     endgame_feedback("The rift spits you back into the world.");
 }
 
+static void endgame_spawn_reward_chest(int64_t loc, int tier)
+{
+    int64_t cx = location_get_x(loc);
+    int64_t cy = location_get_y(loc);
+    int64_t chest_loc = location_make(cx + 2, cy);
+
+    int64_t chest_obj;
+    if (!mp_object_create(BP_CHEST_1, chest_loc, &chest_obj)) {
+        return;
+    }
+
+    // 1. Spawning gold (scales with tier)
+    int gold_amount = 1000 * tier + random_between(0, 500 * tier);
+    int64_t gold_obj = item_gold_create(gold_amount, chest_loc);
+    if (gold_obj != OBJ_HANDLE_NULL) {
+        if (!item_transfer(gold_obj, chest_obj)) {
+            object_destroy(gold_obj);
+        }
+    }
+
+    // 2. Spawning Map of the Void (for next tier)
+    int64_t map_obj;
+    if (mp_object_create(BP_COMPONENT_1, chest_loc, &map_obj)) {
+        item_orb_set_type(map_obj, ORB_MAP);
+        if (!item_transfer(map_obj, chest_obj)) {
+            object_destroy(map_obj);
+        }
+    }
+
+    // 3. Spawning Void Portal Stone (Rift Exit Stone)
+    int64_t exit_stone_obj;
+    if (mp_object_create(BP_COMPONENT_1, chest_loc, &exit_stone_obj)) {
+        item_orb_set_type(exit_stone_obj, ORB_EXIT_STONE);
+        if (!item_transfer(exit_stone_obj, chest_obj)) {
+            object_destroy(exit_stone_obj);
+        }
+    }
+
+    // 4. Spawning random crafting orbs (1-3 orbs based on tier)
+    int orb_count = random_between(1, 2 + tier / 2);
+    if (orb_count > 5) orb_count = 5;
+    for (int i = 0; i < orb_count; i++) {
+        int64_t orb_obj;
+        if (mp_object_create(BP_COMPONENT_1, chest_loc, &orb_obj)) {
+            OrbType rolled_type = item_orb_roll_type();
+            if (rolled_type == ORB_MAP || rolled_type == ORB_NONE) {
+                rolled_type = ORB_IDENTIFICATION;
+            }
+            item_orb_set_type(orb_obj, rolled_type);
+            if (!item_transfer(orb_obj, chest_obj)) {
+                object_destroy(orb_obj);
+            }
+        }
+    }
+
+    // 5. Spawning random scaling gear (weapons & armors)
+    static const int base_item_pool[] = {
+        BP_QUALITY_BROADSWORD, BP_CALADON_ELITE_SWORD, BP_CLAYMORE, BP_AXE,
+        BP_MACE, BP_BOW, BP_RIFLE, BP_STAFF, BP_STUDDED_LEATHER, BP_CHAINMAIL,
+        BP_MACHINED_PLATEMAIL, BP_DRAGON_SKIN_LEATHER, BP_WOODEN_SHIELD,
+        BP_HELMET, BP_GAUNTLETS, BP_BOOTS, BP_CLAW, BP_BOXER, BP_THORNFIST,
+        BP_STEAMCLAW, BP_RUNEFIST, BP_PINGLOVES, BP_THORNVEST,
+        BP_THORNYBULWARK, BP_CROWNOFTHORNS, BP_BRAMBLEDSHOES
+    };
+    int pool_size = (int)(sizeof(base_item_pool) / sizeof(base_item_pool[0]));
+
+    int equip_count = random_between(2, 4);
+    for (int i = 0; i < equip_count; i++) {
+        int proto = base_item_pool[random_between(0, pool_size - 1)];
+        int64_t gear_obj;
+        if (mp_object_create(proto, chest_loc, &gear_obj)) {
+            int roll = random_between(1, 100) + tier * 10;
+            ItemRarity forced_rarity = ITEM_RARITY_UNCOMMON;
+            if (roll > 105) {
+                forced_rarity = ITEM_RARITY_SET;
+            } else if (roll > 95) {
+                forced_rarity = ITEM_RARITY_UNIQUE;
+            } else if (roll > 75) {
+                forced_rarity = ITEM_RARITY_EPIC;
+            } else if (roll > 45) {
+                forced_rarity = ITEM_RARITY_RARE;
+            }
+
+            item_rarity_roll_forced(gear_obj, forced_rarity);
+            if (!item_transfer(gear_obj, chest_obj)) {
+                object_destroy(gear_obj);
+            }
+        }
+    }
+
+
+}
+
 void endgame_map_on_critter_killed(int64_t critter_obj)
 {
-    (void)critter_obj;
-
     if (!endgame_map_is_active() || endgame_critters_remaining <= 0) {
         return;
     }
@@ -258,25 +524,28 @@ void endgame_map_on_critter_killed(int64_t critter_obj)
         settings_set_value(&endgame_cfg, "rift_tier", tier);
         settings_save(&endgame_cfg);
 
-        // Award a new Map of the Void to the player
-        int64_t pc = player_get_local_pc_obj();
-        if (pc != OBJ_HANDLE_NULL) {
-            int64_t orb_obj;
-            int64_t loc = obj_field_int64_get(pc, OBJ_F_LOCATION);
-            if (mp_object_create(BP_COMPONENT_1, loc, &orb_obj)) {
-                item_orb_set_type(orb_obj, ORB_MAP);
-                if (!item_transfer(orb_obj, pc)) {
-                    object_destroy(orb_obj);
-                }
+        // Get critter location
+        int64_t spawn_loc = OBJ_HANDLE_NULL;
+        if (critter_obj != OBJ_HANDLE_NULL) {
+            spawn_loc = obj_field_int64_get(critter_obj, OBJ_F_LOCATION);
+        }
+        if (spawn_loc == OBJ_HANDLE_NULL) {
+            int64_t pc = player_get_local_pc_obj();
+            if (pc != OBJ_HANDLE_NULL) {
+                spawn_loc = obj_field_int64_get(pc, OBJ_F_LOCATION);
+            } else {
+                spawn_loc = location_make(ENDGAME_START_X, ENDGAME_START_Y);
             }
         }
 
+        // Spawn chest with rewards and exit portal
+        endgame_spawn_reward_chest(spawn_loc, tier - 1);
+
         char msg_buf[256];
         snprintf(msg_buf, sizeof(msg_buf),
-            "The last enemy falls. The rift collapses — you are cast back into the world.\n"
+            "The last enemy falls. A Rift Reward Chest and Portal have appeared!\n"
             "Rift Tier increased to %d!", tier);
         endgame_feedback(msg_buf);
-        endgame_map_exit();
     }
 }
 
@@ -292,5 +561,25 @@ void endgame_map_on_map_opened(int map_id)
     }
     endgame_spawn_pending = false;
     endgame_spawn_critters();
-    endgame_feedback("The rift tears open — darkness swallows you whole.");
+
+    RiftType type = endgame_map_get_type();
+    char msg_buf[256];
+    switch (type) {
+    case RIFT_FIRE:
+        snprintf(msg_buf, sizeof(msg_buf), "The Rift of Fire tears open! Monsters deal bonus fire damage.");
+        break;
+    case RIFT_POISON:
+        snprintf(msg_buf, sizeof(msg_buf), "The Rift of Poison tears open! Monsters deal bonus poison damage.");
+        break;
+    case RIFT_MAGIC:
+        snprintf(msg_buf, sizeof(msg_buf), "The Rift of Magic tears open! Monsters deal bonus shock damage.");
+        break;
+    case RIFT_VOID:
+        snprintf(msg_buf, sizeof(msg_buf), "The Void Rift tears open! Enemies are extremely deadly but yield the richest rewards.");
+        break;
+    default:
+        snprintf(msg_buf, sizeof(msg_buf), "The Rift of Stone tears open! Monsters deal bonus physical damage.");
+        break;
+    }
+    endgame_feedback(msg_buf);
 }

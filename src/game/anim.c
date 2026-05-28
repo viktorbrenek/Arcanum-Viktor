@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "game/endgame_map.h"
+
 #include "game/ai.h"
 #include "game/animfx.h"
 #include "game/critter.h"
@@ -6599,6 +6601,12 @@ bool sub_428A10(AnimRunInfo* run_info)
         if (tig_net_is_active()
             && tig_net_is_host()) {
             sub_424070(source_obj, 2, false, false);
+        }
+        if (obj_field_int32_get(target_obj, OBJ_F_DESCRIPTION) == BP_PASSAGE) {
+            if (endgame_map_is_active()) {
+                endgame_map_exit();
+                return true;
+            }
         }
         if (tig_art_scenery_id_type_get(obj_field_int32_get(target_obj, OBJ_F_CURRENT_AID)) == TIG_ART_SCENERY_TYPE_BEDS) {
             ui_sleep_toggle(target_obj);

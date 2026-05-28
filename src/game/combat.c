@@ -2,6 +2,8 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+
+#include "game/endgame_map.h"
 #include <stdio.h>
 
 #include "game/ai.h"
@@ -1391,6 +1393,55 @@ void sub_4B4320(int64_t obj)
     }
 }
 
+static bool critter_is_in_player_group(int64_t obj)
+{
+    if (obj == OBJ_HANDLE_NULL) {
+        return false;
+    }
+    if (player_is_pc_obj(obj)) {
+        return true;
+    }
+    if (critter_pc_leader_get(obj) != OBJ_HANDLE_NULL) {
+        return true;
+    }
+    return false;
+}
+
+static void combat_apply_rift_modifiers(CombatContext* combat)
+{
+    if (!endgame_map_is_active() || combat->attacker_obj == OBJ_HANDLE_NULL) {
+        return;
+    }
+    if (critter_is_in_player_group(combat->attacker_obj)) {
+        return;
+    }
+
+    RiftType type = endgame_map_get_type();
+    int tier = endgame_map_get_tier();
+
+    switch (type) {
+    case RIFT_FIRE:
+        combat->dam[DAMAGE_TYPE_FIRE] += 3 + tier * 2;
+        break;
+    case RIFT_POISON:
+        combat->dam[DAMAGE_TYPE_POISON] += 2 + tier * 2;
+        break;
+    case RIFT_MAGIC:
+        combat->dam[DAMAGE_TYPE_ELECTRICAL] += 2 + tier * 2;
+        break;
+    case RIFT_PHYSICAL:
+        combat->dam[DAMAGE_TYPE_NORMAL] += 3 + tier * 2;
+        break;
+    case RIFT_VOID:
+        combat->dam[DAMAGE_TYPE_NORMAL] += 2 + tier * 2;
+        combat->dam[DAMAGE_TYPE_FIRE] += 2 + tier;
+        combat->dam[DAMAGE_TYPE_ELECTRICAL] += 2 + tier;
+        break;
+    default:
+        break;
+    }
+}
+
 // 0x4B4390
 void combat_dmg(CombatContext* combat)
 {
@@ -1407,6 +1458,8 @@ void combat_dmg(CombatContext* combat)
     if (combat->target_obj == OBJ_HANDLE_NULL) {
         return;
     }
+
+    combat_apply_rift_modifiers(combat);
 
     obj_type = obj_field_int32_get(combat->target_obj, OBJ_F_TYPE);
     if (obj_type_is_critter(obj_type)) {

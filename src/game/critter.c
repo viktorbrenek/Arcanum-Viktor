@@ -726,6 +726,30 @@ void critter_notify_killed(int64_t victim_obj, int64_t killer_obj, int anim)
                     }
                 }
 
+                // Chance to drop Map of the Void (ORB_MAP) in the main world
+                if (!endgame_map_is_active()) {
+                    int map_chance = 0;
+                    int level = stat_level_get(victim_obj, STAT_LEVEL);
+                    if (level >= 40) {
+                        if (cr == CRITTER_RARITY_UNIQUE) map_chance = 25;
+                        else if (cr == CRITTER_RARITY_RARE) map_chance = 10;
+                        else if (cr == CRITTER_RARITY_MAGIC) map_chance = 5;
+                        else map_chance = 2;
+                    } else if (level >= 30) {
+                        if (cr == CRITTER_RARITY_UNIQUE) map_chance = 10;
+                        else if (cr == CRITTER_RARITY_RARE) map_chance = 4;
+                        else if (cr == CRITTER_RARITY_MAGIC) map_chance = 2;
+                    }
+
+                    if (map_chance > 0 && random_between(1, 100) <= map_chance) {
+                        int64_t loc = obj_field_int64_get(victim_obj, OBJ_F_LOCATION);
+                        int64_t orb_obj;
+                        if (mp_object_create(BP_COMPONENT_1, loc, &orb_obj)) {
+                            item_orb_set_type(orb_obj, ORB_MAP);
+                        }
+                    }
+                }
+
                 endgame_map_on_critter_killed(victim_obj);
 
                 // 20% of the experience cost for killing.

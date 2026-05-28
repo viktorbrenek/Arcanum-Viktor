@@ -39,6 +39,7 @@ const char* item_orb_display_name(OrbType type)
         "Orb of Entropy",
         "Scroll of Identification",
         "Map of the Void",
+        "Void Portal Stone",
     };
     if (type > ORB_NONE && (int)type < ORB_COUNT) {
         return names[type];
@@ -60,6 +61,7 @@ const char* item_orb_description(OrbType type)
         "Reshuffles each magical property within its own category, preserving rarity and affix count.",
         "Reveals the hidden magical properties of an unidentified item.",
         "Opens a rift to a pocket of the Void, filled with powerful creatures and rich rewards.",
+        "Right-click to collapse the rift and return to the mortal realm.",
     };
     if (type > ORB_NONE && (int)type < ORB_COUNT) {
         return descs[type];
@@ -178,6 +180,13 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
     }
 
     if (orb_type == ORB_MAP) {
+        if (inven_ui_drag_item_obj_get() == item_obj) {
+            return false;
+        }
+        if (endgame_map_is_active()) {
+            endgame_map_exit();
+            return true;
+        }
         if (endgame_map_enter()) {
             int cnt = item_orb_stack_count_get(item_obj);
             if (cnt > 1) {
@@ -189,6 +198,28 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
                 }
                 object_destroy(item_obj);
             }
+        }
+        return true;
+    }
+
+    if (orb_type == ORB_EXIT_STONE) {
+        if (inven_ui_drag_item_obj_get() == item_obj) {
+            return false;
+        }
+        if (endgame_map_is_active()) {
+            endgame_map_exit();
+            int cnt = item_orb_stack_count_get(item_obj);
+            if (cnt > 1) {
+                item_orb_stack_count_set(item_obj, cnt - 1);
+            } else {
+                int64_t parent_obj;
+                if (item_parent(item_obj, &parent_obj)) {
+                    item_remove(item_obj);
+                }
+                object_destroy(item_obj);
+            }
+        } else {
+            orb_feedback("This stone can only be used inside the rift.");
         }
         return true;
     }

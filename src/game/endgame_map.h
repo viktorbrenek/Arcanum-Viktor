@@ -30,4 +30,15 @@ bool endgame_map_is_active(void);
 
 int endgame_map_get_tier(void);
 
+typedef enum RiftType {
+    RIFT_PHYSICAL = 0,
+    RIFT_FIRE     = 1,
+    RIFT_POISON   = 2,
+    RIFT_MAGIC    = 3,
+    RIFT_VOID     = 4,
+    RIFT_COUNT
+} RiftType;
+
+RiftType endgame_map_get_type(void);
+
 #endif /* ARCANUM_GAME_ENDGAME_MAP_H_ */
