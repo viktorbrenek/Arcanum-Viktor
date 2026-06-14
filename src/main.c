@@ -456,6 +456,25 @@ void main_loop(void)
                         modguide_ui_toggle();
                         break;
                     case SDL_SCANCODE_F10:
+                        // CE: Ctrl+F10 is a testing aid - boosts the PC to level 30
+                        // so testers can try the strongest reworked spells. Preserves
+                        // the existing build and awards character points to spend.
+                        if (tig_kb_get_modifier(SDL_KMOD_CTRL)) {
+                            UiMessage ui_message;
+
+                            level_pc_boost_to_level(pc_obj, 30);
+
+                            ui_message.type = UI_MSG_TYPE_FEEDBACK;
+                            ui_message.str = "Testing: boosted to level 30!";
+                            ui_display_msg(&ui_message);
+
+                            charedit_refresh();
+                            iso_interface_refresh();
+                            intgame_draw_bar(INTGAME_BAR_HEALTH);
+                            intgame_draw_bar(INTGAME_BAR_FATIGUE);
+                            break;
+                        }
+
                         intgame_toggle_interface();
                         tig_debug_printf("iso_redraw...");
                         iso_redraw();

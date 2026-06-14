@@ -330,6 +330,79 @@ void spell_ce_blood_magic_pay(int64_t caster_obj, int hp_cost)
     tb_add(caster_obj, TB_TYPE_RED, "Blood cost!");
 }
 
+// Lifetaker drain radius (tiles around the caster). Tunable.
+#define LIFETAKER_DRAIN_RADIUS 8
+
+void spell_ce_lifetaker_drain(int64_t caster_obj)
+{
+    int64_t caster_loc;
+    int64_t sec_id;
+    int64_t obj;
+    int64_t obj_loc;
+    FindNode* iter;
+    CombatContext ctx;
+    int total_drained = 0;
+    int amount;
+    int cur_hp;
+    int max_hp;
+    int new_hp;
+
+    if (caster_obj == OBJ_HANDLE_NULL) {
+        return;
+    }
+
+    caster_loc = obj_field_int64_get(caster_obj, OBJ_F_LOCATION);
+    sec_id = sector_id_from_loc(caster_loc);
+
+    if (!obj_find_walk_first(sec_id, &obj, &iter)) {
+        return;
+    }
+    do {
+        if (obj == caster_obj) {
+            continue;
+        }
+        if (obj_field_int32_get(obj, OBJ_F_FLAGS) & (int)OF_INVENTORY) {
+            continue;
+        }
+        if (obj_field_int32_get(obj, OBJ_F_TYPE) != OBJ_TYPE_NPC) {
+            continue;
+        }
+        if (!target_is_alive(obj) || critter_is_dead(obj)) {
+            continue;
+        }
+        if (critter_party_same(caster_obj, obj)) {
+            continue;
+        }
+        obj_loc = obj_field_int64_get(obj, OBJ_F_LOCATION);
+        if (location_dist(caster_loc, obj_loc) > LIFETAKER_DRAIN_RADIUS) {
+            continue;
+        }
+
+        // Drain a few HP from this enemy (unresistable).
+        amount = random_between(3, 6);
+        sub_4B2210(caster_obj, obj, &ctx);
+        ctx.dam[DAMAGE_TYPE_NORMAL] = amount;
+        ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
+        combat_dmg(&ctx);
+        total_drained += amount;
+        tb_add(obj, TB_TYPE_RED, "Siphoned!");
+    } while (obj_find_walk_next(&obj, &iter));
+
+    // Heal the caster for the total amount drained this tick.
+    if (total_drained > 0) {
+        cur_hp = object_hp_current(caster_obj);
+        max_hp = object_hp_max(caster_obj);
+        if (cur_hp < max_hp) {
+            new_hp = cur_hp + total_drained;
+            if (new_hp > max_hp) {
+                new_hp = max_hp;
+            }
+            object_hp_damage_set(caster_obj, max_hp - new_hp);
+        }
+        tb_add(caster_obj, TB_TYPE_WHITE, "Life Drained!");
+    }
+}
+
 void spell_ce_pre_begin(int spell, int64_t caster_obj, int* aptitude_ptr)
 {
     int hp_cost = blood_magic_hp_cost(spell);
@@ -441,30 +514,9 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
         }
         break;
 
-    case SPELL_CREATE_UNDEAD: // Lifetaker: maintained AoE siphons HP from surrounding enemies.
-        if (IS_MAINTAIN(action) && target_obj != caster_obj && !critter_party_same(caster_obj, target_obj)) {
-            CombatContext drain_ctx;
-            int heal_amount = random_between(5, 10);
-            
-            // Damage enemy
-            sub_4B2210(caster_obj, target_obj, &drain_ctx);
-            drain_ctx.dam[DAMAGE_TYPE_NORMAL] = heal_amount;
-            drain_ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
-            combat_dmg(&drain_ctx);
-            
-            // Heal caster
-            int cur_hp = object_hp_current(caster_obj);
-            int max_hp = object_hp_max(caster_obj);
-            if (cur_hp < max_hp) {
-                int new_hp = cur_hp + heal_amount;
-                if (new_hp > max_hp) new_hp = max_hp;
-                object_hp_damage_set(caster_obj, max_hp - new_hp);
-            }
-            
-            tb_add(target_obj, TB_TYPE_RED, "Siphoned!");
-            tb_add(caster_obj, TB_TYPE_WHITE, "Healed!");
-        }
-        break;
+    // SPELL_CREATE_UNDEAD (Lifetaker): drain+heal moved to per-tick maintenance
+    // hook spell_ce_lifetaker_drain() (called from magictech sub_4532F0), so it
+    // fires reliably every maintain tick like Summon Undead's blood cost.
     case SPELL_CHARM:  // Meditation: spend 15 HP to restore 25 fatigue
         if (IS_BEGIN(action)) {
             CombatContext med_ctx;

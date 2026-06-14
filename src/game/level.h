@@ -13,5 +13,6 @@ int auto_level_scheme_set(int64_t obj, int value);
 const char* auto_level_scheme_name(int scheme);
 const char* auto_level_scheme_rule(int scheme);
 void level_set(int64_t obj, int level);
+void level_pc_boost_to_level(int64_t pc_obj, int target_level);
 
 #endif /* ARCANUM_GAME_LEVEL_H_ */

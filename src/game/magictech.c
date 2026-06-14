@@ -3204,6 +3204,12 @@ bool sub_4532F0(int64_t obj, int magictech)
         return true;
     }
 
+    // Lifetaker: per-tick AoE life drain from nearby enemies, heals caster.
+    if (magictech == SPELL_CREATE_UNDEAD) {
+        spell_ce_lifetaker_drain(obj);
+        return true;
+    }
+
     cost = magictech_get_maintenance(magictech)->cost;
     if (obj_type_is_critter(obj_field_int32_get(obj, OBJ_F_TYPE))
         && stat_level_get(obj, STAT_RACE) == RACE_DWARF) {
@@ -3225,6 +3231,12 @@ bool sub_453370(int64_t obj, int magictech, int a3)
 
     if (magictech == SPELL_SUMMON_UNDEAD) {
         spell_ce_blood_magic_pay(obj, 5);
+        return true;
+    }
+
+    // Lifetaker: drain handled once per tick in sub_4532F0; no-op here to avoid
+    // double-draining and skip the default fatigue maintenance cost.
+    if (magictech == SPELL_CREATE_UNDEAD) {
         return true;
     }
 

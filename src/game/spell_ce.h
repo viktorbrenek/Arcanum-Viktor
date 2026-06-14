@@ -16,6 +16,11 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
 // Inflicts unresistable Blood Magic HP damage cost on the caster.
 void spell_ce_blood_magic_pay(int64_t caster_obj, int hp_cost);
 
+// Lifetaker (Black Necro): called once per maintain tick from the maintenance
+// hook. Drains a few HP from every enemy near the caster and heals the caster
+// for the total drained.
+void spell_ce_lifetaker_drain(int64_t caster_obj);
+
 // Timeevent processor for Harm cooldown — just expires, no-op.
 bool spell_ce_harm_cooldown_process(TimeEvent* timeevent);
 

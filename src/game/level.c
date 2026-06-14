@@ -764,6 +764,43 @@ void level_set(int64_t obj, int level)
 }
 
 /**
+ * Testing aid: boosts a player character to the given level by granting the
+ * experience points required to reach it, then recalculating.
+ *
+ * Unlike `level_set`, this preserves the character's existing stats, skills,
+ * spells, and tech - it only advances the level and awards the bonus character
+ * points the player can spend. Does nothing if the PC is already at or above
+ * the target level.
+ */
+void level_pc_boost_to_level(int64_t pc_obj, int target_level)
+{
+    int cur_level;
+
+    // Only applicable to player characters.
+    if (obj_field_int32_get(pc_obj, OBJ_F_TYPE) != OBJ_TYPE_PC) {
+        return;
+    }
+
+    // Clamp target to valid range.
+    if (target_level < 1) {
+        target_level = 1;
+    } else if (target_level > LEVEL_MAX) {
+        target_level = LEVEL_MAX;
+    }
+
+    cur_level = stat_base_get(pc_obj, STAT_LEVEL);
+    if (cur_level >= target_level) {
+        return;
+    }
+
+    // Set experience to the threshold for the target level, then let
+    // `level_recalc` walk up the levels - awarding bonus character points and
+    // refreshing the UI for each level gained.
+    stat_base_set(pc_obj, STAT_EXPERIENCE_POINTS, level_xp_tbl[target_level - 1]);
+    level_recalc(pc_obj);
+}
+
+/**
  * Applies an auto-leveling scheme to an object and builds a description string.
  *
  * Returns `true` if auto-leveling scheme is completed, `false` otherwise.
