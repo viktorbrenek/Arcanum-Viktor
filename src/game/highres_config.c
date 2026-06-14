@@ -41,14 +41,13 @@ const HighResConfig* highres_config_get(void)
     return &highres_config;
 }
 
-bool highres_config_set_resolution(int width, int height)
+bool highres_config_set_int(const char* key, int value)
 {
     FILE* stream;
     static char lines[128][512];
     int count = 0;
     int index;
-    bool wrote_width = false;
-    bool wrote_height = false;
+    bool wrote = false;
 
     // Read the existing config (if any) into memory.
     stream = fopen("HighRes/config.ini", "rt");
@@ -68,7 +67,7 @@ bool highres_config_set_resolution(int width, int height)
         char* line = lines[index];
         char* sep;
         char* comment;
-        char key[64];
+        char cur_key[64];
         char* key_start;
         char* key_end;
         size_t key_len;
@@ -80,30 +79,19 @@ bool highres_config_set_resolution(int width, int height)
             key_end = sep;
             highres_config_trim(&key_start, &key_end);
             key_len = (size_t)(key_end - key_start);
-            if (key_len < sizeof(key)) {
-                memcpy(key, key_start, key_len);
-                key[key_len] = '\0';
+            if (key_len < sizeof(cur_key)) {
+                memcpy(cur_key, key_start, key_len);
+                cur_key[key_len] = '\0';
 
-                // Preserve any trailing comment (including its newline).
-                comment = strstr(sep, "//");
-
-                if (SDL_strcasecmp(key, "Width") == 0) {
+                if (SDL_strcasecmp(cur_key, key) == 0) {
+                    // Preserve any trailing comment (including its newline).
+                    comment = strstr(sep, "//");
                     if (comment != NULL) {
-                        fprintf(stream, "Width = %d %s", width, comment);
+                        fprintf(stream, "%s = %d %s", key, value, comment);
                     } else {
-                        fprintf(stream, "Width = %d\n", width);
+                        fprintf(stream, "%s = %d\n", key, value);
                     }
-                    wrote_width = true;
-                    continue;
-                }
-
-                if (SDL_strcasecmp(key, "Height") == 0) {
-                    if (comment != NULL) {
-                        fprintf(stream, "Height = %d %s", height, comment);
-                    } else {
-                        fprintf(stream, "Height = %d\n", height);
-                    }
-                    wrote_height = true;
+                    wrote = true;
                     continue;
                 }
             }
@@ -113,21 +101,24 @@ bool highres_config_set_resolution(int width, int height)
         fputs(line, stream);
     }
 
-    // Append keys that weren't present in the original file.
-    if (!wrote_width) {
-        fprintf(stream, "Width = %d\n", width);
-    }
-    if (!wrote_height) {
-        fprintf(stream, "Height = %d\n", height);
+    // Append the key if it wasn't present in the original file.
+    if (!wrote) {
+        fprintf(stream, "%s = %d\n", key, value);
     }
 
     fclose(stream);
 
-    // Update the in-memory config so option getters reflect the new selection.
-    highres_config.width = width;
-    highres_config.height = height;
+    // Reload so the in-memory config reflects the change for option getters.
+    highres_config_load();
 
     return true;
+}
+
+bool highres_config_set_resolution(int width, int height)
+{
+    bool ok = highres_config_set_int("Width", width);
+    ok = highres_config_set_int("Height", height) && ok;
+    return ok;
 }
 
 void highres_config_reset(void)

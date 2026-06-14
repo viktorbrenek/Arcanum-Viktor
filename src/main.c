@@ -869,25 +869,33 @@ void handle_mouse_scroll(void)
 // 0x402010
 void handle_keyboard_scroll(void)
 {
-    if (tig_kb_is_key_pressed(SDL_SCANCODE_UP)) {
-        if (tig_kb_is_key_pressed(SDL_SCANCODE_LEFT)) {
+    // Camera scrolls with both the arrow keys and WASD. The in-game actions
+    // that used to sit on W/A/S were relocated (W->L world map, S->Z sleep,
+    // A->Q hotkey) so WASD is free for movement.
+    bool up = tig_kb_is_key_pressed(SDL_SCANCODE_UP) || tig_kb_is_key_pressed(SDL_SCANCODE_W);
+    bool down = tig_kb_is_key_pressed(SDL_SCANCODE_DOWN) || tig_kb_is_key_pressed(SDL_SCANCODE_S);
+    bool left = tig_kb_is_key_pressed(SDL_SCANCODE_LEFT) || tig_kb_is_key_pressed(SDL_SCANCODE_A);
+    bool right = tig_kb_is_key_pressed(SDL_SCANCODE_RIGHT) || tig_kb_is_key_pressed(SDL_SCANCODE_D);
+
+    if (up) {
+        if (left) {
             scroll_start(SCROLL_DIRECTION_UP_LEFT);
-        } else if (tig_kb_is_key_pressed(SDL_SCANCODE_RIGHT)) {
+        } else if (right) {
             scroll_start(SCROLL_DIRECTION_UP_RIGHT);
         } else {
             scroll_start(SCROLL_DIRECTION_UP);
         }
-    } else if (tig_kb_is_key_pressed(SDL_SCANCODE_DOWN)) {
-        if (tig_kb_is_key_pressed(SDL_SCANCODE_LEFT)) {
+    } else if (down) {
+        if (left) {
             scroll_start(SCROLL_DIRECTION_DOWN_LEFT);
-        } else if (tig_kb_is_key_pressed(SDL_SCANCODE_RIGHT)) {
+        } else if (right) {
             scroll_start(SCROLL_DIRECTION_DOWN_RIGHT);
         } else {
             scroll_start(SCROLL_DIRECTION_DOWN);
         }
-    } else if (tig_kb_is_key_pressed(SDL_SCANCODE_LEFT)) {
+    } else if (left) {
         scroll_start(SCROLL_DIRECTION_LEFT);
-    } else if (tig_kb_is_key_pressed(SDL_SCANCODE_RIGHT)) {
+    } else if (right) {
         scroll_start(SCROLL_DIRECTION_RIGHT);
     }
 }

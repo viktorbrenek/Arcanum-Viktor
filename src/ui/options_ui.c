@@ -11,6 +11,7 @@
 #include "game/mes.h"
 #include "game/obj.h"
 #include "game/player.h"
+#include "game/scroll.h"
 #include "game/skill.h"
 #include "game/tf.h"
 #include "ui/cyclic_ui.h"
@@ -91,6 +92,14 @@ static void options_ui_music_volume_get(int* value_ptr, bool* enabled_ptr);
 static void options_ui_music_volume_set(int value);
 static void options_ui_resolution_get(int* value_ptr, bool* enabled_ptr);
 static void options_ui_resolution_set(int value);
+static void options_ui_windowed_get(int* value_ptr, bool* enabled_ptr);
+static void options_ui_windowed_set(int value);
+static void options_ui_scroll_speed_get(int* value_ptr, bool* enabled_ptr);
+static void options_ui_scroll_speed_set(int value);
+static void options_ui_skip_intro_get(int* value_ptr, bool* enabled_ptr);
+static void options_ui_skip_intro_set(int value);
+static void options_ui_skip_logos_get(int* value_ptr, bool* enabled_ptr);
+static void options_ui_skip_logos_set(int value);
 
 /**
  * 0x5CCD38
@@ -143,15 +152,15 @@ static OptionsUiControlInfo options_ui_tab_controls_meta[OPTIONS_UI_TAB_COUNT][M
         { true, CYCLIC_UI_CONTROL_NUMERIC_BAR, 0, "Float Speed", "", options_ui_float_speed_get, options_ui_float_speed_set },
         { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Combat Taunts", "mes\\OptionsOffOn.mes", options_ui_combat_taunts_get, options_ui_combat_taunts_set },
         { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Resolution", "mes\\OptionsResolution.mes", options_ui_resolution_get, options_ui_resolution_set },
-        { false, 0, 0, "", "", NULL, NULL },
-        { false, 0, 0, "", "", NULL, NULL },
+        { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Window Mode", "mes\\OptionsWindowMode.mes", options_ui_windowed_get, options_ui_windowed_set },
+        { true, CYCLIC_UI_CONTROL_NUMERIC_BAR, 0, "Scroll Speed", "", options_ui_scroll_speed_get, options_ui_scroll_speed_set },
     },
     {
         { true, CYCLIC_UI_CONTROL_NUMERIC_BAR, 0, "Effects", "", options_ui_effects_volume_get, options_ui_effects_volume_set },
         { true, CYCLIC_UI_CONTROL_NUMERIC_BAR, 0, "Voice", "", options_ui_voice_volume_get, options_ui_voice_volume_set },
         { true, CYCLIC_UI_CONTROL_NUMERIC_BAR, 0, "Music", "", options_ui_music_volume_get, options_ui_music_volume_set },
-        { false, 0, 0, "", "", NULL, NULL },
-        { false, 0, 0, "", "", NULL, NULL },
+        { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Skip Intro", "mes\\OptionsOffOn.mes", options_ui_skip_intro_get, options_ui_skip_intro_set },
+        { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Skip Logos", "mes\\OptionsOffOn.mes", options_ui_skip_logos_get, options_ui_skip_logos_set },
         { false, 0, 0, "", "", NULL, NULL },
         { false, 0, 0, "", "", NULL, NULL },
         { false, 0, 0, "", "", NULL, NULL },
@@ -773,4 +782,87 @@ void options_ui_resolution_set(int value)
     modal_info.redraw = NULL;
     hrp_center(&(modal_info.x), &(modal_info.y));
     tig_window_modal_dialog(&modal_info, &choice);
+}
+
+/**
+ * "Window Mode" — Fullscreen (0) vs Windowed (1). Applies on restart.
+ */
+void options_ui_windowed_get(int* value_ptr, bool* enabled_ptr)
+{
+    *value_ptr = highres_config_get()->windowed ? 1 : 0;
+    *enabled_ptr = true;
+}
+
+void options_ui_windowed_set(int value)
+{
+    TigWindowModalDialogInfo modal_info;
+    TigWindowModalDialogChoice choice;
+
+    highres_config_set_int("Windowed", value ? 1 : 0);
+
+    modal_info.type = TIG_WINDOW_MODAL_DIALOG_TYPE_OK;
+    modal_info.x = 237;
+    modal_info.y = 232;
+    modal_info.text = "Display mode saved. Restart the game to apply.";
+    modal_info.process = NULL;
+    modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_OK] = 'y';
+    modal_info.redraw = NULL;
+    hrp_center(&(modal_info.x), &(modal_info.y));
+    tig_window_modal_dialog(&modal_info, &choice);
+}
+
+/**
+ * "Scroll Speed" — numeric bar (0-10) mapped to scroll distance (5-55 px per
+ * step). Applies live and persists to config.ini.
+ */
+void options_ui_scroll_speed_get(int* value_ptr, bool* enabled_ptr)
+{
+    int value = scroll_distance_get() / 5 - 1;
+
+    if (value < 0) {
+        value = 0;
+    } else if (value > 10) {
+        value = 10;
+    }
+
+    *value_ptr = value;
+    *enabled_ptr = true;
+}
+
+void options_ui_scroll_speed_set(int value)
+{
+    int distance = (value + 1) * 5;
+
+    scroll_distance_set(distance);
+    highres_config_set_int("ScrollDist", distance);
+}
+
+/**
+ * "Skip Intro" — On (1) skips the main menu intro clip. Stored inverted as the
+ * config.ini "Intro" key (1 = play). Applies on next launch.
+ */
+void options_ui_skip_intro_get(int* value_ptr, bool* enabled_ptr)
+{
+    *value_ptr = highres_config_get()->intro ? 0 : 1;
+    *enabled_ptr = true;
+}
+
+void options_ui_skip_intro_set(int value)
+{
+    highres_config_set_int("Intro", value ? 0 : 1);
+}
+
+/**
+ * "Skip Logos" — On (1) skips the Sierra/Troika logos. Stored inverted as the
+ * config.ini "Logos" key (1 = show). Applies on next launch.
+ */
+void options_ui_skip_logos_get(int* value_ptr, bool* enabled_ptr)
+{
+    *value_ptr = highres_config_get()->logos ? 0 : 1;
+    *enabled_ptr = true;
+}
+
+void options_ui_skip_logos_set(int value)
+{
+    highres_config_set_int("Logos", value ? 0 : 1);
 }

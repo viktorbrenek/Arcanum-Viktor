@@ -2573,12 +2573,8 @@ bool sub_54B5D0(TigMessage* msg)
                 intgame_combat_mode_toggle();
                 gsound_play_sfx(0, 1);
                 return true;
-            case SDLK_S:
-                // Plain S opens the sleep menu; let Ctrl/Cmd+S fall through
-                // to main.c's Save Game shortcut.
-                if (tig_kb_get_modifier(SDL_KMOD_CTRL | SDL_KMOD_GUI)) {
-                    return false;
-                }
+            case SDLK_Z:
+                // Sleep/Wait menu. Moved off S so WASD can scroll the camera.
                 sleep_ui_toggle(OBJ_HANDLE_NULL);
                 gsound_play_sfx(0, 1);
                 return true;
@@ -2586,7 +2582,8 @@ bool sub_54B5D0(TigMessage* msg)
                 schematic_ui_toggle(player_get_local_pc_obj(), player_get_local_pc_obj());
                 gsound_play_sfx(0, 1);
                 return true;
-            case SDLK_W:
+            case SDLK_L:
+                // World map. Moved off W so WASD can scroll the camera.
                 wmap_ui_open();
                 gsound_play_sfx(0, 1);
                 return true;

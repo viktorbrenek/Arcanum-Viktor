@@ -359,7 +359,7 @@ bool hotkey_ui_process_event(TigMessage* msg)
     case TIG_MESSAGE_KEYBOARD:
         if (!textedit_ui_is_focused()
             && !mainmenu_ui_is_active()
-            && msg->data.keyboard.key == SDLK_A
+            && msg->data.keyboard.key == SDLK_Q
             && msg->data.keyboard.pressed) {
             intgame_hotkey_activate(stru_683518);
             gsound_play_sfx(0, 1);
