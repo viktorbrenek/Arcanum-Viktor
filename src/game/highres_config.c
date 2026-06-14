@@ -41,6 +41,95 @@ const HighResConfig* highres_config_get(void)
     return &highres_config;
 }
 
+bool highres_config_set_resolution(int width, int height)
+{
+    FILE* stream;
+    static char lines[128][512];
+    int count = 0;
+    int index;
+    bool wrote_width = false;
+    bool wrote_height = false;
+
+    // Read the existing config (if any) into memory.
+    stream = fopen("HighRes/config.ini", "rt");
+    if (stream != NULL) {
+        while (count < 128 && fgets(lines[count], sizeof(lines[count]), stream) != NULL) {
+            count++;
+        }
+        fclose(stream);
+    }
+
+    stream = fopen("HighRes/config.ini", "wt");
+    if (stream == NULL) {
+        return false;
+    }
+
+    for (index = 0; index < count; index++) {
+        char* line = lines[index];
+        char* sep;
+        char* comment;
+        char key[64];
+        char* key_start;
+        char* key_end;
+        size_t key_len;
+
+        sep = strchr(line, '=');
+        if (sep != NULL) {
+            // Extract and trim the key (text before '=').
+            key_start = line;
+            key_end = sep;
+            highres_config_trim(&key_start, &key_end);
+            key_len = (size_t)(key_end - key_start);
+            if (key_len < sizeof(key)) {
+                memcpy(key, key_start, key_len);
+                key[key_len] = '\0';
+
+                // Preserve any trailing comment (including its newline).
+                comment = strstr(sep, "//");
+
+                if (SDL_strcasecmp(key, "Width") == 0) {
+                    if (comment != NULL) {
+                        fprintf(stream, "Width = %d %s", width, comment);
+                    } else {
+                        fprintf(stream, "Width = %d\n", width);
+                    }
+                    wrote_width = true;
+                    continue;
+                }
+
+                if (SDL_strcasecmp(key, "Height") == 0) {
+                    if (comment != NULL) {
+                        fprintf(stream, "Height = %d %s", height, comment);
+                    } else {
+                        fprintf(stream, "Height = %d\n", height);
+                    }
+                    wrote_height = true;
+                    continue;
+                }
+            }
+        }
+
+        // Unchanged line - write verbatim.
+        fputs(line, stream);
+    }
+
+    // Append keys that weren't present in the original file.
+    if (!wrote_width) {
+        fprintf(stream, "Width = %d\n", width);
+    }
+    if (!wrote_height) {
+        fprintf(stream, "Height = %d\n", height);
+    }
+
+    fclose(stream);
+
+    // Update the in-memory config so option getters reflect the new selection.
+    highres_config.width = width;
+    highres_config.height = height;
+
+    return true;
+}
+
 void highres_config_reset(void)
 {
     highres_config.loaded = false;

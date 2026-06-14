@@ -1,8 +1,12 @@
 #include "ui/options_ui.h"
 
+#include <tig/tig.h>
+
 #include "game/anim.h"
 #include "game/combat.h"
 #include "game/gamelib.h"
+#include "game/highres_config.h"
+#include "game/hrp.h"
 #include "game/location.h"
 #include "game/mes.h"
 #include "game/obj.h"
@@ -13,6 +17,28 @@
 #include "ui/gameuilib.h"
 
 #define MAX_CONTROLS 8
+
+#define OPTIONS_UI_RESOLUTION_COUNT 5
+
+/**
+ * Resolution presets offered by the "Resolution" control, paired with
+ * `OptionsResolution.mes` labels (index = preset).
+ */
+static const int options_ui_resolution_widths[OPTIONS_UI_RESOLUTION_COUNT] = {
+    800,
+    1280,
+    1600,
+    1920,
+    2560,
+};
+
+static const int options_ui_resolution_heights[OPTIONS_UI_RESOLUTION_COUNT] = {
+    600,
+    720,
+    900,
+    1080,
+    1440,
+};
 
 typedef void(OptionsUiControlValueGetter)(int* value_ptr, bool* enabled_ptr);
 typedef void(OptionsUiControlValueSetter)(int value);
@@ -63,6 +89,8 @@ static void options_ui_voice_volume_get(int* value_ptr, bool* enabled_ptr);
 static void options_ui_voice_volume_set(int value);
 static void options_ui_music_volume_get(int* value_ptr, bool* enabled_ptr);
 static void options_ui_music_volume_set(int value);
+static void options_ui_resolution_get(int* value_ptr, bool* enabled_ptr);
+static void options_ui_resolution_set(int value);
 
 /**
  * 0x5CCD38
@@ -114,7 +142,7 @@ static OptionsUiControlInfo options_ui_tab_controls_meta[OPTIONS_UI_TAB_COUNT][M
         { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Floats", "mes\\OptionsFloats.mes", options_ui_floats_get, options_ui_floats_set },
         { true, CYCLIC_UI_CONTROL_NUMERIC_BAR, 0, "Float Speed", "", options_ui_float_speed_get, options_ui_float_speed_set },
         { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Combat Taunts", "mes\\OptionsOffOn.mes", options_ui_combat_taunts_get, options_ui_combat_taunts_set },
-        { false, 0, 0, "", "", NULL, NULL },
+        { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Resolution", "mes\\OptionsResolution.mes", options_ui_resolution_get, options_ui_resolution_set },
         { false, 0, 0, "", "", NULL, NULL },
         { false, 0, 0, "", "", NULL, NULL },
     },
@@ -690,4 +718,59 @@ void options_ui_music_volume_get(int* value_ptr, bool* enabled_ptr)
 void options_ui_music_volume_set(int value)
 {
     settings_set_value(&settings, MUSIC_VOLUME_KEY, value);
+}
+
+/**
+ * Called to retrieve the initial value and state of "Resolution".
+ *
+ * Maps the currently configured resolution to a preset index. Falls back to the
+ * first preset if the active resolution isn't one of the presets.
+ */
+void options_ui_resolution_get(int* value_ptr, bool* enabled_ptr)
+{
+    const HighResConfig* cfg;
+    int index;
+
+    cfg = highres_config_get();
+
+    *value_ptr = 0;
+    for (index = 0; index < OPTIONS_UI_RESOLUTION_COUNT; index++) {
+        if (cfg->width == options_ui_resolution_widths[index]
+            && cfg->height == options_ui_resolution_heights[index]) {
+            *value_ptr = index;
+            break;
+        }
+    }
+
+    *enabled_ptr = true;
+}
+
+/**
+ * Called when the value of "Resolution" is changed.
+ *
+ * Writes the chosen preset to HighRes/config.ini and notifies the player that a
+ * restart is required (the engine sets the video mode once at startup, so a live
+ * resolution swap isn't supported).
+ */
+void options_ui_resolution_set(int value)
+{
+    TigWindowModalDialogInfo modal_info;
+    TigWindowModalDialogChoice choice;
+
+    if (value < 0 || value >= OPTIONS_UI_RESOLUTION_COUNT) {
+        return;
+    }
+
+    highres_config_set_resolution(options_ui_resolution_widths[value],
+        options_ui_resolution_heights[value]);
+
+    modal_info.type = TIG_WINDOW_MODAL_DIALOG_TYPE_OK;
+    modal_info.x = 237;
+    modal_info.y = 232;
+    modal_info.text = "Resolution saved. Restart the game to apply the new resolution.";
+    modal_info.process = NULL;
+    modal_info.keys[TIG_WINDOW_MODAL_DIALOG_CHOICE_OK] = 'y';
+    modal_info.redraw = NULL;
+    hrp_center(&(modal_info.x), &(modal_info.y));
+    tig_window_modal_dialog(&modal_info, &choice);
 }

@@ -18,4 +18,8 @@ typedef struct HighResConfig {
 void highres_config_load(void);
 const HighResConfig* highres_config_get(void);
 
+// Rewrites Width/Height in HighRes/config.ini (preserving other lines and
+// comments) and updates the in-memory config. Applies on next game restart.
+bool highres_config_set_resolution(int width, int height);
+
 #endif /* GAME_HIGHRES_CONFIG_H_ */
