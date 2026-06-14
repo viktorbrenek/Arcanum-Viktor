@@ -185,7 +185,10 @@
       "PowerShell(Get-ChildItem \"D:\\\\SteamLibrary\\\\steamapps\\\\common\\\\Arcanum\\\\Arcanum\\\\data\" -Recurse | Where-Object { $_.Name -match \"spell\" -or $_.Name -match \"desc\" } | Select-Object -First 20 FullName)",
       "Bash(stat -c '%y %n' \"arcanum-ce.exe\" \"arcanum-ce-dist/arcanum-ce.exe\")",
       "Bash(find \"arcanum-ce-dist/packed\" -maxdepth 3 -type d)",
-      "Bash(find . -iname \"SpellList.mes\" -o -iname \"spell.mes\")"
+      "Bash(find . -iname \"SpellList.mes\" -o -iname \"spell.mes\")",
+      "Bash(xxd \"endgame_dungeon/map.prp\")",
+      "Bash(echo \"=== Save\\\\\\\\Current\\\\\\\\maps ===\")",
+      "Bash(echo \"=== player_house in Save\\\\\\\\Current ===\")"
     ]
   }
 }

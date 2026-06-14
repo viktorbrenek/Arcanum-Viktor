@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "game/endgame_map.h"
+#include "game/player_house.h"
 #include "game/anim.h"
 #include "game/critter.h"
 #include "game/critter_rarity.h"
@@ -233,6 +234,10 @@ void map_reset(void)
     tig_timestamp_t reset_start;
     tig_timestamp_t start;
 
+    // Clear cached Void-house state so a freshly started character rebuilds its
+    // room instead of inheriting the previous character's "built" flag.
+    player_house_reset();
+
     if (dword_5D11F0) {
         tig_debug_printf("\nmap_reset: Resetting...\n");
         tig_timer_now(&reset_start);
@@ -286,6 +291,7 @@ bool map_mod_load(void)
     }
 
     endgame_map_init();
+    player_house_init();
 
     for (int index = 0; index < MAP_MODULE_COUNT; index++) {
         if (map_modules[index].mod_load_func != NULL) {
@@ -848,6 +854,7 @@ bool map_open_in_game(int map, bool a2, bool a3)
     }
 
     endgame_map_on_map_opened(map);
+    player_house_on_map_opened(map);
 
     return true;
 }

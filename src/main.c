@@ -23,6 +23,7 @@
 #include "game/hrp.h"
 #include "game/item.h"
 #include "game/level.h"
+#include "game/player_house.h"
 #include "game/light_scheme.h"
 #include "game/location.h"
 #include "game/magictech.h"
@@ -518,6 +519,12 @@ void main_loop(void)
                         }
                         break;
                     case SDL_SCANCODE_F8:
+                        // CE: Ctrl+F8 toggles the player's personal Void house
+                        // (teleport home / back). Plain F8 quickloads.
+                        if (tig_kb_get_modifier(SDL_KMOD_CTRL)) {
+                            player_house_toggle();
+                            break;
+                        }
                         mainmenu_ui_feedback_loading();
                         sub_543220();
                         mainmenu_ui_feedback_loading_completed();
