@@ -1849,7 +1849,8 @@ void combat_dmg(CombatContext* combat)
         }
         object_hp_damage_set(combat->target_obj, hp_dam);
 
-        if (dam > 0 && combat->attacker_obj != OBJ_HANDLE_NULL) {
+        if (dam > 0 && combat->attacker_obj != OBJ_HANDLE_NULL
+            && (combat->flags & CF_DOT_TICK) == 0) {
             int loh = item_rarity_life_on_hit_get(combat->attacker_obj);
             if (critter_rarity_bonus_get(combat->attacker_obj) & CRITTER_BONUS_VAMPIRIC) {
                 loh += 2;
@@ -1963,7 +1964,7 @@ void combat_dmg(CombatContext* combat)
             tf_add(combat->target_obj, tf_type, str);
         }
 
-        if (combat->dam[DAMAGE_TYPE_POISON] != 0) {
+        if (combat->dam[DAMAGE_TYPE_POISON] != 0 && (combat->flags & CF_DOT_TICK) == 0) {
             if (combat->weapon_obj != OBJ_HANDLE_NULL && combat->dam[DAMAGE_TYPE_POISON] > 0) {
                 // Weapon-based poison (affix) — CE DoT: direct HP damage, purple bar.
                 // STAT_POISON_LEVEL scale (200+ needed for effect) is wrong for small affix values.

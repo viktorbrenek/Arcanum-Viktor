@@ -94,6 +94,7 @@ bool fire_dot_timeevent_process(TimeEvent* timeevent)
         return true;
     }
     sub_4B2210(attacker, target, &ctx);
+    ctx.flags |= CF_DOT_TICK;
     ctx.dam[DAMAGE_TYPE_FIRE] = damage;
     combat_dmg(&ctx);
     magictech_fx_add(target, FX_FIRE);
@@ -127,6 +128,7 @@ bool acid_dot_timeevent_process(TimeEvent* timeevent)
         return true;
     }
     sub_4B2210(attacker, target, &ctx);
+    ctx.flags |= CF_DOT_TICK;
     ctx.dam[DAMAGE_TYPE_NORMAL] = damage;
     ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
     combat_dmg(&ctx);
@@ -159,7 +161,9 @@ bool bleed_dot_timeevent_process(TimeEvent* timeevent)
         return true;
     }
     sub_4B2210(attacker, target, &ctx);
+    ctx.flags |= CF_DOT_TICK;
     ctx.dam[DAMAGE_TYPE_NORMAL] = damage;
+    ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
     combat_dmg(&ctx);
     anim_play_blood_splotch_fx(target, BLOOD_SPLOTCH_TYPE_NORMAL, DAMAGE_TYPE_NORMAL, &ctx);
 
@@ -190,7 +194,12 @@ bool poison_weapon_dot_timeevent_process(TimeEvent* timeevent)
         return true;
     }
     sub_4B2210(attacker, target, &ctx);
-    ctx.dam[DAMAGE_TYPE_POISON] = damage;
+    ctx.flags |= CF_DOT_TICK;
+    // Deal as unresistable NORMAL damage: combat_dmg only sums NORMAL+ELEC+FIRE into
+    // the HP total — DAMAGE_TYPE_POISON is routed to STAT_POISON_LEVEL / re-applied as
+    // a fresh DoT instead, which both deals 0 HP here and recurses infinitely.
+    ctx.dam[DAMAGE_TYPE_NORMAL] = damage;
+    ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
     combat_dmg(&ctx);
     magictech_fx_add(target, FX_NECROTIC);
     anim_play_blood_splotch_fx(target, BLOOD_SPLOTCH_TYPE_POISON, DAMAGE_TYPE_POISON, &ctx);

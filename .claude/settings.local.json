@@ -188,7 +188,12 @@
       "Bash(find . -iname \"SpellList.mes\" -o -iname \"spell.mes\")",
       "Bash(xxd \"endgame_dungeon/map.prp\")",
       "Bash(echo \"=== Save\\\\\\\\Current\\\\\\\\maps ===\")",
-      "Bash(echo \"=== player_house in Save\\\\\\\\Current ===\")"
+      "Bash(echo \"=== player_house in Save\\\\\\\\Current ===\")",
+      "Read(//c/Arcanum of Viktorworks and ARPG Obscura/**)",
+      "Bash(cp \"C:/Arcanum of Viktorworks and ARPG Obscura/arcanum-ce/out/build/windows-x64/Release/arcanum-ce.exe\" \"/d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce.exe\")",
+      "Read(//d/SteamLibrary/steamapps/common/Arcanum/Arcanum/**)",
+      "Read(//c/Users/petrb/Downloads/**)",
+      "Bash(awk '/^void item_wield_best_all|^bool item_wield_best_all|item_wield_best_all\\\\\\(int64_t/{f=NR} END{}' src/game/item.c)"
     ]
   }
 }

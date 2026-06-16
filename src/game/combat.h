@@ -41,6 +41,10 @@ typedef enum HitLocation {
 #define CF_RANGED               0x00000200
 #define CF_WEAPON_WEAR          0x00010000
 #define CF_TRAP                 0x00080000
+// CE: marks a combat_dmg call that originates from a DoT tick (item_tech_props.c).
+// Suppresses on-hit secondary procs so DoTs cannot re-trigger themselves (runaway
+// timeevent explosion — see poison weapon DoT). Pure damage application only.
+#define CF_DOT_TICK             0x00100000
 // clang-format on
 
 // clang-format off

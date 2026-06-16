@@ -1370,11 +1370,8 @@ void map_load_postprocess(void)
                     critter_rarity_roll(obj);
                 }
                 int npc_inv_cnt = obj_field_int32_get(obj, OBJ_F_CRITTER_INVENTORY_NUM);
-                tig_debug_printf("MLP: NPC handle=%" PRIx64 " AID=%d inv_cnt=%d\n",
-                    obj, obj_field_int32_get(obj, OBJ_F_AID), npc_inv_cnt);
                 for (int r = 0; r < npc_inv_cnt; r++) {
                     int64_t inv_item = obj_arrayfield_handle_get(obj, OBJ_F_CRITTER_INVENTORY_LIST_IDX, r);
-                    tig_debug_printf("MLP:   slot %d inv_item=%" PRIx64 "\n", r, inv_item);
                     if (inv_item != OBJ_HANDLE_NULL) {
                         item_rarity_roll(inv_item);
                     }

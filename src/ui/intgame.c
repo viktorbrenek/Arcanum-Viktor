@@ -4362,8 +4362,11 @@ void intgame_spells_show_college_spells(int clg)
     if (pc_obj != OBJ_HANDLE_NULL) {
         for (lvl = 0; lvl < 5; lvl++) {
             spl = clg * 5 + lvl;
+            // CE: skip (not break) unknown spells — staff-granted spells (spell_add)
+            // and other CE grants can leave gaps in a college, and breaking here would
+            // hide every higher-level spell after the first gap.
             if (!spell_is_known(pc_obj, spl)) {
-                break;
+                continue;
             }
 
             if (intgame_spell_buttons[spl].button_handle != TIG_BUTTON_HANDLE_INVALID) {
