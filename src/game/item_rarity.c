@@ -88,20 +88,20 @@ static const AffixDef affix_table[ITEM_AFFIX_COUNT] = {
         "+10 armor class" },
     // ITEM_AFFIX_A_FIREPROOF
     { "Fireproof", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_FIRE, 20, -1, 0,
-        "+20% fire resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_FIRE, 10, -1, 0,
+        "+10% fire resistance" },
     // ITEM_AFFIX_A_INSULATED
     { "Insulated", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_ELECTRICAL, 20, -1, 0,
-        "+20% electrical resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_ELECTRICAL, 10, -1, 0,
+        "+10% electrical resistance" },
     // ITEM_AFFIX_A_VENOMPROOF
     { "Venomproof", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_POISON, 20, -1, 0,
-        "+20% poison resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_POISON, 10, -1, 0,
+        "+10% poison resistance" },
     // ITEM_AFFIX_A_SANCTIFIED
     { "Sanctified", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_MAGIC, 20, -1, 0,
-        "+20% magic resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_MAGIC, 12, -1, 0,
+        "+12% magic resistance" },
     // ITEM_AFFIX_A_SHADOW
     { "Shadow", NULL, false, true,
         -1, -1, 0, OBJ_F_ARMOR_MAGIC_SILENT_MOVE_ADJ, -1, 5, -1, 0,
@@ -167,12 +167,12 @@ static const AffixDef affix_table[ITEM_AFFIX_COUNT] = {
         "+25 armor class" },
     // ITEM_AFFIX_CA_WRAITHFORGED
     { "Wraithforged", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_MAGIC, 40, -1, 0,
-        "+40% magic resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_MAGIC, 15, -1, 0,
+        "+15% magic resistance" },
     // ITEM_AFFIX_CA_ABYSSAL
     { "Abyssal", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_FIRE, 30, -1, 0,
-        "+30% fire resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_FIRE, 15, -1, 0,
+        "+15% fire resistance" },
     // ITEM_AFFIX_CURSE_OF_FRAILTY
     { NULL, "of Frailty", true, true, -1, -1, 0, -1, -1, 0, STAT_CONSTITUTION, -2,
         "-2 CON (cursed)" },
@@ -222,20 +222,20 @@ static const AffixDef affix_table[ITEM_AFFIX_COUNT] = {
         "+15 armor class" },
     // ITEM_AFFIX_A_BLAZEWARD
     { "Blazeward", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_FIRE, 30, -1, 0,
-        "+30% fire resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_FIRE, 15, -1, 0,
+        "+15% fire resistance" },
     // ITEM_AFFIX_A_SPELLWARD
     { "Spellward", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_MAGIC, 15, -1, 0,
-        "+15% magic resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_MAGIC, 8, -1, 0,
+        "+8% magic resistance" },
     // ITEM_AFFIX_A_PHANTOM
     { "Phantom", NULL, false, true,
         -1, -1, 0, OBJ_F_ARMOR_MAGIC_SILENT_MOVE_ADJ, -1, 10, -1, 0,
         "+10 silent move" },
     // ITEM_AFFIX_A_GROUNDED
     { "Grounded", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_ELECTRICAL, 25, -1, 0,
-        "+25% electrical resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_ELECTRICAL, 15, -1, 0,
+        "+15% electrical resistance" },
     // ITEM_AFFIX_OF_THE_OX
     { NULL, "of the Ox", true, true, -1, -1, 0, -1, -1, 0, STAT_CONSTITUTION, 2, NULL },
     // ITEM_AFFIX_OF_THE_HAWK
@@ -264,12 +264,12 @@ static const AffixDef affix_table[ITEM_AFFIX_COUNT] = {
         "+10 poison damage" },
     // ITEM_AFFIX_CA_STYGIAN
     { "Stygian", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_POISON, 35, -1, 0,
-        "+35% poison resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_POISON, 15, -1, 0,
+        "+15% poison resistance" },
     // ITEM_AFFIX_CA_THUNDERCLAD
     { "Thunderclad", NULL, false, true,
-        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_ELECTRICAL, 30, -1, 0,
-        "+30% electrical resistance" },
+        -1, -1, 0, OBJ_F_ARMOR_MAGIC_RESISTANCE_ADJ_IDX, RESISTANCE_TYPE_ELECTRICAL, 15, -1, 0,
+        "+15% electrical resistance" },
     // ITEM_AFFIX_CURSE_OF_BLINDNESS
     { NULL, "of Blindness", true, true, -1, -1, 0, -1, -1, 0, STAT_PERCEPTION, -2,
         "-2 PER (cursed)" },
