@@ -1649,6 +1649,21 @@ bool sub_450420(int64_t obj, int cost, bool a3, int magictech)
             }
 
             if (a3) {
+                // CE: for maintained/instant spells, end the spell BEFORE the cost
+                // would push the caster below 0 fatigue (unconscious). Paying into
+                // the negative meant the [End] cleanup ran while the caster was
+                // already unconscious — e.g. dismissing summoned followers
+                // (critter_disband) then failed, leaving orphaned spiders with
+                // lingering portraits/sounds. Bailing out here (without paying)
+                // ends the spell while the caster is still conscious so cleanup
+                // succeeds. Matches expected behaviour: maintenance stops the
+                // moment you can no longer afford it.
+                if (info != NULL
+                    && (info->maintenance.period != 0 || info->duration.period == 0)
+                    && critter_fatigue_current(obj) - cost < 0) {
+                    return false;
+                }
+
                 int fatigue_dam = critter_fatigue_damage_get(obj);
                 if (critter_fatigue_damage_set(obj, fatigue_dam + cost) == 0) {
                     return false;
@@ -1964,6 +1979,31 @@ void magictech_effect_summon(MagicTechSummonInfo* summon_info)
 }
 
 // 0x451070
+// CE: guaranteed dismissal of a run's summoned creatures. The data-driven
+// [End]/[EndCallback] Destroy was unreliable for mind-controlled follower
+// summons (Swarm of Spiders) — they could be left as orphaned party portraits +
+// looping sounds, and could be stacked by waiting for fatigue to refill. This
+// force-removes each summoned critter from the party and destroys it.
+static void magictech_force_dismiss_summons(MagicTechRunInfo* run_info)
+{
+    MagicTechObjectNode* node;
+
+    for (node = run_info->summoned_obj; node != NULL; node = node->next) {
+        int64_t obj = node->obj;
+        if (obj == OBJ_HANDLE_NULL) {
+            continue;
+        }
+        if (!obj_type_is_critter(obj_field_int32_get(obj, OBJ_F_TYPE))) {
+            continue;
+        }
+        // Leave the party/follower group first (clears portrait + stops follower
+        // upkeep/sounds), then destroy the body.
+        critter_disband(obj, true);
+        object_destroy(obj);
+        node->obj = OBJ_HANDLE_NULL; // don't let later teardown touch a dead handle
+    }
+}
+
 void sub_451070(MagicTechRunInfo* run_info)
 {
     if (magictech_cur_id != -1 && magictech_cur_id != run_info->id) {
@@ -2003,6 +2043,16 @@ void magictech_process(void)
     magictech_cur_component_list = &(magictech_cur_spell_info->components[magictech_cur_run_info->action]);
     magictech_cur_run_info->flags |= MAGICTECH_RUN_0x04;
     magictech_cur_id = magictech_cur_run_info->id;
+
+    // CE: when Swarm of Spiders ends (fatigue out, cancel, dispel, duration),
+    // force-dismiss its summoned spiders in code. The data [End] actions could
+    // not reliably remove mind-controlled follower summons (orphaned portraits/
+    // sounds, stackable by waiting for fatigue). Runs only on real spell-end,
+    // not on save/load (which doesn't drive the END action).
+    if (magictech_cur_run_info->action == MAGICTECH_ACTION_END
+        && magictech_cur_run_info->spell == SPELL_SUCCOUR_BEAST) {
+        magictech_force_dismiss_summons(magictech_cur_run_info);
+    }
 
     if (magictech_cur_run_info->action == MAGICTECH_ACTION_BEGIN
         && !sub_456430(magictech_cur_run_info->parent_obj.obj, magictech_cur_run_info->target_obj.obj, magictech_cur_spell_info)) {
@@ -2779,6 +2829,14 @@ void MTComponentSummon_ProcFunc(void)
 {
     MagicTechSummonInfo summon_info;
 
+    // CE: Swarm of Spiders (SUCCOUR_BEAST) uses a radius-1 AoE, so this proc
+    // fires once per empty tile (up to 9) — that spawned far too many spiders.
+    // Skip ~half the tiles so a cast yields roughly 4-5 spiders instead of 9.
+    if (magictech_cur_run_info->spell == SPELL_SUCCOUR_BEAST
+        && random_between(1, 100) > 50) {
+        return;
+    }
+
     summon_info.field_0.obj = magictech_cur_run_info->parent_obj.obj;
     summon_info.field_30.obj = magictech_cur_run_info->target_obj.obj;
     summon_info.loc = stru_5E6D28.target_loc;
@@ -2796,6 +2854,18 @@ void MTComponentSummon_ProcFunc(void)
 
     stru_5E6D28.summoned_obj = qword_5E75B8;
     sub_4554B0(magictech_cur_run_info, qword_5E75B8);
+
+    // CE: magictech_effect_summon hides the new critter (OF_DONTDRAW + concealed)
+    // and relies on the [Callback] reveal, which only un-conceals critters that
+    // auto-animate. Lesser Spiders (Swarm of Spiders) do NOT auto-animate, so the
+    // reveal left them concealed -> invisible body, only portrait + sounds. Force
+    // them fully visible here.
+    if (magictech_cur_run_info->spell == SPELL_SUCCOUR_BEAST
+        && qword_5E75B8 != OBJ_HANDLE_NULL) {
+        object_flags_unset(qword_5E75B8, OF_DONTDRAW);
+        critter_set_concealed(qword_5E75B8, false);
+        anim_goal_unconceal(qword_5E75B8);
+    }
 }
 
 // 0x452900

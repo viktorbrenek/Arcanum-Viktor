@@ -193,7 +193,13 @@
       "Bash(cp \"C:/Arcanum of Viktorworks and ARPG Obscura/arcanum-ce/out/build/windows-x64/Release/arcanum-ce.exe\" \"/d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce.exe\")",
       "Read(//d/SteamLibrary/steamapps/common/Arcanum/Arcanum/**)",
       "Read(//c/Users/petrb/Downloads/**)",
-      "Bash(awk '/^void item_wield_best_all|^bool item_wield_best_all|item_wield_best_all\\\\\\(int64_t/{f=NR} END{}' src/game/item.c)"
+      "Bash(awk '/^void item_wield_best_all|^bool item_wield_best_all|item_wield_best_all\\\\\\(int64_t/{f=NR} END{}' src/game/item.c)",
+      "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/Rules/SpellList.mes /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/data/rules/SpellList.mes)",
+      "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/Rules/SpellList.mes '/d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/packed/Arcanum New Balance/data/rules/SpellList.mes')",
+      "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/Rules/SpellList.mes '/d/SteamLibrary/steamapps/common/Arcanum/Arcanum/Arcanum-New-Balance \\(3\\)/Arcanum New Balance/data/Rules/SpellList.mes')",
+      "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/mes/spell.mes /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/data/mes/spell.mes)",
+      "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/mes/spell.mes '/d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/packed/Arcanum New Balance/data/mes/spell.mes')",
+      "Bash(awk '{print $1}')"
     ]
   }
 }

@@ -251,18 +251,6 @@ static void proc_radiant_burst(int64_t caster, int64_t heal_target)
     tb_add(enemy, TB_TYPE_WHITE, "Radiant!");
 }
 
-// Divination — READ_AURA: 8-12 unresisted damage ("exploit revealed weakness").
-static void proc_read_aura_strike(int64_t caster, int64_t target)
-{
-    CombatContext ctx;
-
-    sub_4B2210(caster, target, &ctx);
-    ctx.dam[DAMAGE_TYPE_NORMAL] = random_between(8, 12);
-    ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
-    combat_dmg(&ctx);
-    tb_add(target, TB_TYPE_WHITE, "Exposed!");
-}
-
 // Meta — DISPERSE_MAGICK: 12-20 unresisted "dispel backlash" damage.
 static void proc_dispel_blast(int64_t caster, int64_t target)
 {
@@ -484,11 +472,6 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
     case SPELL_MAJOR_HEALING:
         if (IS_BEGIN(action)) {
             proc_radiant_burst(caster_obj, target_obj);
-        }
-        break;
-    case SPELL_READ_AURA:
-        if (IS_BEGIN(action)) {
-            proc_read_aura_strike(caster_obj, target_obj);
         }
         break;
     case SPELL_DISPERSE_MAGICK:
