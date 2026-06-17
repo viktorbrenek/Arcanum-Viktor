@@ -427,7 +427,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Blade of Alberich",
         OBJ_TYPE_WEAPON,
-        0, // drop_critter_bp: set to e.g. BP_DARK_CHAMPION_NPC for guaranteed drop
+        0, // drop_critter_bp: 0 = world-random only (boss drop disabled — see note)
         {
             ITEM_AFFIX_W_CRUSHING,
             ITEM_AFFIX_W_SAVAGE,
@@ -447,7 +447,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Veil of Shadows",
         OBJ_TYPE_ARMOR,
-        0, // drop_critter_bp: set to e.g. BP_SHADOW_WARRIOR_NPC
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_A_SHADOW,
             ITEM_AFFIX_A_SHADOW,
@@ -467,7 +467,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Ironclad Cogplate",
         OBJ_TYPE_ARMOR,
-        0, // drop_critter_bp: set to e.g. BP_CURSED_PALADIN_NPC
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_A_FORTIFIED,
             ITEM_AFFIX_A_FORTIFIED,
@@ -488,7 +488,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Ring of Mephistis",
         OBJ_TYPE_WEAPON,
-        0, // drop_critter_bp: set to e.g. BP_BLOOD_SPIRIT_NPC
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_W_KEEN,
             ITEM_AFFIX_OF_WILL,
@@ -507,7 +507,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Tullian Focus",
         OBJ_TYPE_WEAPON,
-        0, // drop_critter_bp: set to e.g. BP_BOLT_SLAYER
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_OF_THE_SAGE,
             ITEM_AFFIX_OF_THE_SAGE,
@@ -526,7 +526,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Wyrmfang",
         OBJ_TYPE_WEAPON,
-        0,
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_W_BLAZING,
             ITEM_AFFIX_W_VENOMOUS,
@@ -545,7 +545,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Cogsworth Repeater",
         OBJ_TYPE_WEAPON,
-        0,
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_W_SWIFT,
             ITEM_AFFIX_W_FLEET,
@@ -564,7 +564,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Stonehide Mantle",
         OBJ_TYPE_ARMOR,
-        0,
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_A_FORTIFIED,
             ITEM_AFFIX_A_REINFORCED,
@@ -583,7 +583,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Galatea Mirror",
         OBJ_TYPE_ARMOR,
-        0,
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_A_SANCTIFIED,
             ITEM_AFFIX_A_SPELLWARD,
@@ -602,7 +602,7 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     {
         "Thornweave",
         OBJ_TYPE_ARMOR,
-        0,
+        0, // drop_critter_bp: 0 = world-random only
         {
             ITEM_AFFIX_A_VENOMPROOF,
             ITEM_AFFIX_A_PHANTOM,

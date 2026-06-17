@@ -817,7 +817,11 @@ void options_ui_windowed_set(int value)
  */
 void options_ui_scroll_speed_get(int* value_ptr, bool* enabled_ptr)
 {
-    int value = scroll_distance_get() / 5 - 1;
+    // Read the persisted config value (single source of truth), NOT
+    // scroll_distance_get() — that returns a perception-based tile count and 0
+    // when no PC is loaded (e.g. on the main menu), which made the slider snap
+    // back to minimum and look like the setting reset on every visit.
+    int value = highres_config_get()->scroll_dist / 5 - 1;
 
     if (value < 0) {
         value = 0;
@@ -833,8 +837,10 @@ void options_ui_scroll_speed_set(int value)
 {
     int distance = (value + 1) * 5;
 
-    scroll_distance_set(distance);
+    // Persist to config (this also reloads the in-memory config), then apply
+    // live to the running scroll system.
     highres_config_set_int("ScrollDist", distance);
+    scroll_distance_set(distance);
 }
 
 /**

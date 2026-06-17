@@ -121,6 +121,9 @@ static void mmUISharedCharRefreshFunc(int64_t obj, TigRect* rect);
 static bool mainmenu_ui_new_char_button_released(tig_button_handle_t button_handle);
 static bool mainmenu_ui_new_char_next_background(int64_t obj, int* background_ptr);
 static bool mainmenu_ui_new_char_prev_background(int64_t obj, int* background_ptr);
+static void mainmenu_ui_create_fullscreen_bg(tig_art_id_t art_id, TigArtFrameData* frame_data);
+static bool mainmenu_ui_create_fullscreen_bg_bmp(void);
+static void mainmenu_ui_cover_src_rect(int src_w, int src_h, int dst_w, int dst_h, TigRect* out);
 static bool mainmenu_ui_new_char_prev_gender(int64_t obj);
 static bool mainmenu_ui_new_char_set_gender(int64_t obj, int gender);
 static bool mainmenu_ui_new_char_next_gender(int64_t obj);
@@ -195,6 +198,11 @@ static bool dword_5C3620 = true;
 
 // 0x5C3624
 static tig_window_handle_t mainmenu_ui_window_handle = TIG_WINDOW_HANDLE_INVALID;
+
+// CE: full-screen background window used when the main-menu background art is
+// larger than the legacy 800x600 canvas. The art is stretched to fill the whole
+// screen here while the menu buttons stay on a centered transparent overlay.
+static tig_window_handle_t mainmenu_ui_fullscreen_bg_window_handle = TIG_WINDOW_HANDLE_INVALID;
 
 // 0x5C3628
 static TigRect mainmenu_ui_window_rect = { 0, 0, 800, 600 };
@@ -4630,6 +4638,153 @@ void mainmenu_ui_create_window(void)
     mainmenu_ui_create_window_func(true);
 }
 
+// CE: compute a centered source sub-rectangle that matches the destination
+// aspect ratio, so the image fills the screen ("cover") without distortion.
+// Overflow on the long axis is cropped. Integer cross-multiply avoids float drift.
+static void mainmenu_ui_cover_src_rect(int src_w, int src_h, int dst_w, int dst_h, TigRect* out)
+{
+    if ((int64_t)src_w * dst_h > (int64_t)dst_w * src_h) {
+        // Source is wider than the screen -> crop left/right.
+        int crop_w = (int)((int64_t)src_h * dst_w / dst_h);
+        out->x = (src_w - crop_w) / 2;
+        out->y = 0;
+        out->width = crop_w;
+        out->height = src_h;
+    } else {
+        // Source is taller/narrower than the screen -> crop top/bottom.
+        int crop_h = (int)((int64_t)src_w * dst_h / dst_w);
+        out->x = 0;
+        out->y = (src_h - crop_h) / 2;
+        out->width = src_w;
+        out->height = crop_h;
+    }
+}
+
+// CE: create a full-screen background window and stretch an oversized custom
+// background art across the entire screen (any resolution). The engine art blit
+// scales automatically when the source and destination rects differ in size.
+static void mainmenu_ui_create_fullscreen_bg(tig_art_id_t art_id, TigArtFrameData* frame_data)
+{
+    TigWindowData window_data;
+    TigArtAnimData art_anim_data;
+    TigArtBlitInfo art_blit_info;
+    TigRect src_rect;
+    TigRect dst_rect;
+    int screen_w;
+    int screen_h;
+
+    if (tig_art_anim_data(art_id, &art_anim_data) != TIG_OK) {
+        return;
+    }
+
+    screen_w = hrp_iso_window_width_get();
+    screen_h = hrp_iso_window_height_get();
+
+    // Opaque full-screen window below the menu buttons but above the leftover
+    // game interface bars (see the BMP variant for the z-order rationale).
+    window_data.flags = TIG_WINDOW_ALWAYS_ON_TOP | TIG_WINDOW_MESSAGE_FILTER;
+    window_data.rect.x = 0;
+    window_data.rect.y = 0;
+    window_data.rect.width = screen_w;
+    window_data.rect.height = screen_h;
+    window_data.background_color = art_anim_data.color_key;
+    window_data.color_key = art_anim_data.color_key;
+    window_data.message_filter = mainmenu_ui_message_filter;
+
+    if (tig_window_create(&window_data, &mainmenu_ui_fullscreen_bg_window_handle) != TIG_OK) {
+        mainmenu_ui_fullscreen_bg_window_handle = TIG_WINDOW_HANDLE_INVALID;
+        return;
+    }
+
+    // "Cover": crop the source to the screen aspect, then fill — no squish.
+    mainmenu_ui_cover_src_rect(frame_data->width, frame_data->height, screen_w, screen_h, &src_rect);
+
+    dst_rect.x = 0;
+    dst_rect.y = 0;
+    dst_rect.width = screen_w;
+    dst_rect.height = screen_h;
+
+    art_blit_info.flags = 0;
+    art_blit_info.art_id = art_id;
+    art_blit_info.src_rect = &src_rect;
+    art_blit_info.dst_rect = &dst_rect;
+
+    tig_window_blit_art(mainmenu_ui_fullscreen_bg_window_handle, &art_blit_info);
+}
+
+// CE: preferred background path. Load a true-color 24-bit BMP and blit it
+// linearly scaled across the whole screen. Returns true if the BMP was found
+// (and the background window created). This sidesteps the 8-bit/256-color .ART
+// format that turns a photographic menu image into a muddy mess.
+//
+// File: art\interface\MainMenuBack.bmp (resolved through the TIG file system,
+// so a data\ override works just like the .ART one).
+static bool mainmenu_ui_create_fullscreen_bg_bmp(void)
+{
+    TigVideoBuffer* bmp_vb;
+    TigVideoBuffer* win_vb;
+    TigVideoBufferData bmp_data;
+    TigWindowData window_data;
+    TigVideoBufferBlitInfo vb_blit_info;
+    TigRect src_rect;
+    TigRect dst_rect;
+    int screen_w;
+    int screen_h;
+
+    bmp_vb = NULL;
+    if (tig_video_buffer_load_from_bmp("art\\interface\\MainMenuBack.bmp", &bmp_vb, 0x1) != TIG_OK) {
+        return false;
+    }
+
+    if (tig_video_buffer_data(bmp_vb, &bmp_data) != TIG_OK) {
+        tig_video_buffer_destroy(bmp_vb);
+        return false;
+    }
+
+    screen_w = hrp_iso_window_width_get();
+    screen_h = hrp_iso_window_height_get();
+
+    // Opaque full-screen window. ALWAYS_ON_TOP (created before the centered menu
+    // window, so it sits *below* the menu buttons but *above* the leftover game
+    // interface bars) — this both hides those bars and eats clicks on them.
+    window_data.flags = TIG_WINDOW_ALWAYS_ON_TOP | TIG_WINDOW_MESSAGE_FILTER;
+    window_data.rect.x = 0;
+    window_data.rect.y = 0;
+    window_data.rect.width = screen_w;
+    window_data.rect.height = screen_h;
+    window_data.background_color = 0;
+    window_data.color_key = 0;
+    window_data.message_filter = mainmenu_ui_message_filter;
+
+    if (tig_window_create(&window_data, &mainmenu_ui_fullscreen_bg_window_handle) != TIG_OK) {
+        mainmenu_ui_fullscreen_bg_window_handle = TIG_WINDOW_HANDLE_INVALID;
+        tig_video_buffer_destroy(bmp_vb);
+        return false;
+    }
+
+    // tig_window_create invalidates the full window, so a direct blit into its
+    // video buffer is composited on the next tig_window_display().
+    if (tig_window_vbid_get(mainmenu_ui_fullscreen_bg_window_handle, &win_vb) == TIG_OK) {
+        // "Cover": crop the source to the screen aspect, then fill — no squish.
+        mainmenu_ui_cover_src_rect(bmp_data.width, bmp_data.height, screen_w, screen_h, &src_rect);
+
+        dst_rect.x = 0;
+        dst_rect.y = 0;
+        dst_rect.width = screen_w;
+        dst_rect.height = screen_h;
+
+        vb_blit_info.flags = TIG_VIDEO_BUFFER_BLIT_SCALE_LINEAR;
+        vb_blit_info.src_video_buffer = bmp_vb;
+        vb_blit_info.src_rect = &src_rect;
+        vb_blit_info.dst_video_buffer = win_vb;
+        vb_blit_info.dst_rect = &dst_rect;
+        tig_video_buffer_blit(&vb_blit_info);
+    }
+
+    tig_video_buffer_destroy(bmp_vb);
+    return true;
+}
+
 // 0x546340
 void mainmenu_ui_create_window_func(bool should_display)
 {
@@ -4648,6 +4803,7 @@ void mainmenu_ui_create_window_func(bool should_display)
     tig_font_handle_t font;
     tig_window_handle_t window_handle;
     bool v1 = false;
+    bool custom_fullbg = false;
     int idx;
     int rc;
 
@@ -4662,8 +4818,26 @@ void mainmenu_ui_create_window_func(bool should_display)
     window = main_menu_window_info[mainmenu_ui_window_type];
     if (window->background_art_num != -1) {
         tig_art_interface_id_create(window->background_art_num, 0, 0, 0, &art_id);
-        if (tig_art_frame_data(art_id, &art_frame_data) == TIG_OK) {
-            if (art_frame_data.height == 600) {
+
+        // CE: on the simple title-flow button menus, prefer a true-color BMP
+        // background drawn full-screen (best quality). Falls back to an oversized
+        // .ART, then to the legacy centered behavior. Windows with their own
+        // content plaque (options/load/save/char creation) keep vanilla art.
+        if ((mainmenu_ui_window_type == MM_WINDOW_MAINMENU
+                || mainmenu_ui_window_type == MM_WINDOW_SINGLE_PLAYER
+                || mainmenu_ui_window_type == MM_WINDOW_PICK_NEW_OR_PREGEN)
+            && mainmenu_ui_create_fullscreen_bg_bmp()) {
+            mainmenu_ui_window_rect = mainmenu_ui_window_fullscreen_rect;
+            custom_fullbg = true;
+        } else if (tig_art_frame_data(art_id, &art_frame_data) == TIG_OK) {
+            if (art_frame_data.height > 600) {
+                // Oversized custom .ART: stretch across the whole screen in a
+                // dedicated bottom window; the menu stays a centered 800x600
+                // transparent overlay so buttons stay centered at any resolution.
+                mainmenu_ui_create_fullscreen_bg(art_id, &art_frame_data);
+                mainmenu_ui_window_rect = mainmenu_ui_window_fullscreen_rect;
+                custom_fullbg = true;
+            } else if (art_frame_data.height == 600) {
                 mainmenu_ui_window_rect = mainmenu_ui_window_fullscreen_rect;
             } else {
                 mainmenu_ui_window_rect = mainmenu_ui_window_partial_rect;
@@ -4673,6 +4847,12 @@ void mainmenu_ui_create_window_func(bool should_display)
 
         if (tig_art_anim_data(art_id, &art_anim_data) == TIG_OK) {
             window_data.flags = TIG_WINDOW_ALWAYS_ON_TOP | TIG_WINDOW_MESSAGE_FILTER;
+            if (custom_fullbg) {
+                // Transparent overlay: the background image is supplied by the
+                // full-screen window created above, so this window only carries
+                // the (centered) buttons, text and decorative overlays.
+                window_data.flags |= TIG_WINDOW_TRANSPARENT;
+            }
             window_data.rect = mainmenu_ui_window_rect;
             window_data.background_color = art_anim_data.color_key;
             window_data.color_key = art_anim_data.color_key;
@@ -4699,7 +4879,11 @@ void mainmenu_ui_create_window_func(bool should_display)
                 exit(EXIT_SUCCESS); // FIXME: Should be `EXIT_FAILURE`.
             }
 
-            tig_window_blit_art(mainmenu_ui_window_handle, &art_blit_info);
+            // For the custom full-screen path the menu window stays transparent;
+            // the image was already drawn by mainmenu_ui_create_fullscreen_bg.
+            if (!custom_fullbg) {
+                tig_window_blit_art(mainmenu_ui_window_handle, &art_blit_info);
+            }
         }
     } else {
         v1 = true;
@@ -5045,6 +5229,11 @@ void sub_546DD0(void)
         if (mainmenu_ui_top_bar_cover_window_handle != TIG_WINDOW_HANDLE_INVALID
             && tig_window_destroy(mainmenu_ui_top_bar_cover_window_handle) == TIG_OK) {
             mainmenu_ui_top_bar_cover_window_handle = TIG_WINDOW_HANDLE_INVALID;
+        }
+
+        if (mainmenu_ui_fullscreen_bg_window_handle != TIG_WINDOW_HANDLE_INVALID
+            && tig_window_destroy(mainmenu_ui_fullscreen_bg_window_handle) == TIG_OK) {
+            mainmenu_ui_fullscreen_bg_window_handle = TIG_WINDOW_HANDLE_INVALID;
         }
 
         mainmenu_ui_active = false;
