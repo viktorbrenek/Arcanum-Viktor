@@ -417,6 +417,11 @@ typedef struct UniqueItemDef {
 // Slot 5 stores the UniqueItemId so we can look up the definition.
 #define UNIQUE_ID_SLOT 5
 
+// CE: a critter must be at least this level to roll UNIQUE or SET items in its
+// inventory (applied in item_rarity_roll via the item's owner). World/container
+// drops with no critter owner are not gated.
+#define ITEM_RARITY_UNIQUE_SET_MIN_LEVEL 30
+
 static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
     // UNIQUE_ITEM_NONE (unused, index 0)
     { NULL, 0, 0, { 0 }, -1, -1, 0, -1, -1, 0 },
@@ -875,8 +880,23 @@ void item_rarity_roll(int64_t item_obj)
         return;
     }
 
+    // CE: gate UNIQUE and SET to carriers of at least ITEM_RARITY_UNIQUE_SET_MIN_LEVEL.
+    // When the item is owned by a critter (e.g. an NPC's inventory rolled at map
+    // load), use that critter's level — low-level carriers cap at EPIC. Items with
+    // no critter owner (world/container drops) are unaffected.
+    bool allow_unique_set = true;
+    {
+        int64_t owner_obj = OBJ_HANDLE_NULL;
+        item_parent(item_obj, &owner_obj);
+        if (owner_obj != OBJ_HANDLE_NULL
+            && obj_type_is_critter(obj_field_int32_get(owner_obj, OBJ_F_TYPE))
+            && stat_level_get(owner_obj, STAT_LEVEL) < ITEM_RARITY_UNIQUE_SET_MIN_LEVEL) {
+            allow_unique_set = false;
+        }
+    }
+
     // SET: ~0.5% chance (1-in-200) before regular roll.
-    if (random_between(1, 200) == 1) {
+    if (allow_unique_set && random_between(1, 200) == 1) {
         int set_idx = random_between(1, SET_COUNT - 1);
         item_rarity_set(item_obj, ITEM_RARITY_SET);
         item_set_set(item_obj, (SetId)set_idx);
@@ -897,6 +917,12 @@ void item_rarity_roll(int64_t item_obj)
     }
 
     if (rarity == ITEM_RARITY_UNIQUE) {
+        if (!allow_unique_set) {
+            // Carrier below the level gate — cap a rolled unique at epic.
+            item_rarity_set(item_obj, ITEM_RARITY_EPIC);
+            rarity = ITEM_RARITY_EPIC;
+            goto roll_epic;
+        }
         // Pick a random unique definition matching the item type.
         int candidates[UNIQUE_ITEM_COUNT];
         int candidate_cnt = 0;
