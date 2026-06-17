@@ -377,11 +377,21 @@ int sub_41F9F0(PathCreateInfo* path_create_info)
     path_cost_tbl[start_index] = 1;
     path_backtrack_tbl[start_index] = -1;
 
+    // CE perf: this O(V^2) A* re-scans the whole 64x64 grid (4096 nodes) for the
+    // min-cost open node every step (no priority queue). A crowded interior ran it
+    // for ~12 NPCs every AI heartbeat -> ~5 fps in e.g. King's Inn Dernholm.
+    // Optimization: only scan the index range actually touched by open nodes
+    // (path_scan_lo..hi). Pure speedup — identical results, since nodes outside
+    // that range are never open. Interiors bound the open set to the room, so the
+    // scan shrinks dramatically there.
+    int path_scan_lo = start_index;
+    int path_scan_hi = start_index;
+
     while (true) {
         current_index = -1;
 
         // Grab open node with minimal cost.
-        for (int i = 0; i < 4096; i++) {
+        for (int i = path_scan_lo; i <= path_scan_hi; i++) {
             // Check if node is open, i.e. it has a positive cost (negative cost
             // are closed nodes, zero cost are unprocessed nodes).
             if (path_cost_tbl[i] > 0) {
@@ -512,6 +522,9 @@ int sub_41F9F0(PathCreateInfo* path_create_info)
                 || path_cost_tbl[neighbor_index] == 0) {
                 path_cost_tbl[neighbor_index] = cost;
                 path_backtrack_tbl[neighbor_index] = current_index;
+                // CE perf: extend the open-node scan window (see note at loop top).
+                if (neighbor_index < path_scan_lo) path_scan_lo = neighbor_index;
+                if (neighbor_index > path_scan_hi) path_scan_hi = neighbor_index;
             }
         }
 

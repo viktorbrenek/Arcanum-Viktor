@@ -782,7 +782,19 @@ void wmap_rnd_encounter_table_init(WmapRndEncounterTable* table)
  */
 void wmap_rnd_encounter_table_entry_init(WmapRndEncounterTableEntry* entry)
 {
-    entry->critter_basic_prototype[0] = 0;
+    int i;
+
+    // CE FIX: zero ALL five critter slots, not just slot 0. The spawn/count
+    // loops stop at the first slot whose prototype is 0; leaving slots 1-4
+    // uninitialized (heap garbage) made entries with fewer than 5 critters read
+    // a garbage prototype + garbage count -> thousands of "bad prototype" spawns
+    // (e.g. proto 1181971382) and broken/empty encounters. Heap-layout dependent,
+    // so it looked like "only one table is broken".
+    for (i = 0; i < 5; i++) {
+        entry->critter_basic_prototype[i] = 0;
+        entry->critter_min_cnt[i] = 0;
+        entry->critter_max_cnt[i] = 0;
+    }
     entry->min_level = 0;
     entry->max_level = 32000;
     entry->global_flag_num = -1;
@@ -1461,6 +1473,12 @@ static void wmap_rnd_encounter_spawn_critters(WmapRndEncounterTableEntry* entry,
             loc = LOCATION_MAKE(dx, dy);
             wmap_rnd_encounter_build_object(entry->critter_basic_prototype[index], loc, &obj);
 
+            // CE: build_object now returns NULL on failure instead of exiting.
+            // Skip the rest of the placement logic for a critter that failed.
+            if (obj == OBJ_HANDLE_NULL) {
+                continue;
+            }
+
             if (tile_is_blocking(loc, 0)) {
                 pc_obj = player_get_local_pc_obj();
                 if (!target_find_displacement_loc(pc_obj, 6, &loc) || tile_is_blocking(loc, false)) {
@@ -1520,17 +1538,17 @@ void wmap_rnd_encounter_spawn(WmapRndEncounterTableEntry* entry)
  */
 void wmap_rnd_spawn_position_offset(int index, int64_t* dx_ptr, int64_t* dy_ptr)
 {
-    int v1;
-
-    if (index != 0) {
-        v1 = (index - 1) / 3 + 1;
-        *dx_ptr = LOCATION_MAKE(LOCATION_GET_X(*dx_ptr) + 1, LOCATION_GET_Y(*dx_ptr) + 1);
-
-        v1 = index / 3;
-        *dy_ptr = LOCATION_MAKE(LOCATION_GET_X(*dy_ptr) + v1, LOCATION_GET_Y(*dy_ptr) + v1);
-    } else {
-        *dy_ptr = LOCATION_MAKE(LOCATION_GET_X(*dy_ptr) + 1, LOCATION_GET_Y(*dy_ptr) + 1);
-    }
+    // CE FIX: dx_ptr/dy_ptr are plain tile COORDINATES here — the caller does
+    //   dx = LOCATION_GET_X(origin); dy = LOCATION_GET_Y(origin);
+    //   wmap_rnd_spawn_position_offset(k, &dx, &dy);
+    //   loc = LOCATION_MAKE(dx, dy);
+    // The old code wrongly treated them as packed locations (LOCATION_MAKE/
+    // LOCATION_GET), double-packing them into garbage coordinates -> invalid
+    // spawn locations, failed/relocated spawns, and crashes when several
+    // critters spawn (e.g. a 3-6 group). Just offset the coordinates so the
+    // group spreads over a small grid around the origin.
+    *dx_ptr += index % 3;
+    *dy_ptr += index / 3;
 }
 
 /**
@@ -1547,10 +1565,23 @@ void wmap_rnd_encounter_build_object(int name, int64_t loc, int64_t* obj_ptr)
     int64_t proto_obj;
     int64_t obj;
 
+    // CE: default to NULL so a failed spawn is reported as "no object" rather
+    // than leaving the caller with an uninitialized handle.
+    if (obj_ptr != NULL) {
+        *obj_ptr = OBJ_HANDLE_NULL;
+    }
+
     proto_obj = sub_4685A0(name);
+    if (proto_obj == OBJ_HANDLE_NULL) {
+        tig_debug_printf("wmap_rnd_encounter_build_object: ERROR: bad prototype %d, skipping.\n", name);
+        return;
+    }
+
     if (!object_create(proto_obj, loc, &obj)) {
-        tig_debug_printf("wmap_rnd_encounter_build_object: ERROR: object_create failed!\n");
-        exit(EXIT_FAILURE);
+        // CE: was exit(EXIT_FAILURE) — a failed encounter spawn (bad proto / blocked
+        // or out-of-bounds loc) hard-crashed the whole game. Skip this critter instead.
+        tig_debug_printf("wmap_rnd_encounter_build_object: ERROR: object_create failed for proto %d, skipping.\n", name);
+        return;
     }
 
     if (obj_ptr != NULL) {

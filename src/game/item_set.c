@@ -48,12 +48,32 @@ void item_set_set(int64_t item_obj, SetId id)
     obj_field_int32_set(item_obj, OBJ_F_ITEM_PAD_I_1, pad);
 }
 
+// CE perf: true if a stored inventory location is one of the worn equipment slots.
+static bool item_set_loc_is_worn(int loc)
+{
+    for (int s = 0; s < num_wear_slots; s++) {
+        if (loc == wear_slots[s]) {
+            return true;
+        }
+    }
+    return false;
+}
+
 int item_set_count_equipped(int64_t critter_obj, SetId id)
 {
+    // CE perf: single inventory pass. The old version called item_wield_get
+    // (O(inventory)) once per worn slot (9x), and this runs 6x in
+    // item_set_adjust_stat on every stat_level_get -> ~54x O(inventory) per stat
+    // query, which collapsed FPS for NPCs with large inventories (King's Inn).
     int count = 0;
-    for (int s = 0; s < num_wear_slots; s++) {
-        int64_t item = item_wield_get(critter_obj, wear_slots[s]);
-        if (item != OBJ_HANDLE_NULL && item_set_get(item) == id) {
+    int cnt = obj_field_int32_get(critter_obj, OBJ_F_CRITTER_INVENTORY_NUM);
+    for (int i = 0; i < cnt; i++) {
+        int64_t item = obj_arrayfield_handle_get(critter_obj, OBJ_F_CRITTER_INVENTORY_LIST_IDX, i);
+        if (item == OBJ_HANDLE_NULL) {
+            continue;
+        }
+        if (item_set_loc_is_worn(item_inventory_location_get(item))
+            && item_set_get(item) == id) {
             count++;
         }
     }

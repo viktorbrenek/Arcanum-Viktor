@@ -1344,24 +1344,35 @@ void item_rarity_describe_affixes(int64_t item_obj, char* buf, int buf_size)
 // Stat adjustment for equipped items
 // ---------------------------------------------------------------------------
 
+// CE perf: this is called from stat_level_get for EVERY stat query. The old
+// version called item_wield_get (which is O(inventory)) once per worn slot (9x),
+// so for NPCs with large inventories it cost tens of ms per AI tick and collapsed
+// FPS in crowded interiors (King's Inn Dernholm). Iterate the inventory ONCE and
+// process only worn items; backpack items are skipped after a single O(1) location
+// read. Same result, ~9x less work.
+static bool item_rarity_loc_is_worn(int loc)
+{
+    return loc == ITEM_INV_LOC_HELMET
+        || loc == ITEM_INV_LOC_RING1
+        || loc == ITEM_INV_LOC_RING2
+        || loc == ITEM_INV_LOC_MEDALLION
+        || loc == ITEM_INV_LOC_WEAPON
+        || loc == ITEM_INV_LOC_SHIELD
+        || loc == ITEM_INV_LOC_ARMOR
+        || loc == ITEM_INV_LOC_GAUNTLET
+        || loc == ITEM_INV_LOC_BOOTS;
+}
+
 int item_rarity_adjust_stat(int64_t critter_obj, int stat, int value)
 {
-    static const int wear_slots[] = {
-        ITEM_INV_LOC_HELMET,
-        ITEM_INV_LOC_RING1,
-        ITEM_INV_LOC_RING2,
-        ITEM_INV_LOC_MEDALLION,
-        ITEM_INV_LOC_WEAPON,
-        ITEM_INV_LOC_SHIELD,
-        ITEM_INV_LOC_ARMOR,
-        ITEM_INV_LOC_GAUNTLET,
-        ITEM_INV_LOC_BOOTS,
-    };
-    int num_slots = (int)(sizeof(wear_slots) / sizeof(wear_slots[0]));
+    int cnt = obj_field_int32_get(critter_obj, OBJ_F_CRITTER_INVENTORY_NUM);
 
-    for (int s = 0; s < num_slots; s++) {
-        int64_t item_obj = item_wield_get(critter_obj, wear_slots[s]);
+    for (int i = 0; i < cnt; i++) {
+        int64_t item_obj = obj_arrayfield_handle_get(critter_obj, OBJ_F_CRITTER_INVENTORY_LIST_IDX, i);
         if (item_obj == OBJ_HANDLE_NULL) {
+            continue;
+        }
+        if (!item_rarity_loc_is_worn(item_inventory_location_get(item_obj))) {
             continue;
         }
 
