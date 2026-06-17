@@ -2054,6 +2054,14 @@ void magictech_process(void)
         magictech_force_dismiss_summons(magictech_cur_run_info);
     }
 
+    // CE: Meditation (SPELL_CHARM) is Tgt_Self; self-target spells don't reliably
+    // reach the per-target spell_ce_on_target hook, so apply its HP->fatigue trade
+    // here on BEGIN. Without this it did nothing.
+    if (magictech_cur_run_info->action == MAGICTECH_ACTION_BEGIN
+        && magictech_cur_run_info->spell == SPELL_CHARM) {
+        spell_ce_meditation(magictech_cur_run_info->parent_obj.obj);
+    }
+
     if (magictech_cur_run_info->action == MAGICTECH_ACTION_BEGIN
         && !sub_456430(magictech_cur_run_info->parent_obj.obj, magictech_cur_run_info->target_obj.obj, magictech_cur_spell_info)) {
         magictech_cur_id = -1;

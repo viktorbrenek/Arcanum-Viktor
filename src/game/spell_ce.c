@@ -411,6 +411,37 @@ void spell_ce_pre_begin(int spell, int64_t caster_obj, int* aptitude_ptr)
     }
 }
 
+// Meditation (SPELL_CHARM): sacrifice 15 HP to restore 30 fatigue. Called from a
+// dedicated BEGIN hook in magictech_process — Tgt_Self spells don't reliably reach
+// spell_ce_on_target (the target list can be empty), which is why Meditation
+// previously did nothing (no HP loss, no fatigue gain).
+void spell_ce_meditation(int64_t caster)
+{
+    CombatContext ctx;
+    int cur_fat_dmg;
+    int new_fat_dmg;
+
+    if (caster == OBJ_HANDLE_NULL) {
+        return;
+    }
+
+    // HP cost — unresistable self-damage.
+    sub_4B2210(caster, caster, &ctx);
+    ctx.dam[DAMAGE_TYPE_NORMAL] = 15;
+    ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
+    combat_dmg(&ctx);
+
+    // Fatigue restore — reduce fatigue damage by 30, floor at 0.
+    cur_fat_dmg = critter_fatigue_damage_get(caster);
+    new_fat_dmg = cur_fat_dmg - 30;
+    if (new_fat_dmg < 0) {
+        new_fat_dmg = 0;
+    }
+    critter_fatigue_damage_set(caster, new_fat_dmg);
+
+    tb_add(caster, TB_TYPE_WHITE, "Focus!");
+}
+
 void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t target_obj)
 {
     if (!target_is_alive(target_obj)) {
@@ -500,29 +531,9 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
     // SPELL_CREATE_UNDEAD (Lifetaker): drain+heal moved to per-tick maintenance
     // hook spell_ce_lifetaker_drain() (called from magictech sub_4532F0), so it
     // fires reliably every maintain tick like Summon Undead's blood cost.
-    case SPELL_CHARM:  // Meditation: spend 15 HP to restore 25 fatigue
-        if (IS_BEGIN(action)) {
-            CombatContext med_ctx;
-            int cur_fat_dmg;
-            int new_fat_dmg;
-
-            // HP cost — unresistable self-damage.
-            sub_4B2210(caster_obj, caster_obj, &med_ctx);
-            med_ctx.dam[DAMAGE_TYPE_NORMAL] = 15;
-            med_ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
-            combat_dmg(&med_ctx);
-
-            // Fatigue restore — reduce fatigue damage by 50, floor at 0.
-            cur_fat_dmg = critter_fatigue_damage_get(caster_obj);
-            new_fat_dmg = cur_fat_dmg - 25;
-            if (new_fat_dmg < 0) {
-                new_fat_dmg = 0;
-            }
-            critter_fatigue_damage_set(caster_obj, new_fat_dmg);
-
-            tb_add(caster_obj, TB_TYPE_WHITE, "Focus!");
-        }
-        break;
+    // SPELL_CHARM (Meditation) is Tgt_Self; self-target spells don't reliably
+    // reach this hook, so it's applied from a dedicated BEGIN hook in
+    // magictech_process via spell_ce_meditation().
     case SPELL_CHARM_BEAST:  // Wolf Form (Lycanthropy)
         if (IS_BEGIN(action)) {
             wolf_form_holder = caster_obj;

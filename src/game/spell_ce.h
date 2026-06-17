@@ -13,6 +13,10 @@ void spell_ce_pre_begin(int spell, int64_t caster_obj, int* aptitude_ptr);
 // action: MAGICTECH_ACTION_BEGIN or MAGICTECH_ACTION_MAINTAIN
 void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t target_obj);
 
+// Meditation (SPELL_CHARM): sacrifice HP to restore fatigue. Called from a BEGIN
+// hook in magictech_process (self-target spells don't reach spell_ce_on_target).
+void spell_ce_meditation(int64_t caster);
+
 // Inflicts unresistable Blood Magic HP damage cost on the caster.
 void spell_ce_blood_magic_pay(int64_t caster_obj, int hp_cost);
 
