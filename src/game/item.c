@@ -2220,6 +2220,16 @@ void sub_463E20(int64_t obj)
             }
         }
 
+        // CE: the imbue-rune vendor (Viktor, post-Five-Sigils) also carries one of each
+        // elemental rune. Fires for the explicit rune source OR for Viktor's base orb set
+        // once his Five Sigils quest is done (so the unlock applies on the next restock,
+        // no source swap / house re-entry needed). Idempotent.
+        if (source_id == ORB_RUNE_VENDOR_SOURCE
+            || (source_id == ORB_RUNE_VENDOR_BASE
+                && script_global_var_get(ORB_RUNE_VENDOR_QUEST_VAR) == 2)) {
+            item_orb_stock_runes(obj);
+        }
+
         if (obj_type == OBJ_TYPE_NPC) {
             item_wield_best_all(obj, OBJ_HANDLE_NULL);
             int npc_cnt = obj_field_int32_get(obj, OBJ_F_CRITTER_INVENTORY_NUM);

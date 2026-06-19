@@ -3,8 +3,10 @@
 #include <stdio.h>
 
 #include "game/damage_type.h"
+#include "game/descriptions.h"
 #include "game/endgame_map.h"
 #include "game/item.h"
+#include "game/mp_utils.h"
 #include "game/item_rarity.h"
 #include "game/obj.h"
 #include "game/obj_flags.h"
@@ -213,6 +215,27 @@ bool item_weapon_rune_art(int64_t weapon_obj, tig_art_id_t* out_aid)
         TIG_ART_ITEM_TYPE_GENERIC,
         0, 0,
         out_aid) == TIG_OK;
+}
+
+void item_orb_stock_runes(int64_t merchant_obj)
+{
+    if (merchant_obj == OBJ_HANDLE_NULL) {
+        return;
+    }
+    int64_t loc = obj_field_int64_get(merchant_obj, OBJ_F_LOCATION);
+    for (OrbType rt = ORB_RUNE_FIRE; rt <= ORB_RUNE_VOID; rt++) {
+        // Idempotent: a restock that didn't clear the old stock won't duplicate runes.
+        if (item_orb_find_in_inventory(merchant_obj, rt) != OBJ_HANDLE_NULL) {
+            continue;
+        }
+        int64_t rune_obj;
+        if (mp_object_create(BP_COMPONENT_1, loc, &rune_obj)) {
+            item_orb_set_type(rune_obj, rt);
+            if (!item_transfer(rune_obj, merchant_obj)) {
+                object_destroy(rune_obj);
+            }
+        }
+    }
 }
 
 OrbType item_orb_get_type(int64_t item_obj)

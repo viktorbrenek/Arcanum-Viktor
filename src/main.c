@@ -14,6 +14,7 @@
 #include "game/anim.h"
 #include "game/combat.h"
 #include "game/critter.h"
+#include "game/endgame_map.h"
 #include "game/descriptions.h"
 #include "game/dialog.h"
 #include "game/gamelib.h"
@@ -650,6 +651,49 @@ void main_loop(void)
                                 teleport_data.fade_in.duration = 2.0f;
                                 teleport_data.fade_in.color = tig_color_make(0, 0, 0);
                                 teleport_do(&teleport_data);
+                            }
+                        }
+                        break;
+                    case SDL_SCANCODE_F1:
+                        // CE DEBUG: Ctrl+F1 clears the active rift — kills every hostile
+                        // critter so the reward chest / completion path / save-load
+                        // recount can be tested without grinding the (hard) map. Only
+                        // works inside a rift. Collect handles first, then kill, so
+                        // critter_kill won't disturb the iterator.
+                        if (tig_kb_get_modifier(SDL_KMOD_CTRL) && endgame_map_is_active()) {
+                            int64_t kill_list[256];
+                            int kill_cnt = 0;
+                            int64_t kobj;
+                            int kit;
+                            if (obj_inst_first(&kobj, &kit)) {
+                                do {
+                                    if (!obj_type_is_critter(obj_field_int32_get(kobj, OBJ_F_TYPE))) {
+                                        continue;
+                                    }
+                                    if (player_is_pc_obj(kobj)
+                                        || critter_pc_leader_get(kobj) != OBJ_HANDLE_NULL
+                                        || critter_is_dead(kobj)) {
+                                        continue;
+                                    }
+                                    if (kill_cnt < 256) {
+                                        kill_list[kill_cnt++] = kobj;
+                                    }
+                                } while (obj_inst_next(&kobj, &kit));
+                            }
+                            for (int k = 0; k < kill_cnt; k++) {
+                                critter_kill(kill_list[k]);
+                            }
+                            // critter_kill -> combat_dmg(CDF_DEATH) -> critter_notify_killed,
+                            // which now triggers endgame_map_on_critter_killed for every
+                            // critter death (moved out of the NPC/pc_killer block), so the
+                            // last kill spawns the chest + sigil. No explicit call needed.
+                            {
+                                UiMessage k_msg;
+                                static char k_buf[64];
+                                snprintf(k_buf, sizeof(k_buf), "[DEBUG] Rift cleared: %d killed", kill_cnt);
+                                k_msg.type = UI_MSG_TYPE_FEEDBACK;
+                                k_msg.str = k_buf;
+                                ui_display_msg(&k_msg);
                             }
                         }
                         break;

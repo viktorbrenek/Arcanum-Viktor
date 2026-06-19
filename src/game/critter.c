@@ -688,6 +688,13 @@ void critter_notify_killed(int64_t victim_obj, int64_t killer_obj, int anim)
     sub_459740(victim_obj);
     combat_recalc_reaction(victim_obj);
 
+    // Rift completion: must fire for EVERY critter death on the endgame map, not just
+    // PC-killed NPCs. The old call sat inside the NPC + pc_killer block below, so rifts
+    // full of OBJ_TYPE_CRITTER beasts (boars, spiders, elementals) — or anything killed
+    // without a PC killer (debug Ctrl+F1) — never triggered the chest/sigil/feedback.
+    // endgame_map_on_critter_killed self-guards on endgame_map_is_active().
+    endgame_map_on_critter_killed(victim_obj);
+
     if (obj_field_int32_get(victim_obj, OBJ_F_TYPE) == OBJ_TYPE_NPC) {
         critter_npc_combat_focus_wipe_schedule(victim_obj);
         obj_field_handle_set(victim_obj, OBJ_F_NPC_COMBAT_FOCUS, killer_obj);
@@ -749,8 +756,6 @@ void critter_notify_killed(int64_t victim_obj, int64_t killer_obj, int anim)
                         }
                     }
                 }
-
-                endgame_map_on_critter_killed(victim_obj);
 
                 // 20% of the experience cost for killing.
                 critter_give_xp(pc_killer_obj, 20 * obj_field_int32_get(victim_obj, OBJ_F_NPC_EXPERIENCE_WORTH) / 100);

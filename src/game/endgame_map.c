@@ -4,6 +4,7 @@
 #include <string.h>
 #include <windows.h>
 
+#include "game/critter.h"
 #include "game/critter_rarity.h"
 #include "game/item_rarity.h"
 #include "game/descriptions.h"
@@ -44,6 +45,15 @@
 // reliable across save/load.
 #define VIKTOR_QUEST_VAR         1900
 #define VIKTOR_QUEST_ACCEPTED    1
+
+// Viktor's follow-up "Five Sigils" quest (see dlg\30710viktor.dlg, player_house.c).
+// SIGILS_VAR is a bitmask: bit N is set the first time the player CLEARS a rift of
+// RiftType N. When all RIFT_COUNT bits are set (== SIGILS_ALL_MASK) the dialog lets
+// the player turn the quest in; that sets VIKTOR_RUNES_VAR = 2, which unlocks the
+// elemental imbue runes in Viktor's shop. Tracked always, even before quest accept.
+#define SIGILS_VAR               1901
+#define SIGILS_ALL_MASK          ((1 << RIFT_COUNT) - 1)
+#define VIKTOR_RUNES_VAR         1902   // 0 = none, 1 = accepted, 2 = done (runes unlocked)
 #define MASTER_RUNE_PROTO        BP_GEODE  // reskinned generic item (proto 15186)
 #define MASTER_RUNE_DESCRIPTION  3101      // description.mes -> "Master Rune"
 #define MASTER_RUNE_NAME         15186     // OBJ_F_NAME the dialog "in15186" matches
@@ -560,18 +570,70 @@ static void endgame_spawn_reward_chest(int64_t loc, int tier)
 
 void endgame_map_on_critter_killed(int64_t critter_obj)
 {
-    if (!endgame_map_is_active() || endgame_critters_remaining <= 0) {
+    if (!endgame_map_is_active()) {
         return;
     }
 
-    endgame_critters_remaining--;
-    tig_debug_printf("endgame_map: %d critters remaining\n", endgame_critters_remaining);
+    // Count hostile critters still alive on the rift map, rather than decrement a
+    // static counter — that counter is lost on save/load, so killing the last monster
+    // after a reload left it at 0 and the reward chest never spawned. Recounting is
+    // robust because the rift map holds only the spawned monsters (+ the PC).
+    int alive = 0;
+    int64_t obj;
+    int iter;
+    if (obj_inst_first(&obj, &iter)) {
+        do {
+            if (obj == critter_obj) {
+                continue; // the one just killed (may not be flagged dead yet)
+            }
+            if (!obj_type_is_critter(obj_field_int32_get(obj, OBJ_F_TYPE))) {
+                continue;
+            }
+            // PC, followers and summons don't gate completion.
+            if (player_is_pc_obj(obj) || critter_pc_leader_get(obj) != OBJ_HANDLE_NULL) {
+                continue;
+            }
+            if (critter_is_dead(obj)) {
+                continue;
+            }
+            alive++;
+        } while (obj_inst_next(&obj, &iter));
+    }
+    endgame_critters_remaining = alive;
+    tig_debug_printf("endgame_map: %d critters remaining\n", alive);
 
-    if (endgame_critters_remaining == 0) {
+    if (alive == 0) {
         int tier = endgame_map_get_tier();
         tier++;
         settings_set_value(&endgame_cfg, "rift_tier", tier);
         settings_save(&endgame_cfg);
+
+        // Five Sigils quest: mark this rift type as cleared (bit in SIGILS_VAR).
+        int sigils = script_global_var_get(SIGILS_VAR);
+        int sigil_bit = 1 << (int)endgame_map_get_type();
+        if ((sigils & sigil_bit) == 0) {
+            // Newly cleared nature — record it and tell the player the progress so the
+            // Five Sigils quest has visible feedback ("how many maps am I done with?").
+            sigils |= sigil_bit;
+            script_global_var_set(SIGILS_VAR, sigils);
+
+            int done = 0;
+            for (int b = 0; b < RIFT_COUNT; b++) {
+                if (sigils & (1 << b)) {
+                    done++;
+                }
+            }
+            char sigil_msg[160];
+            if (done >= RIFT_COUNT) {
+                snprintf(sigil_msg, sizeof(sigil_msg),
+                    "All five rift natures are silenced! Return to Viktor to claim your reward.");
+            } else {
+                snprintf(sigil_msg, sizeof(sigil_msg),
+                    "This rift's nature is silenced -- %d of %d gathered for Viktor.",
+                    done, RIFT_COUNT);
+            }
+            endgame_feedback(sigil_msg);
+        }
 
         // Get critter location
         int64_t spawn_loc = OBJ_HANDLE_NULL;
@@ -638,8 +700,12 @@ void endgame_map_on_map_opened(int map_id)
     // See player_house.c and dlg\30710viktor.dlg (quest 51).
     {
         int64_t pc = player_get_local_pc_obj();
+        // Only while the quest is ACCEPTED (not done) AND the player isn't already
+        // carrying a rune — otherwise every rift entry spawned another Master Rune
+        // (duplicates / the quest looking repeatable).
         if (pc != OBJ_HANDLE_NULL
-            && script_global_var_get(VIKTOR_QUEST_VAR) == VIKTOR_QUEST_ACCEPTED) {
+            && script_global_var_get(VIKTOR_QUEST_VAR) == VIKTOR_QUEST_ACCEPTED
+            && item_find_by_name(pc, MASTER_RUNE_NAME) == OBJ_HANDLE_NULL) {
             int64_t rune_obj;
             int64_t rune_loc = location_make(ENDGAME_START_X + 1, ENDGAME_START_Y + 1);
             if (mp_object_create(MASTER_RUNE_PROTO, rune_loc, &rune_obj)) {
@@ -651,5 +717,26 @@ void endgame_map_on_map_opened(int map_id)
                 endgame_feedback("Viktor's Master Rune lies here in the dust -- the thief's trail ends in the Void. Take it back to him.");
             }
         }
+    }
+
+    // Five Sigils: show progress on every rift entry while the quest is accepted, so
+    // the player always knows how many natures they've silenced (visible signal).
+    if (script_global_var_get(VIKTOR_RUNES_VAR) == 1) {
+        int sg = script_global_var_get(SIGILS_VAR);
+        int done = 0;
+        for (int b = 0; b < RIFT_COUNT; b++) {
+            if (sg & (1 << b)) {
+                done++;
+            }
+        }
+        char pbuf[160];
+        if (done >= RIFT_COUNT) {
+            snprintf(pbuf, sizeof(pbuf),
+                "Five Sigils: all %d rift natures silenced -- return to Viktor!", RIFT_COUNT);
+        } else {
+            snprintf(pbuf, sizeof(pbuf),
+                "Five Sigils: %d of %d rift natures silenced so far.", done, RIFT_COUNT);
+        }
+        endgame_feedback(pbuf);
     }
 }

@@ -5,6 +5,7 @@
 #include "game/critter.h"
 #include "game/descriptions.h"
 #include "game/item.h"
+#include "game/item_orb.h"
 #include "game/location.h"
 #include "game/map.h"
 #include "game/mp_utils.h"
@@ -23,8 +24,19 @@
 // ("runes") and offers the "Stolen Master Rune" quest (see dlg\30710viktor.dlg).
 #define VIKTOR_DESCRIPTION   3100   // description.mes entry -> displayed name "Viktor"
 #define VIKTOR_DIALOG_NUM    30710  // dlg\30710viktor.dlg (SAP_DIALOG script num)
-#define VIKTOR_INVEN_SOURCE  125    // rules\InvenSource.mes set (curated runes)
+#define VIKTOR_INVEN_SOURCE  125    // rules\InvenSource.mes set (curated orbs)
+#define VIKTOR_RUNE_SOURCE   ORB_RUNE_VENDOR_SOURCE // 127 — orbs + elemental imbue runes
+#define VIKTOR_RUNES_VAR     1902   // global var: 2 = Five Sigils done -> runes unlocked
+#define VIKTOR_RUNES_DONE    2
 #define VIKTOR_PORTRAIT      1005   // generic human male portrait
+
+// Inventory source for Viktor right now: the rune-stocked set once the Five Sigils
+// quest is complete, otherwise the basic orb set.
+static int viktor_inven_source(void)
+{
+    return (script_global_var_get(VIKTOR_RUNES_VAR) == VIKTOR_RUNES_DONE)
+        ? VIKTOR_RUNE_SOURCE : VIKTOR_INVEN_SOURCE;
+}
 
 // Start tile near the centre of the (64x64) sector.
 #define HOUSE_START_X 32
@@ -184,8 +196,33 @@ static void house_setup_viktor(int64_t viktor_obj)
     scr.num = VIKTOR_DIALOG_NUM;
     obj_arrayfield_script_set(viktor_obj, OBJ_F_SCRIPTS_IDX, SAP_DIALOG, &scr);
 
-    obj_field_int32_set(viktor_obj, OBJ_F_CRITTER_INVENTORY_SOURCE, VIKTOR_INVEN_SOURCE);
+    obj_field_int32_set(viktor_obj, OBJ_F_CRITTER_INVENTORY_SOURCE, viktor_inven_source());
     sub_463E20(viktor_obj); // build the for-sale substitute inventory (the runes)
+}
+
+// On house entry, sync Viktor's shop to the current quest state: once the Five Sigils
+// quest is done, swap him to the rune-stocked source and restock. He was spawned once
+// (possibly before the quest existed), so this catches the unlock on a later visit.
+static void house_refresh_viktor_shop(void)
+{
+    int64_t obj;
+    int iter;
+
+    if (script_global_var_get(VIKTOR_RUNES_VAR) != VIKTOR_RUNES_DONE) {
+        return;
+    }
+    if (!obj_inst_first(&obj, &iter)) {
+        return;
+    }
+    do {
+        if (obj_field_int32_get(obj, OBJ_F_TYPE) == OBJ_TYPE_NPC
+            && obj_field_int32_get(obj, OBJ_F_DESCRIPTION) == VIKTOR_DESCRIPTION
+            && obj_field_int32_get(obj, OBJ_F_CRITTER_INVENTORY_SOURCE) != VIKTOR_RUNE_SOURCE) {
+            obj_field_int32_set(obj, OBJ_F_CRITTER_INVENTORY_SOURCE, VIKTOR_RUNE_SOURCE);
+            sub_463E20(obj); // rebuild stock so the runes appear immediately
+            break;
+        }
+    } while (obj_inst_next(&obj, &iter));
 }
 
 static void house_spawn_viktor(void)
@@ -255,4 +292,7 @@ void player_house_on_map_opened(int map_id)
     } else {
         house_feedback("You return to your sanctuary in the Void.");
     }
+
+    // Unlock Viktor's rune stock if the Five Sigils quest has since been completed.
+    house_refresh_viktor_shop();
 }

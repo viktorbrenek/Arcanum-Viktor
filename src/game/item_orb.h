@@ -73,4 +73,18 @@ const char* item_weapon_rune_label(int64_t weapon_obj);
 // (and leaves *out_aid untouched) if the weapon bears no rune.
 bool item_weapon_rune_art(int64_t weapon_obj, tig_art_id_t* out_aid);
 
+// InvenSource set id that marks the "imbue-rune vendor" (Viktor after the Five Sigils
+// quest). When sub_463E20 restocks a merchant with this source, it also stocks one of
+// each elemental imbue rune. Keyed on the source id so it survives every restock.
+#define ORB_RUNE_VENDOR_SOURCE 127
+// Viktor's *base* orb set + the Five Sigils quest var: a merchant on the base set whose
+// quest var == 2 is auto-stocked with runes too, so the unlock works on the next restock
+// without needing an inventory-source swap or a house re-entry.
+#define ORB_RUNE_VENDOR_BASE      125
+#define ORB_RUNE_VENDOR_QUEST_VAR 1902
+
+// Ensure the merchant carries one of each elemental imbue rune (fire/poison/electric/
+// physical/void). Idempotent — skips a rune already present. Called from sub_463E20.
+void item_orb_stock_runes(int64_t merchant_obj);
+
 #endif /* ARCANUM_GAME_ITEM_ORB_H_ */
