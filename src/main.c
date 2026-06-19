@@ -606,6 +606,17 @@ void main_loop(void)
                                         object_destroy(orb_obj);
                                     }
                                 }
+                                // CE QA: also hand over the five imbue runes so the
+                                // Five Sigils reward can be tested before the quest ships.
+                                for (OrbType rt = ORB_RUNE_FIRE; rt <= ORB_RUNE_VOID; rt++) {
+                                    int64_t rune_obj;
+                                    if (mp_object_create(BP_COMPONENT_1, loc, &rune_obj)) {
+                                        item_orb_set_type(rune_obj, rt);
+                                        if (!item_transfer(rune_obj, pc)) {
+                                            object_destroy(rune_obj);
+                                        }
+                                    }
+                                }
                             }
 
                             char modal_buf[256];

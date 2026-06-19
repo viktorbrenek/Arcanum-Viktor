@@ -366,6 +366,21 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
         has_affixes = affixes_buf[0] != '\0';
     }
 
+    // Socketed imbue rune (Viktor's runes etch one permanent damage bonus into a
+    // weapon). Shown regardless of rarity — a plain weapon can still bear a rune.
+    {
+        const char* rune_line = item_weapon_rune_label(item_obj);
+        if (rune_line != NULL) {
+            if (has_affixes) {
+                strcat(affixes_buf, "\n");
+                strcat(affixes_buf, rune_line);
+            } else {
+                strcpy(affixes_buf, rune_line);
+            }
+            has_affixes = affixes_buf[0] != '\0';
+        }
+    }
+
     // Set info
     set_buf[0] = '\0';
     has_set = false;
@@ -460,6 +475,30 @@ void item_tooltip_show(int64_t item_obj, const char* item_name)
 
     tig_window_fill(tooltip_window, &bg, tig_color_make(12, 12, 18));
     tig_window_box(tooltip_window, &bg, tig_color_make(80, 80, 110));
+
+    // Socketed imbue rune icon, top-right corner.
+    {
+        tig_art_id_t rune_aid;
+        TigArtFrameData rune_fd;
+        if (item_weapon_rune_art(item_obj, &rune_aid)
+                && tig_art_frame_data(rune_aid, &rune_fd) == TIG_OK) {
+            TigArtBlitInfo bi;
+            TigRect s, d;
+            s.x = 0;
+            s.y = 0;
+            s.width  = rune_fd.width;
+            s.height = rune_fd.height;
+            d.x = TOOLTIP_WIDTH - rune_fd.width - TOOLTIP_PADDING;
+            d.y = TOOLTIP_PADDING;
+            d.width  = rune_fd.width;
+            d.height = rune_fd.height;
+            bi.flags = 0;
+            bi.art_id = rune_aid;
+            bi.src_rect = &s;
+            bi.dst_rect = &d;
+            tig_window_blit_art(tooltip_window, &bi);
+        }
+    }
 
     // --- Draw content ---
     y = TOOLTIP_PADDING;

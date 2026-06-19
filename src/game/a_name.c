@@ -1099,6 +1099,12 @@ bool a_name_item_aid_to_fname(tig_art_id_t aid, char* fname)
                 "orb9",
                 "orb10",
                 "orb11",
+                // Imbue runes (ORB_RUNE_FIRE..ORB_RUNE_VOID = 12..16 -> art num 911..915).
+                "runa_fire",      // ORB_RUNE_FIRE
+                "runa_poison",    // ORB_RUNE_POISON
+                "runa_magic",     // ORB_RUNE_ELECTRIC (magic art = lightning)
+                "runa_physical",  // ORB_RUNE_PHYSICAL
+                "runa_void",      // ORB_RUNE_VOID
             };
             int orb_idx = num - ORB_ART_NUM_BASE;
             int disp = tig_art_item_id_disposition_get(aid);

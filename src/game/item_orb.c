@@ -1,5 +1,8 @@
 #include "game/item_orb.h"
 
+#include <stdio.h>
+
+#include "game/damage_type.h"
 #include "game/endgame_map.h"
 #include "game/item.h"
 #include "game/item_rarity.h"
@@ -10,6 +13,15 @@
 #include "game/ui.h"
 #include "ui/inven_ui.h"
 #include "tig/art.h"
+
+// Imbue rune effect strengths (one rune per weapon, endgame-tier reward).
+// Elemental runes (fire/poison/electrical/physical) CONVERT the weapon's whole base
+// damage to their element AND add this flat bonus of that type.
+#define ELEM_IMBUE_AMOUNT 10
+// The Void rune is deliberately weak: a small fatigue drain only, NO conversion and
+// NO big number — otherwise a player trivially knocks NPCs unconscious (they stop
+// reacting) and wins for free. Keep this tiny.
+#define VOID_FATIGUE_AMOUNT 3
 
 OrbType item_orb_roll_type(void)
 {
@@ -40,6 +52,11 @@ const char* item_orb_display_name(OrbType type)
         "Scroll of Identification",
         "Map of the Void",
         "Void Portal Stone",
+        "Rune of Fire",
+        "Rune of Venom",
+        "Rune of Storms",
+        "Rune of Force",
+        "Rune of the Void",
     };
     if (type > ORB_NONE && (int)type < ORB_COUNT) {
         return names[type];
@@ -62,6 +79,11 @@ const char* item_orb_description(OrbType type)
         "Reveals the hidden magical properties of an unidentified item.",
         "Opens a rift to a pocket of the Void, filled with powerful creatures and rich rewards.",
         "Right-click to collapse the rift and return to the mortal realm.",
+        "Recasts a weapon's entire damage as fire and adds a potent fire bonus. One rune per weapon.",
+        "Recasts a weapon's entire damage as poison and adds a potent poison bonus. One rune per weapon.",
+        "Recasts a weapon's entire damage as electrical and adds a potent electrical bonus. One rune per weapon.",
+        "Recasts a weapon's entire damage as raw force and adds a potent normal-damage bonus. One rune per weapon.",
+        "Lends a weapon a faint Void edge that saps a little of the foe's fatigue with each strike. One rune per weapon.",
     };
     if (type > ORB_NONE && (int)type < ORB_COUNT) {
         return descs[type];
@@ -90,6 +112,107 @@ int64_t item_orb_find_in_inventory(int64_t critter_obj, OrbType type)
         }
     }
     return OBJ_HANDLE_NULL;
+}
+
+// Maps an imbue rune type to the DamageType it etches. Returns -1 if not a rune.
+static int rune_damage_type(OrbType rune)
+{
+    switch (rune) {
+    case ORB_RUNE_FIRE:     return DAMAGE_TYPE_FIRE;
+    case ORB_RUNE_POISON:   return DAMAGE_TYPE_POISON;
+    case ORB_RUNE_ELECTRIC: return DAMAGE_TYPE_ELECTRICAL;
+    case ORB_RUNE_PHYSICAL: return DAMAGE_TYPE_NORMAL;
+    case ORB_RUNE_VOID:     return DAMAGE_TYPE_FATIGUE;
+    default:                return -1;
+    }
+}
+
+static const char* damage_type_word(int damage_type)
+{
+    switch (damage_type) {
+    case DAMAGE_TYPE_FIRE:       return "fire";
+    case DAMAGE_TYPE_POISON:     return "poison";
+    case DAMAGE_TYPE_ELECTRICAL: return "electrical";
+    case DAMAGE_TYPE_NORMAL:     return "normal";
+    case DAMAGE_TYPE_FATIGUE:    return "fatigue";
+    default:                     return "";
+    }
+}
+
+// Flat bonus damage a rune adds. Void is tiny (anti-knockout-cheese); others endgame.
+static int rune_imbue_amount(OrbType rune)
+{
+    return (rune == ORB_RUNE_VOID) ? VOID_FATIGUE_AMOUNT : ELEM_IMBUE_AMOUNT;
+}
+
+// Elemental runes convert the weapon's whole base damage to their type; the Void
+// rune does not (it only drains a little fatigue).
+static bool rune_converts(OrbType rune)
+{
+    return rune != ORB_RUNE_VOID && rune_damage_type(rune) >= 0;
+}
+
+// Fold all of a weapon's base damage (every DamageType slot) into one target type.
+// Cheap array-field moves; permanent. Guarded by the one-rune-per-weapon cap so it
+// can never run twice on the same weapon.
+static void rune_convert_base_damage(int64_t weapon_obj, int target_type)
+{
+    int lower_sum = 0;
+    int upper_sum = 0;
+    for (int t = 0; t < DAMAGE_TYPE_COUNT; t++) {
+        lower_sum += obj_arrayfield_int32_get(weapon_obj, OBJ_F_WEAPON_DAMAGE_LOWER_IDX, t);
+        upper_sum += obj_arrayfield_int32_get(weapon_obj, OBJ_F_WEAPON_DAMAGE_UPPER_IDX, t);
+        obj_arrayfield_int32_set(weapon_obj, OBJ_F_WEAPON_DAMAGE_LOWER_IDX, t, 0);
+        obj_arrayfield_int32_set(weapon_obj, OBJ_F_WEAPON_DAMAGE_UPPER_IDX, t, 0);
+    }
+    obj_arrayfield_int32_set(weapon_obj, OBJ_F_WEAPON_DAMAGE_LOWER_IDX, target_type, lower_sum);
+    obj_arrayfield_int32_set(weapon_obj, OBJ_F_WEAPON_DAMAGE_UPPER_IDX, target_type, upper_sum);
+}
+
+OrbType item_weapon_rune_get(int64_t weapon_obj)
+{
+    if (weapon_obj == OBJ_HANDLE_NULL) {
+        return ORB_NONE;
+    }
+    if (obj_field_int32_get(weapon_obj, OBJ_F_TYPE) != OBJ_TYPE_WEAPON) {
+        return ORB_NONE;
+    }
+    int t = obj_field_int32_get(weapon_obj, OBJ_F_WEAPON_PAD_I_1);
+    return (t >= ORB_RUNE_FIRE && t <= ORB_RUNE_VOID) ? (OrbType)t : ORB_NONE;
+}
+
+const char* item_weapon_rune_label(int64_t weapon_obj)
+{
+    static char buf[128];
+    OrbType rune = item_weapon_rune_get(weapon_obj);
+    if (rune == ORB_NONE) {
+        return NULL;
+    }
+    int dtype = rune_damage_type(rune);
+    const char* word = damage_type_word(dtype);
+    if (rune_converts(rune)) {
+        snprintf(buf, sizeof(buf), "Etched: %s (all damage becomes %s, +%d %s)",
+            item_orb_display_name(rune), word, rune_imbue_amount(rune), word);
+    } else {
+        snprintf(buf, sizeof(buf), "Etched: %s (+%d %s damage)",
+            item_orb_display_name(rune), rune_imbue_amount(rune), word);
+    }
+    return buf;
+}
+
+bool item_weapon_rune_art(int64_t weapon_obj, tig_art_id_t* out_aid)
+{
+    OrbType rune = item_weapon_rune_get(weapon_obj);
+    if (rune == ORB_NONE) {
+        return false;
+    }
+    return tig_art_item_id_create(
+        ORB_ART_NUM_BASE + (int)rune - 1,
+        TIG_ART_ITEM_DISPOSITION_INVENTORY,
+        0, 0, 0,
+        TIG_ART_ITEM_TYPE_GENERIC,
+        0, 0,
+        out_aid) == TIG_OK;
 }
 
 OrbType item_orb_get_type(int64_t item_obj)
@@ -135,6 +258,12 @@ void item_orb_set_type(int64_t item_obj, OrbType type)
         [ORB_IDENTIFICATION] = 100,
         [ORB_MAP]            = 500,
         [ORB_EXIT_STONE]     = 50,
+        // Imbue runes — premium quest-reward shop stock, priced to feel earned.
+        [ORB_RUNE_FIRE]      = 350,
+        [ORB_RUNE_POISON]    = 350,
+        [ORB_RUNE_ELECTRIC]  = 350,
+        [ORB_RUNE_PHYSICAL]  = 350,
+        [ORB_RUNE_VOID]      = 400,
     };
     if (type > ORB_NONE && type < ORB_COUNT) {
         obj_field_int32_set(item_obj, OBJ_F_ITEM_WORTH, orb_worth[type]);
@@ -361,7 +490,58 @@ bool item_orb_try_apply(int64_t source_obj, int64_t item_obj, int64_t target_obj
         }
         break;
 
-
+    case ORB_RUNE_FIRE:
+    case ORB_RUNE_POISON:
+    case ORB_RUNE_ELECTRIC:
+    case ORB_RUNE_PHYSICAL:
+    case ORB_RUNE_VOID: {
+        // Imbue runes etch permanent bonus damage of one type into a weapon. The slot
+        // is OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX[damage_type], the same field rarity
+        // affixes and proto magic weapons use (read in item.c damage calc via
+        // item_adjust_magic — full value on neutral items, aptitude-scaled on magical).
+        if (target_type != OBJ_TYPE_WEAPON) {
+            orb_feedback("Runes can only be etched into weapons.");
+            break;
+        }
+        // One rune per weapon: the weave will not hold a second sigil. This caps
+        // stacking (no 50 fire runes on one blade) and gives the tooltip a single
+        // socketed rune to show. Marker lives in OBJ_F_WEAPON_PAD_I_1.
+        if (item_weapon_rune_get(actual_target) != ORB_NONE) {
+            orb_feedback("This weapon already bears a rune — its weave will hold no other.");
+            break;
+        }
+        const char* msg;
+        switch (orb_type) {
+        case ORB_RUNE_FIRE:
+            msg = "Flames engulf the blade — all its damage now burns as fire.";
+            break;
+        case ORB_RUNE_POISON:
+            msg = "A venomous sheen swallows the edge — all its damage turns to venom.";
+            break;
+        case ORB_RUNE_ELECTRIC:
+            msg = "Lightning wreathes the weapon — all its damage crackles as storm.";
+            break;
+        case ORB_RUNE_PHYSICAL:
+            msg = "The weapon's edge hardens — all its damage drives home as raw force.";
+            break;
+        case ORB_RUNE_VOID:
+        default:
+            msg = "A hollow chill seeps in — the weapon now saps a little of the foe's vigor.";
+            break;
+        }
+        int dtype = rune_damage_type(orb_type);
+        // Elemental runes recast the weapon's whole base damage to their type; the Void
+        // rune deliberately does not (small fatigue drain only — see VOID_FATIGUE_AMOUNT).
+        if (rune_converts(orb_type)) {
+            rune_convert_base_damage(actual_target, dtype);
+        }
+        int cur = obj_arrayfield_int32_get(actual_target, OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, dtype);
+        obj_arrayfield_int32_set(actual_target, OBJ_F_WEAPON_MAGIC_DAMAGE_ADJ_IDX, dtype, cur + rune_imbue_amount(orb_type));
+        obj_field_int32_set(actual_target, OBJ_F_WEAPON_PAD_I_1, (int)orb_type); // socket marker
+        orb_feedback(msg);
+        consumed = true;
+        break;
+    }
 
     default:
         return false;

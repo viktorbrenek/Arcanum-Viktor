@@ -2,6 +2,7 @@
 #define ARCANUM_GAME_ITEM_ORB_H_
 
 #include "game/context.h"
+#include "tig/art.h"
 
 // Art num base for orb inventory/ground art (TIG_ART_ITEM_TYPE_GENERIC, subtype 0).
 // ORB_REFORGING → num 900, ORB_ASCENSION → 901, etc.
@@ -21,6 +22,13 @@ typedef enum OrbType {
     ORB_IDENTIFICATION  = 9,  // reveal magical properties of an unidentified item; most common drop
     ORB_MAP             = 10, // open a rift to the endgame dungeon; NG+ only, not in random drop pool
     ORB_EXIT_STONE      = 11, // exit active Rift pocket back to main world
+    // Imbue runes (Viktor's "Five Sigils" reward, shop-only — NOT in random drop pool).
+    // Each etches permanent bonus damage of one type onto a weapon. Art: runa_<element>.
+    ORB_RUNE_FIRE       = 12, // +fire damage      (DAMAGE_TYPE_FIRE)       art runa_fire
+    ORB_RUNE_POISON     = 13, // +poison damage    (DAMAGE_TYPE_POISON)     art runa_poison
+    ORB_RUNE_ELECTRIC   = 14, // +electrical damage(DAMAGE_TYPE_ELECTRICAL) art runa_magic
+    ORB_RUNE_PHYSICAL   = 15, // +normal damage    (DAMAGE_TYPE_NORMAL)     art runa_physical
+    ORB_RUNE_VOID       = 16, // +fatigue damage   (DAMAGE_TYPE_FATIGUE)    art runa_void
     ORB_COUNT,
 } OrbType;
 
@@ -51,5 +59,18 @@ void item_orb_stack_count_set(int64_t item_obj, int count);
 
 // Find first orb of given type in critter's inventory. Returns OBJ_HANDLE_NULL if none.
 int64_t item_orb_find_in_inventory(int64_t critter_obj, OrbType type);
+
+// Imbue rune currently etched into a weapon (ORB_NONE if none). One rune max per
+// weapon; stored in OBJ_F_WEAPON_PAD_I_1. Returns ORB_NONE for non-weapons.
+OrbType item_weapon_rune_get(int64_t weapon_obj);
+
+// One-line tooltip label for a weapon's etched rune, e.g. "Etched: Rune of Fire
+// (+4 fire damage)". Returns NULL if the weapon bears no rune. Points at a static
+// buffer (valid until the next call) — used immediately by the tooltip.
+const char* item_weapon_rune_label(int64_t weapon_obj);
+
+// Inventory art id of a weapon's etched rune, for the tooltip icon. Returns false
+// (and leaves *out_aid untouched) if the weapon bears no rune.
+bool item_weapon_rune_art(int64_t weapon_obj, tig_art_id_t* out_aid);
 
 #endif /* ARCANUM_GAME_ITEM_ORB_H_ */
