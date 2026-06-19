@@ -273,6 +273,17 @@ static void endgame_spawn_critters(void)
     if (max_idx >= pool_size) max_idx = pool_size - 1;
     if (max_idx < 0) max_idx = 0;
 
+    // Swarm rifts: weak melee packs (PHYSICAL = boars; POISON = venom spiders + dire/
+    // venom hounds) that were too few and spawned too far -> the player picked them off
+    // in a slow trickle. Flood them (~2.5x count, own cap) AND pull the spawn ring in
+    // tight (below) so they arrive as a pack. Extra spawns also mean more
+    // critter_rarity rolls -> more elites.
+    bool swarm = (type == RIFT_PHYSICAL || type == RIFT_POISON);
+    if (swarm) {
+        count = count * 5 / 2;
+        if (count > 60) count = 60;
+    }
+
     // Decorate map with thematic scenery
     endgame_spawn_scenery();
 
@@ -280,6 +291,18 @@ static void endgame_spawn_critters(void)
         int proto = pool[random_between(0, max_idx)];
         int dx = scatter_offsets[i % SCATTER_COUNT][0];
         int dy = scatter_offsets[i % SCATTER_COUNT][1];
+        if (swarm) {
+            // Pull the spawn ring from ~11-18 tiles to ~7-11 so the pack closes on the
+            // player instead of trickling in. Not tighter: the ~4-8 radius once
+            // aggro-killed the freshly teleported PC on entry.
+            dx = dx * 3 / 5;
+            dy = dy * 3 / 5;
+        }
+        // Jitter each spawn: with count > SCATTER_COUNT (the horde reuses slots) many
+        // critters share a scatter tile; without spread mp_object_create fails on the
+        // occupied tile and the critter is silently dropped, capping the real swarm.
+        dx += random_between(-3, 3);
+        dy += random_between(-3, 3);
         int64_t loc = location_make(ENDGAME_START_X + dx, ENDGAME_START_Y + dy);
         int64_t critter_obj;
         if (mp_object_create(proto, loc, &critter_obj)) {
