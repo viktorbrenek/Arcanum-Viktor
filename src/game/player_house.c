@@ -2,18 +2,29 @@
 
 #include <string.h>
 
+#include "game/critter.h"
 #include "game/descriptions.h"
+#include "game/item.h"
 #include "game/location.h"
 #include "game/map.h"
 #include "game/mp_utils.h"
 #include "game/obj.h"
 #include "game/player.h"
+#include "game/script.h"
 #include "game/teleport.h"
 #include "game/ui.h"
 #include "ui/inven_ui.h"
 #include "tig/debug.h"
 
 #define PLAYER_HOUSE_MAP_NAME "player_house"
+
+// --- Viktor, the Void runesmith (vendor + quest giver) -----------------------
+// Viktor is spawned once when the house is first built. He sells crafting orbs
+// ("runes") and offers the "Stolen Master Rune" quest (see dlg\30710viktor.dlg).
+#define VIKTOR_DESCRIPTION   3100   // description.mes entry -> displayed name "Viktor"
+#define VIKTOR_DIALOG_NUM    30710  // dlg\30710viktor.dlg (SAP_DIALOG script num)
+#define VIKTOR_INVEN_SOURCE  125    // rules\InvenSource.mes set (curated runes)
+#define VIKTOR_PORTRAIT      1005   // generic human male portrait
 
 // Start tile near the centre of the (64x64) sector.
 #define HOUSE_START_X 32
@@ -159,6 +170,37 @@ void player_house_toggle(void)
     }
 }
 
+// Turn a freshly created NPC into Viktor: name, portrait, dialog and the
+// merchant stock (built from InvenSourceBuy.mes by sub_463E20, exactly like
+// player.c does for the PC).
+static void house_setup_viktor(int64_t viktor_obj)
+{
+    Script scr;
+
+    obj_field_int32_set(viktor_obj, OBJ_F_DESCRIPTION, VIKTOR_DESCRIPTION);
+    obj_field_int32_set(viktor_obj, OBJ_F_CRITTER_DESCRIPTION_UNKNOWN, VIKTOR_DESCRIPTION);
+    obj_field_int32_set(viktor_obj, OBJ_F_CRITTER_PORTRAIT, VIKTOR_PORTRAIT);
+
+    scr.num = VIKTOR_DIALOG_NUM;
+    obj_arrayfield_script_set(viktor_obj, OBJ_F_SCRIPTS_IDX, SAP_DIALOG, &scr);
+
+    obj_field_int32_set(viktor_obj, OBJ_F_CRITTER_INVENTORY_SOURCE, VIKTOR_INVEN_SOURCE);
+    sub_463E20(viktor_obj); // build the for-sale substitute inventory (the runes)
+}
+
+static void house_spawn_viktor(void)
+{
+    int64_t viktor_loc;
+    int64_t viktor_obj;
+
+    viktor_loc = location_make(HOUSE_START_X - 2, HOUSE_START_Y);
+    if (!mp_object_create(BP_BASIC_MALE_NPC, viktor_loc, &viktor_obj)) {
+        tig_debug_println("house_spawn_viktor: mp_object_create failed");
+        return;
+    }
+    house_setup_viktor(viktor_obj);
+}
+
 static void house_build_room(void)
 {
     int min_x = HOUSE_START_X - HOUSE_RADIUS;
@@ -184,6 +226,9 @@ static void house_build_room(void)
     // Personal storage chest next to the arrival tile.
     chest_loc = location_make(HOUSE_START_X + 1, HOUSE_START_Y);
     mp_object_create(BP_CHEST_1, chest_loc, &chest_obj);
+
+    // Viktor the runesmith stands across the room: vendor + quest giver.
+    house_spawn_viktor();
 }
 
 void player_house_on_map_opened(int map_id)

@@ -15,6 +15,7 @@
 #include "game/obj_flags.h"
 #include "game/player.h"
 #include "game/random.h"
+#include "game/script.h"
 #include "game/item.h"
 #include "game/item_orb.h"
 #include "game/light.h"
@@ -36,6 +37,16 @@
 #define ENDGAME_START_Y 32
 
 #define ENDGAME_CRITTERS_BASE 6  // +2 per NG+ level
+
+// Viktor's "Stolen Master Rune" quest (see player_house.c, dlg\30710viktor.dlg).
+// Progress is tracked in global variable 1900: 0 = not started, 1 = accepted,
+// 2 = done. Using a global var (not the quest-state machine) keeps the gate
+// reliable across save/load.
+#define VIKTOR_QUEST_VAR         1900
+#define VIKTOR_QUEST_ACCEPTED    1
+#define MASTER_RUNE_PROTO        BP_GEODE  // reskinned generic item (proto 15186)
+#define MASTER_RUNE_DESCRIPTION  3101      // description.mes -> "Master Rune"
+#define MASTER_RUNE_NAME         15186     // OBJ_F_NAME the dialog "in15186" matches
 
 static const int endgame_critter_pool[] = {
     BP_GREATER_DEMON_1,
@@ -422,8 +433,23 @@ static void endgame_spawn_reward_chest(int64_t loc, int tier)
     int64_t cy = location_get_y(loc);
     int64_t chest_loc = location_make(cx + 2, cy);
 
-    int64_t chest_obj;
-    if (!mp_object_create(BP_CHEST_1, chest_loc, &chest_obj)) {
+    // Try the preferred tile first, then a ring of nearby tiles. The last enemy
+    // can fall on a blocked/edge tile where chest creation fails; without this
+    // the reward chest (and its Rift Exit Stone) would silently never appear,
+    // stranding the player in the rift.
+    static const int chest_offsets[][2] = {
+        { 2, 0 }, { -2, 0 }, { 0, 2 }, { 0, -2 },
+        { 2, 2 }, { -2, 2 }, { 2, -2 }, { -2, -2 }, { 0, 0 }
+    };
+    int64_t chest_obj = OBJ_HANDLE_NULL;
+    for (int ci = 0; ci < (int)(sizeof(chest_offsets) / sizeof(chest_offsets[0])); ci++) {
+        chest_loc = location_make(cx + chest_offsets[ci][0], cy + chest_offsets[ci][1]);
+        if (mp_object_create(BP_CHEST_1, chest_loc, &chest_obj)) {
+            break;
+        }
+        chest_obj = OBJ_HANDLE_NULL;
+    }
+    if (chest_obj == OBJ_HANDLE_NULL) {
         return;
     }
 
@@ -582,4 +608,25 @@ void endgame_map_on_map_opened(int map_id)
         break;
     }
     endgame_feedback(msg_buf);
+
+    // Viktor's stolen Master Rune: while his quest is accepted, the rune the
+    // thief carried into the Void lies here on the ground. Spawned on entry so
+    // it does not depend on clearing the rift or on the reward chest.
+    // See player_house.c and dlg\30710viktor.dlg (quest 51).
+    {
+        int64_t pc = player_get_local_pc_obj();
+        if (pc != OBJ_HANDLE_NULL
+            && script_global_var_get(VIKTOR_QUEST_VAR) == VIKTOR_QUEST_ACCEPTED) {
+            int64_t rune_obj;
+            int64_t rune_loc = location_make(ENDGAME_START_X + 1, ENDGAME_START_Y + 1);
+            if (mp_object_create(MASTER_RUNE_PROTO, rune_loc, &rune_obj)) {
+                obj_field_int32_set(rune_obj, OBJ_F_DESCRIPTION, MASTER_RUNE_DESCRIPTION);
+                obj_field_int32_set(rune_obj, OBJ_F_ITEM_DESCRIPTION_UNKNOWN, MASTER_RUNE_DESCRIPTION);
+                // The dialog "in" opcode matches OBJ_F_NAME (not the proto id),
+                // so stamp a unique quest-item name the turn-in line checks for.
+                obj_field_int32_set(rune_obj, OBJ_F_NAME, MASTER_RUNE_NAME);
+                endgame_feedback("Viktor's Master Rune lies here in the dust -- the thief's trail ends in the Void. Take it back to him.");
+            }
+        }
+    }
 }

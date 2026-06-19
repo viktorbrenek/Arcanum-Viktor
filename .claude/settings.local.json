@@ -199,7 +199,9 @@
       "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/Rules/SpellList.mes '/d/SteamLibrary/steamapps/common/Arcanum/Arcanum/Arcanum-New-Balance \\(3\\)/Arcanum New Balance/data/Rules/SpellList.mes')",
       "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/mes/spell.mes /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/data/mes/spell.mes)",
       "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/mes/spell.mes '/d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/packed/Arcanum New Balance/data/mes/spell.mes')",
-      "Bash(awk '{print $1}')"
+      "Bash(awk '{print $1}')",
+      "Bash(cat data/dlg/30710viktor.dlg)",
+      "Bash(find . -iname \"*viktor*.dlg\")"
     ]
   }
 }

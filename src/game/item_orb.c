@@ -119,6 +119,27 @@ void item_orb_set_type(int64_t item_obj, OrbType type)
     obj_field_int32_set(item_obj, OBJ_F_GENERIC_FLAGS, (int)flags);
     obj_field_int32_set(item_obj, OBJ_F_GENERIC_USAGE_BONUS, (int)type);
 
+    // Base worth per orb type (indexed by OrbType). The shared proto (15157) has a
+    // near-zero worth, so without this every orb sold/bought at the ~2g floor
+    // (item_worth clamps < 2 -> 2). Scale by power/rarity so the rune economy has weight.
+    static const int orb_worth[ORB_COUNT] = {
+        [ORB_NONE]           = 0,
+        [ORB_REFORGING]      = 200,
+        [ORB_ASCENSION]      = 400,
+        [ORB_CLEANSING]      = 200,
+        [ORB_ANNULMENT]      = 120,
+        [ORB_AWAKENING]      = 120,
+        [ORB_AUGMENTATION]   = 250,
+        [ORB_CORRUPTION]     = 300,
+        [ORB_ENTROPY]        = 300,
+        [ORB_IDENTIFICATION] = 100,
+        [ORB_MAP]            = 500,
+        [ORB_EXIT_STONE]     = 50,
+    };
+    if (type > ORB_NONE && type < ORB_COUNT) {
+        obj_field_int32_set(item_obj, OBJ_F_ITEM_WORTH, orb_worth[type]);
+    }
+
     // OIF_CAN_USE_BOX: right-click usable. OIF_NEEDS_TARGET: only for orbs that target an item.
     int item_flags = obj_field_int32_get(item_obj, OBJ_F_ITEM_FLAGS);
     item_flags |= 0x00000004u; // OIF_CAN_USE_BOX
