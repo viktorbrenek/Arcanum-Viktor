@@ -7,9 +7,12 @@
 #include "game/area.h"
 #include "game/critter.h"
 #include "game/item.h"
+#include "game/location.h"
 #include "game/magictech.h"
 #include "game/mes.h"
 #include "game/newspaper.h"
+#include "game/obj_find.h"
+#include "game/object.h"
 #include "game/player.h"
 #include "game/quest.h"
 #include "game/random.h"
@@ -17,6 +20,7 @@
 #include "game/reputation.h"
 #include "game/rumor.h"
 #include "game/script.h"
+#include "game/sector.h"
 #include "game/script_name.h"
 #include "game/skill.h"
 #include "game/spell.h"
@@ -1858,6 +1862,42 @@ bool sub_4150D0(DialogState* a1, char* a2)
     return true;
 }
 
+// CE safety net for the Gilbert Bates mansion gate (Tarant). Every "go right in"
+// branch of the guard's dialog (01060CaptBatesGuard) raises global flag 1024, but
+// the vanilla/mod gate portal can fail to clear its lock, leaving the player
+// stranded outside after completing the quest. When flag 1024 is raised we
+// force-unlock any locked portal standing next to the guard who granted entry.
+// Scoped strictly to flag 1024 + the speaking NPC, so no other door is affected.
+static void dialog_ce_unlock_gate_near(int64_t npc_obj)
+{
+    int64_t npc_loc;
+    int64_t sec_id;
+    int64_t obj;
+    FindNode* iter;
+
+    if (npc_obj == OBJ_HANDLE_NULL) {
+        return;
+    }
+
+    npc_loc = obj_field_int64_get(npc_obj, OBJ_F_LOCATION);
+    sec_id = sector_id_from_loc(npc_loc);
+
+    if (!obj_find_walk_first(sec_id, &obj, &iter)) {
+        return;
+    }
+    do {
+        if (obj_field_int32_get(obj, OBJ_F_TYPE) != OBJ_TYPE_PORTAL) {
+            continue;
+        }
+        if (location_dist(npc_loc, obj_field_int64_get(obj, OBJ_F_LOCATION)) > 4) {
+            continue;
+        }
+        if (object_locked_get(obj)) {
+            object_locked_set(obj, false);
+        }
+    } while (obj_find_walk_next(&obj, &iter));
+}
+
 // 0x415BA0
 bool sub_415BA0(DialogState* a1, char* a2, int a3)
 {
@@ -1970,9 +2010,15 @@ bool sub_415BA0(DialogState* a1, char* a2, int a3)
         case DIALOG_ACTION_GV:
             script_global_var_set(value, sub_4167C0(pch));
             break;
-        case DIALOG_ACTION_GF:
-            script_global_flag_set(value, sub_4167C0(pch));
+        case DIALOG_ACTION_GF: {
+            int gf_value = sub_4167C0(pch);
+            script_global_flag_set(value, gf_value);
+            // CE safety net: Bates mansion gate fails to unlock on its own.
+            if (value == 1024 && gf_value != 0) {
+                dialog_ce_unlock_gate_near(a1->npc_obj);
+            }
             break;
+        }
         case DIALOG_ACTION_MM:
             area_set_known(a1->pc_obj, value);
             break;
