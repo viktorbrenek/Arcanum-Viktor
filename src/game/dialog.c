@@ -12,6 +12,7 @@
 #include "game/mes.h"
 #include "game/newspaper.h"
 #include "game/obj_find.h"
+#include "game/obj_flags.h"
 #include "game/object.h"
 #include "game/player.h"
 #include "game/quest.h"
@@ -20,8 +21,9 @@
 #include "game/reputation.h"
 #include "game/rumor.h"
 #include "game/script.h"
-#include "game/sector.h"
 #include "game/script_name.h"
+#include "game/sector.h"
+#include "game/tb.h"
 #include "game/skill.h"
 #include "game/spell.h"
 #include "game/stat.h"
@@ -1868,34 +1870,82 @@ bool sub_4150D0(DialogState* a1, char* a2)
 // stranded outside after completing the quest. When flag 1024 is raised we
 // force-unlock any locked portal standing next to the guard who granted entry.
 // Scoped strictly to flag 1024 + the speaking NPC, so no other door is affected.
-static void dialog_ce_unlock_gate_near(int64_t npc_obj)
+static void dialog_ce_unlock_gate_near(int64_t npc_obj, int64_t pc_obj)
 {
+    // Search radius (tiles) around the guard. The fence gate stands next to him;
+    // 12 is generous and still well inside the estate.
+    const int RADIUS = 12;
+    // Every flag that can hold a portal shut. object_locked_set only touches
+    // OPF_LOCKED, but the gate may also carry DAY/NIGHT/ALWAYS/JAMMED/HELD bits,
+    // so clear the lot directly on OBJ_F_PORTAL_FLAGS.
+    const unsigned int LOCK_BITS = OPF_LOCKED | OPF_JAMMED | OPF_MAGICALLY_HELD
+        | OPF_LOCKED_DAY | OPF_LOCKED_NIGHT | OPF_ALWAYS_LOCKED;
+
     int64_t npc_loc;
-    int64_t sec_id;
-    int64_t obj;
-    FindNode* iter;
+    int64_t gx, gy;
+    int64_t samples[5];
+    int64_t sectors[5];
+    int sector_cnt = 0;
+    bool unlocked_any = false;
 
     if (npc_obj == OBJ_HANDLE_NULL) {
         return;
     }
 
     npc_loc = obj_field_int64_get(npc_obj, OBJ_F_LOCATION);
-    sec_id = sector_id_from_loc(npc_loc);
+    gx = location_get_x(npc_loc);
+    gy = location_get_y(npc_loc);
 
-    if (!obj_find_walk_first(sec_id, &obj, &iter)) {
-        return;
+    // obj_find walks one sector at a time; sample the box corners + center so a
+    // gate just across a sector boundary is still covered.
+    samples[0] = npc_loc;
+    samples[1] = location_make(gx - RADIUS, gy - RADIUS);
+    samples[2] = location_make(gx + RADIUS, gy - RADIUS);
+    samples[3] = location_make(gx - RADIUS, gy + RADIUS);
+    samples[4] = location_make(gx + RADIUS, gy + RADIUS);
+    for (int i = 0; i < 5; i++) {
+        int64_t sec = sector_id_from_loc(samples[i]);
+        bool dup = false;
+        for (int j = 0; j < sector_cnt; j++) {
+            if (sectors[j] == sec) {
+                dup = true;
+                break;
+            }
+        }
+        if (!dup) {
+            sectors[sector_cnt++] = sec;
+        }
     }
-    do {
-        if (obj_field_int32_get(obj, OBJ_F_TYPE) != OBJ_TYPE_PORTAL) {
+
+    for (int s = 0; s < sector_cnt; s++) {
+        int64_t obj;
+        FindNode* iter;
+
+        if (!obj_find_walk_first(sectors[s], &obj, &iter)) {
             continue;
         }
-        if (location_dist(npc_loc, obj_field_int64_get(obj, OBJ_F_LOCATION)) > 4) {
-            continue;
-        }
-        if (object_locked_get(obj)) {
-            object_locked_set(obj, false);
-        }
-    } while (obj_find_walk_next(&obj, &iter));
+        do {
+            unsigned int flags;
+
+            if (obj_field_int32_get(obj, OBJ_F_TYPE) != OBJ_TYPE_PORTAL) {
+                continue;
+            }
+            if (location_dist(npc_loc, obj_field_int64_get(obj, OBJ_F_LOCATION)) > RADIUS) {
+                continue;
+            }
+            flags = (unsigned int)obj_field_int32_get(obj, OBJ_F_PORTAL_FLAGS);
+            if ((flags & LOCK_BITS) == 0) {
+                continue;
+            }
+            flags &= ~LOCK_BITS;
+            obj_field_int32_set(obj, OBJ_F_PORTAL_FLAGS, (int)flags);
+            unlocked_any = true;
+        } while (obj_find_walk_next(&obj, &iter));
+    }
+
+    if (unlocked_any && pc_obj != OBJ_HANDLE_NULL) {
+        tb_add(pc_obj, TB_TYPE_WHITE, "The gate unlocks.");
+    }
 }
 
 // 0x415BA0
@@ -1909,6 +1959,15 @@ bool sub_415BA0(DialogState* a1, char* a2, int a3)
     bool v57 = true;
     bool attack = false;
     char code[3];
+
+    // CE safety net: Bates' guard (dialog 1060) grants entry via global flag 1024
+    // but the fence gate's own script can fail to clear its lock. Whenever any
+    // line of his dialog is processed while that flag is already set, force the
+    // adjacent gate open. Runs before the empty-result early-out so permission
+    // nodes with no result still trigger it. Scoped to dialog 1060 only.
+    if (a1->script_num == 1060 && script_global_flag_get(1024) != 0) {
+        dialog_ce_unlock_gate_near(a1->npc_obj, a1->pc_obj);
+    }
 
     if (a2 == NULL || a2[0] == '\0') {
         return true;
@@ -2015,7 +2074,7 @@ bool sub_415BA0(DialogState* a1, char* a2, int a3)
             script_global_flag_set(value, gf_value);
             // CE safety net: Bates mansion gate fails to unlock on its own.
             if (value == 1024 && gf_value != 0) {
-                dialog_ce_unlock_gate_near(a1->npc_obj);
+                dialog_ce_unlock_gate_near(a1->npc_obj, a1->pc_obj);
             }
             break;
         }
