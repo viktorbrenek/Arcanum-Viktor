@@ -541,12 +541,23 @@ static void endgame_spawn_reward_chest(int64_t loc, int tier)
     };
     int pool_size = (int)(sizeof(base_item_pool) / sizeof(base_item_pool[0]));
 
+    // Rarity scales with tier but ramps gently and caps, so the first chest is
+    // mostly RARE/EPIC (no SET, ~5% UNIQUE per item) and deep rifts top out around
+    // ~40% SET+UNIQUE per item instead of saturating to all-SET. `tier` here is the
+    // number of rifts cleared (1 on the first completion), so (tier-1) is the ramp.
+    int rarity_bonus = (tier - 1) * 6;
+    if (rarity_bonus > 36) {
+        rarity_bonus = 36;
+    }
+    // Chase feel: at most one SET/UNIQUE piece per chest; extra top rolls drop to EPIC.
+    bool top_rarity_used = false;
+
     int equip_count = random_between(2, 4);
     for (int i = 0; i < equip_count; i++) {
         int proto = base_item_pool[random_between(0, pool_size - 1)];
         int64_t gear_obj;
         if (mp_object_create(proto, chest_loc, &gear_obj)) {
-            int roll = random_between(1, 100) + tier * 10;
+            int roll = random_between(1, 100) + rarity_bonus;
             ItemRarity forced_rarity = ITEM_RARITY_UNCOMMON;
             if (roll > 105) {
                 forced_rarity = ITEM_RARITY_SET;
@@ -556,6 +567,14 @@ static void endgame_spawn_reward_chest(int64_t loc, int tier)
                 forced_rarity = ITEM_RARITY_EPIC;
             } else if (roll > 45) {
                 forced_rarity = ITEM_RARITY_RARE;
+            }
+
+            if (forced_rarity == ITEM_RARITY_SET || forced_rarity == ITEM_RARITY_UNIQUE) {
+                if (top_rarity_used) {
+                    forced_rarity = ITEM_RARITY_EPIC;
+                } else {
+                    top_rarity_used = true;
+                }
             }
 
             item_rarity_roll_forced(gear_obj, forced_rarity);
