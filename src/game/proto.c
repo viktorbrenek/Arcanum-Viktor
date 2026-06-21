@@ -126,7 +126,10 @@ static int dword_5B384C[OBJ_TYPE_COUNT] = {
     /*           OBJ_TYPE_KEY */ 12063,
     /*      OBJ_TYPE_KEY_RING */ 13062,
     /*       OBJ_TYPE_WRITTEN */ 14130,
-    /*       OBJ_TYPE_GENERIC */ 15213,
+    /*       OBJ_TYPE_GENERIC */ 15214, // CE: was 15213 (vanilla arcanum3). Bumped +1 to include
+                                         // expansion proto 15213 "Educator's Guide" (has name + .pro,
+                                         // referenced by InvenSource sets 1/2). 15214+ have no
+                                         // description.mes name, so the range stops here.
     /*            OBJ_TYPE_PC */ 16079,
     /*           OBJ_TYPE_NPC */ 17317,
     /*          OBJ_TYPE_TRAP */ 26008,

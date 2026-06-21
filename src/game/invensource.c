@@ -350,34 +350,30 @@ bool parse_invensource_entry(MesFileEntry* mes_file_entry, char* str)
             named_set->set.max_coins = basic_prototype;
             is_first = false;
         } else {
-            // Validate basic prototype.
-            if (!proto_is_valid(basic_prototype)) {
+            // Validate basic prototype. CE: a single bad prototype must NOT
+            // abort the whole set — vanilla returned false here, which emptied
+            // the entire merchant/loot table (cnt=0) if one referenced proto was
+            // missing (e.g. a mod proto absent from CE's DB). That wiped real
+            // merchants on restock. Skip the offending entry and keep parsing.
+            bool proto_ok = proto_is_valid(basic_prototype);
+            if (proto_ok) {
+                obj = sub_4685A0(basic_prototype);
+                proto_ok = obj_handle_is_valid(obj);
+            }
+
+            if (!proto_ok) {
                 sprintf(invensource_error,
-                    "Error: Invalid prototype in [%s]: set %d, entry %d, basic prototype %d\n",
+                    "Warning: skipping invalid prototype in [%s]: set %d, entry %d, basic prototype %d\n",
                     invensource_mes_file_name,
                     mes_file_entry->num,
                     cnt + 1,
                     basic_prototype);
                 show_error(invensource_error);
-                return false;
+            } else {
+                named_set->set.rate[cnt] = rate;
+                named_set->set.basic_prototype[cnt] = basic_prototype;
+                cnt++;
             }
-
-            // Validate prototype object.
-            obj = sub_4685A0(basic_prototype);
-            if (!obj_handle_is_valid(obj)) {
-                sprintf(invensource_error,
-                    "Error: Can't get valid handle for prototype in [%s]: set %d, entry %d, basic prototype %d\n",
-                    invensource_mes_file_name,
-                    mes_file_entry->num,
-                    cnt + 1,
-                    basic_prototype);
-                show_error(invensource_error);
-                return false;
-            }
-
-            named_set->set.rate[cnt] = rate;
-            named_set->set.basic_prototype[cnt] = basic_prototype;
-            cnt++;
         }
 
         tok = strtok(NULL, ",");

@@ -184,14 +184,14 @@ static void endgame_spawn_scenery(void)
     }
     
     if (proto_count == 0) return;
-    
+
     static const int scenery_offsets[][2] = {
         { 8,  8 }, { -8,  8 }, {  8, -8 }, { -8, -8 },
         { 12,  4 }, { -12,  4 }, { 12, -4 }, { -12, -4 },
         {  4, 12 }, {  -4, 12 }, {  4,-12 }, {  -4,-12 }
     };
     int count = (int)(sizeof(scenery_offsets) / sizeof(scenery_offsets[0]));
-    
+
     for (int i = 0; i < count; i++) {
         int proto = protos[random_between(0, proto_count - 1)];
         int dx = scenery_offsets[i][0];
