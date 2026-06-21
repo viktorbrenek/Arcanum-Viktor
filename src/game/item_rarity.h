@@ -34,7 +34,7 @@ typedef enum ItemAffix {
     ITEM_AFFIX_W_CRUSHING,      // +7 normal damage
     ITEM_AFFIX_W_ACCURATE,      // +5 to-hit
     ITEM_AFFIX_W_DEADLY,        // +10 to-hit
-    ITEM_AFFIX_W_SWIFT,         // -1 speed factor (faster)
+    ITEM_AFFIX_W_SWIFT,         // +1 speed factor (faster)
     ITEM_AFFIX_W_KEEN,          // +5% crit chance
     ITEM_AFFIX_W_SAVAGE,        // +10% crit chance
     ITEM_AFFIX_W_BLAZING,       // +4 fire damage
@@ -89,7 +89,7 @@ typedef enum ItemAffix {
     ITEM_AFFIX_W_VICIOUS,           // +12 normal damage
     ITEM_AFFIX_W_BALANCED,          // +7 to-hit
     ITEM_AFFIX_W_RAZOR,             // +7% crit chance
-    ITEM_AFFIX_W_FLEET,             // -2 speed factor (very fast)
+    ITEM_AFFIX_W_FLEET,             // +2 speed factor (very fast)
     // --- Extended armor prefixes ---
     ITEM_AFFIX_A_REINFORCED,        // +15 AC
     ITEM_AFFIX_A_BLAZEWARD,         // +30% fire resistance

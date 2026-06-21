@@ -64,8 +64,8 @@ static const AffixDef affix_table[ITEM_AFFIX_COUNT] = {
         "+10 to-hit" },
     // ITEM_AFFIX_W_SWIFT
     { "Swift", NULL, true, false,
-        OBJ_F_WEAPON_MAGIC_SPEED_ADJ, -1, -1, -1, -1, 0, -1, 0,
-        "-1 speed (faster)" },
+        OBJ_F_WEAPON_MAGIC_SPEED_ADJ, -1, 1, -1, -1, 0, -1, 0,
+        "+1 speed (faster)" },
     // ITEM_AFFIX_W_KEEN
     { "Keen", NULL, true, false,
         OBJ_F_WEAPON_MAGIC_CRIT_HIT_CHANCE, -1, 5, -1, -1, 0, -1, 0,
@@ -214,8 +214,8 @@ static const AffixDef affix_table[ITEM_AFFIX_COUNT] = {
         "+7% critical chance" },
     // ITEM_AFFIX_W_FLEET
     { "Fleet", NULL, true, false,
-        OBJ_F_WEAPON_MAGIC_SPEED_ADJ, -1, -2, -1, -1, 0, -1, 0,
-        "-2 speed (very fast)" },
+        OBJ_F_WEAPON_MAGIC_SPEED_ADJ, -1, 2, -1, -1, 0, -1, 0,
+        "+2 speed (very fast)" },
     // ITEM_AFFIX_A_REINFORCED
     { "Reinforced", NULL, false, true,
         -1, -1, 0, OBJ_F_ARMOR_MAGIC_AC_ADJ, -1, 15, -1, 0,
@@ -559,8 +559,8 @@ static const UniqueItemDef unique_table[UNIQUE_ITEM_COUNT] = {
             ITEM_AFFIX_NONE,
             ITEM_AFFIX_NONE,
         },
-        // Extra: another -1 speed for extreme attack rate
-        OBJ_F_WEAPON_MAGIC_SPEED_ADJ, -1, -1,
+        // Extra: another +1 speed for extreme attack rate
+        OBJ_F_WEAPON_MAGIC_SPEED_ADJ, -1, 1,
         -1, -1, 0,
     },
 
@@ -691,7 +691,11 @@ ItemRarity item_rarity_get(int64_t item_obj)
 void item_rarity_set(int64_t item_obj, ItemRarity rarity)
 {
     int v = obj_field_int32_get(item_obj, OBJ_F_ITEM_PAD_I_1);
-    v = (v & ((int)ITEM_RARITY_IDENTIFIED_BIT | (int)ITEM_RARITY_CURSED_BOUND_BIT)) | (int)rarity;
+    // Preserve SetId (bits 8-23) and the identified/cursed-bound flags (bits 30-31);
+    // only the rarity occupies bits 0-7. Dropping bits 8-23 here would silently
+    // wipe an item's SetId whenever its rarity is re-stamped.
+    v = (v & (0x00FFFF00 | (int)ITEM_RARITY_IDENTIFIED_BIT | (int)ITEM_RARITY_CURSED_BOUND_BIT))
+        | ((int)rarity & 0xFF);
     obj_field_int32_set(item_obj, OBJ_F_ITEM_PAD_I_1, v);
 }
 
@@ -1082,6 +1086,22 @@ void item_rarity_roll_forced(int64_t item_obj, ItemRarity forced_rarity)
     item_rarity_set(item_obj, forced_rarity);
 
     if (forced_rarity <= ITEM_RARITY_COMMON) {
+        return;
+    }
+
+    if (forced_rarity == ITEM_RARITY_SET) {
+        // Mirror the random SET branch in item_rarity_roll: a SET item is
+        // meaningless without a SetId, so assign one (bits 8-23) plus the
+        // generic bonus. Without this the item shows the teal SET name but
+        // item_set_get() returns SET_NONE -> no set section, no set bonuses.
+        int set_idx = random_between(1, SET_COUNT - 1);
+        item_set_set(item_obj, (SetId)set_idx);
+        item_rarity_identify(item_obj);
+        if (obj_type == OBJ_TYPE_WEAPON) {
+            bake_extra(item_obj, OBJ_F_WEAPON_MAGIC_HIT_ADJ, -1, 5);
+        } else {
+            bake_extra(item_obj, OBJ_F_ARMOR_MAGIC_AC_ADJ, -1, 5);
+        }
         return;
     }
 
