@@ -134,6 +134,7 @@ static TimeEventTypeInfo stru_5B2188[TIMEEVENT_TYPE_COUNT] = {
     /*         TIMEEVENT_TYPE_BLEED_DOT */ { "Bleed DoT",        true, P3_INT | P2_INT | P1_OBJ | P0_OBJ, TIME_TYPE_GAME_TIME, bleed_dot_timeevent_process, NULL, NULL },
     /* TIMEEVENT_TYPE_POISON_WEAPON_DOT */ { "Poison Weapon DoT",true, P3_INT | P2_INT | P1_OBJ | P0_OBJ, TIME_TYPE_GAME_TIME, poison_weapon_dot_timeevent_process, NULL, NULL },
     /*    TIMEEVENT_TYPE_HARM_COOLDOWN */ { "Harm Cooldown",    false, P0_OBJ,                              TIME_TYPE_REAL_TIME, spell_ce_harm_cooldown_process,       NULL, NULL },
+    /*           TIMEEVENT_TYPE_DRENCH */ { "Drenched",         true,  P0_OBJ,                              TIME_TYPE_GAME_TIME, drench_timeevent_process,             NULL, NULL },
 };
 
 // 0x5B278C

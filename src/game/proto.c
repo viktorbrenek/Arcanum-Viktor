@@ -6228,7 +6228,9 @@ void sub_468930(int64_t obj, int description)
             obj_field_int32_set(obj, OBJ_F_WEAPON_CRIT_MISS_CHART, CRIT_MISS_TYPE_BLADED);
             obj_arrayfield_int32_set(obj, OBJ_F_WEAPON_DAMAGE_LOWER_IDX, DAMAGE_TYPE_NORMAL, 3);
             obj_arrayfield_int32_set(obj, OBJ_F_WEAPON_DAMAGE_UPPER_IDX, DAMAGE_TYPE_NORMAL, 6);
-            obj_field_int32_set(obj, OBJ_F_WEAPON_FLAGS, 26);
+            // UAP (1.5): Stiletto bypasses armor. 26 (SILENT|HAND_COUNT_FIXED|THROWABLE)
+            // + OWF_IGNORE_RESISTANCE (0x80) so its damage ignores the target's resistance/DR.
+            obj_field_int32_set(obj, OBJ_F_WEAPON_FLAGS, 26 | OWF_IGNORE_RESISTANCE);
             obj_field_int32_set(obj, OBJ_F_MATERIAL, MATERIAL_METAL);
             obj_field_int32_set(obj, OBJ_F_ITEM_DISCIPLINE, TECH_SMITHY);
             obj_field_int32_set(obj, OBJ_F_ITEM_MAGIC_TECH_COMPLEXITY, -15);

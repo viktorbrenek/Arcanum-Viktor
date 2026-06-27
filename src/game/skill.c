@@ -4,6 +4,7 @@
 #include "game/anim.h"
 #include "game/background.h"
 #include "game/critter.h"
+#include "game/descriptions.h"
 #include "game/effect.h"
 #include "game/fate.h"
 #include "game/gamelib.h"
@@ -2326,9 +2327,12 @@ int skill_invocation_difficulty(SkillInvocation* skill_invocation)
         }
 
         // Increase difficulty by target's armor class (a backstab apprentice
-        // bypasses).
-        if ((skill_invocation->flags & SKILL_INVOCATION_BACKSTAB) == 0
-            || basic_skill_training_get(source_obj, BASIC_SKILL_BACKSTAB) == TRAINING_NONE) {
+        // bypasses, and the Stiletto bypasses armor entirely — UAP 1.5).
+        bool weapon_bypasses_ac = item_obj != OBJ_HANDLE_NULL
+            && obj_field_int32_get(item_obj, OBJ_F_DESCRIPTION) == BP_STILETTO;
+        if (!weapon_bypasses_ac
+            && ((skill_invocation->flags & SKILL_INVOCATION_BACKSTAB) == 0
+                || basic_skill_training_get(source_obj, BASIC_SKILL_BACKSTAB) == TRAINING_NONE)) {
             difficulty += effectiveness * (object_get_ac(target_obj, false) / 2) / 100;
         }
     }

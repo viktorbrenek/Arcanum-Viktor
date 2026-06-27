@@ -25,4 +25,10 @@ void apply_acid_dot(int64_t attacker, int64_t target, int dmg_per_tick, int tick
 void apply_bleed_dot(int64_t attacker, int64_t target, int dmg_per_tick, int ticks);
 void apply_poison_weapon_dot(int64_t attacker, int64_t target, int dmg_per_tick, int ticks);
 
+// Drench (Flood spell, water college) — non-stacking timed -2 DX debuff (effect 371),
+// auto-expires after DRENCH_DURATION_MS. Re-applying refreshes the timer (never stacks).
+#define EFFECT_DRENCHED 371
+void apply_drench(int64_t target);
+bool drench_timeevent_process(TimeEvent* timeevent);
+
 #endif /* ARCANUM_GAME_ITEM_TECH_PROPS_H_ */

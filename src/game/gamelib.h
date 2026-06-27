@@ -23,6 +23,7 @@
 #define EFFECTS_VOLUME_KEY "effects volume"
 #define VOICE_VOLUME_KEY "voice volume"
 #define MUSIC_VOLUME_KEY "music volume"
+#define COMBAT_MUSIC_KEY "combat music"
 
 #define SPLASH_KEY "splash"
 #define SHOW_VERSION_KEY "show version"

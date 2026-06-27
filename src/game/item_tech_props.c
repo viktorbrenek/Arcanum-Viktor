@@ -6,6 +6,7 @@
 #include "game/combat.h"
 #include "game/damage_type.h"
 #include "game/descriptions.h"
+#include "game/effect.h"
 #include "game/location.h"
 #include "game/magictech.h"
 #include "game/obj.h"
@@ -214,6 +215,55 @@ bool poison_weapon_dot_timeevent_process(TimeEvent* timeevent)
 void apply_poison_weapon_dot(int64_t attacker, int64_t target, int dmg_per_tick, int ticks)
 {
     dot_schedule_first(TIMEEVENT_TYPE_POISON_WEAPON_DOT, attacker, target, dmg_per_tick, ticks, "Poisoned!");
+}
+
+// ─── Drench (Flood) ──────────────────────────────────────────────────────────
+// Non-stacking timed -2 DX debuff. The stat change lives in effect.mes entry 371
+// (EFFECT_DRENCHED); we add it via the effect system and schedule a one-shot
+// timeevent to remove it after the duration. effect.mes effects have no built-in
+// duration, so this timeevent is the expiry. Re-applying cancels the pending
+// expiry and re-adds the effect once, so the debuff caps at -2 DX and the timer
+// simply refreshes — it never accumulates per hit.
+
+#define DRENCH_DURATION_MS 6000
+
+static int64_t drench_query_target;
+
+static bool drench_match(TimeEvent* te)
+{
+    return te->params[0].object_value == drench_query_target;
+}
+
+bool drench_timeevent_process(TimeEvent* timeevent)
+{
+    int64_t target = timeevent->params[0].object_value;
+    if (target != OBJ_HANDLE_NULL) {
+        effect_remove_all_typed(target, EFFECT_DRENCHED);
+    }
+    return true;
+}
+
+void apply_drench(int64_t target)
+{
+    TimeEvent te;
+    DateTime delay;
+
+    if (target == OBJ_HANDLE_NULL) {
+        return;
+    }
+
+    // Refresh, never stack: drop any pending expiry + existing effect first.
+    drench_query_target = target;
+    timeevent_clear_all_ex(TIMEEVENT_TYPE_DRENCH, drench_match);
+    effect_remove_all_typed(target, EFFECT_DRENCHED);
+    effect_add(target, EFFECT_DRENCHED, EFFECT_CAUSE_SPELL);
+
+    memset(&te, 0, sizeof(te));
+    te.type = TIMEEVENT_TYPE_DRENCH;
+    te.params[0].object_value = target;
+    memset(&delay, 0, sizeof(delay));
+    datetime_add_milliseconds(&delay, DRENCH_DURATION_MS);
+    timeevent_add_delay(&te, &delay);
 }
 
 // ─── shared helpers ───────────────────────────────────────────────────────────

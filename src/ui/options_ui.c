@@ -90,6 +90,8 @@ static void options_ui_voice_volume_get(int* value_ptr, bool* enabled_ptr);
 static void options_ui_voice_volume_set(int value);
 static void options_ui_music_volume_get(int* value_ptr, bool* enabled_ptr);
 static void options_ui_music_volume_set(int value);
+static void options_ui_combat_music_get(int* value_ptr, bool* enabled_ptr);
+static void options_ui_combat_music_set(int value);
 static void options_ui_resolution_get(int* value_ptr, bool* enabled_ptr);
 static void options_ui_resolution_set(int value);
 static void options_ui_windowed_get(int* value_ptr, bool* enabled_ptr);
@@ -161,7 +163,7 @@ static OptionsUiControlInfo options_ui_tab_controls_meta[OPTIONS_UI_TAB_COUNT][M
         { true, CYCLIC_UI_CONTROL_NUMERIC_BAR, 0, "Music", "", options_ui_music_volume_get, options_ui_music_volume_set },
         { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Skip Intro", "mes\\OptionsOffOn.mes", options_ui_skip_intro_get, options_ui_skip_intro_set },
         { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Skip Logos", "mes\\OptionsOffOn.mes", options_ui_skip_logos_get, options_ui_skip_logos_set },
-        { false, 0, 0, "", "", NULL, NULL },
+        { true, CYCLIC_UI_CONTROL_MESSAGE_FILE, 0, "Combat Music", "mes\\OptionsOffOn.mes", options_ui_combat_music_get, options_ui_combat_music_set },
         { false, 0, 0, "", "", NULL, NULL },
         { false, 0, 0, "", "", NULL, NULL },
     },
@@ -727,6 +729,23 @@ void options_ui_music_volume_get(int* value_ptr, bool* enabled_ptr)
 void options_ui_music_volume_set(int value)
 {
     settings_set_value(&settings, MUSIC_VOLUME_KEY, value);
+}
+
+/**
+ * Called to retrieve the initial value and state of "Combat Music".
+ */
+void options_ui_combat_music_get(int* value_ptr, bool* enabled_ptr)
+{
+    *value_ptr = settings_get_value(&settings, COMBAT_MUSIC_KEY);
+    *enabled_ptr = true;
+}
+
+/**
+ * Called when the value of "Combat Music" is changed.
+ */
+void options_ui_combat_music_set(int value)
+{
+    settings_set_value(&settings, COMBAT_MUSIC_KEY, value);
 }
 
 /**

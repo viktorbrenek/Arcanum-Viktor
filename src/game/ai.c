@@ -35,6 +35,13 @@
 
 #define AI_PARAMS_MAX 17
 
+// When a follower would otherwise conserve spells (everyone healthy, threat not
+// stronger — see `sub_4ABE20` returning 0), allow it to still cast cheap
+// low-level college spells against trivial enemies. Keeps follower-mages
+// flavorful without burning fatigue on high-tier spells.
+#define AI_FOLLOWER_LOW_SPELL_CHANCE 25
+#define AI_FOLLOWER_LOW_SPELL_MAX_LEVEL 1
+
 typedef union AiParams {
     struct {
         /* 0000 */ int field_0; // Percentage of NPC hit points below which NPC will flee.
@@ -2173,12 +2180,53 @@ bool sub_4ABC70(Ai* ai)
     MagicTechAi magictech_ai;
     S4ABF10 v3;
     AiParams ai_params;
+    int cast_chance;
 
     if (!ai_npc_fighting_enabled) {
         return false;
     }
 
-    if (random_between(1, 100) > sub_4ABE20(ai)) {
+    cast_chance = sub_4ABE20(ai);
+
+    // Follower conserve case: `sub_4ABE20` returns 0 when a follower is healthy
+    // and the threat isn't stronger, normally suppressing all spellcasting.
+    // Instead of going fully silent, let a follower-mage throw cheap low-level
+    // college spells at trivial enemies (saving high-tier spells / fatigue for
+    // real fights). Restricted to followers and to low spell levels.
+    if (cast_chance == 0) {
+        if (ai->leader_obj != OBJ_HANDLE_NULL
+            && random_between(1, 100) <= AI_FOLLOWER_LOW_SPELL_CHANCE) {
+            MagicTechAiActionList* offensive;
+            int src;
+            int dst;
+
+            mt_ai_create(&magictech_ai, ai->obj, MAGICTECH_AI_ACTION_OFFENSIVE);
+
+            // Compact the offensive list down to low-level spells only.
+            offensive = &(magictech_ai.actions[MAGICTECH_AI_ACTION_OFFENSIVE]);
+            dst = 0;
+            for (src = 0; src < offensive->cnt; src++) {
+                if (LEVEL_FROM_SPELL(offensive->entries[src].spell) <= AI_FOLLOWER_LOW_SPELL_MAX_LEVEL) {
+                    offensive->entries[dst++] = offensive->entries[src];
+                }
+            }
+            offensive->cnt = dst;
+
+            v3.flags = 0x2;
+            v3.entries = offensive->entries;
+            v3.cnt = offensive->cnt;
+            if (sub_4ABF10(ai, &v3)) {
+                mt_ai_destroy(&magictech_ai);
+                return true;
+            }
+
+            mt_ai_destroy(&magictech_ai);
+        }
+
+        return false;
+    }
+
+    if (random_between(1, 100) > cast_chance) {
         return false;
     }
 

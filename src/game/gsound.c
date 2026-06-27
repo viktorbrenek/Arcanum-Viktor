@@ -564,6 +564,7 @@ bool gsound_init(GameInitInfo* init_info)
     settings_register(&settings, EFFECTS_VOLUME_KEY, "5", gsound_effects_volume_changed);
     settings_register(&settings, VOICE_VOLUME_KEY, "5", gsound_voice_volume_changed);
     settings_register(&settings, MUSIC_VOLUME_KEY, "5", gsound_music_volume_changed);
+    settings_register(&settings, COMBAT_MUSIC_KEY, "1", NULL);
     gsound_effects_volume_changed();
     gsound_voice_volume_changed();
     gsound_music_volume_changed();
@@ -1721,6 +1722,12 @@ void gsound_start_combat_music(int64_t obj)
     int type;
 
     if (gsound_combat_music_active) {
+        return;
+    }
+
+    // Combat music can be disabled via Options (UAP installer parity). When
+    // disabled, leave the current ambient/music scheme playing through combat.
+    if (settings_get_value(&settings, COMBAT_MUSIC_KEY) == 0) {
         return;
     }
 

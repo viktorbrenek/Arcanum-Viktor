@@ -2903,7 +2903,21 @@ void magictech_pick_proto_from_list(ObjectID* oid, int list)
                 break;
             }
         }
+        // CE crash fix: an aptitude-scaled (type 1) list left idx == cnt when the
+        // caster's aptitude exceeded every threshold, so the read below indexed one
+        // past the array -> garbage prototype -> crash. This is what crashed high-
+        // aptitude necromancers (incl. NPCs) casting Summon Undead (List 5). Clamp
+        // to the highest tier. Case 0 already had its own off-end guard.
+        if (idx >= stru_5B0ED8[list].cnt) {
+            idx = stru_5B0ED8[list].cnt - 1;
+        }
         break;
+    }
+
+    // Guard against an empty list (cnt == 0 -> idx == -1) before indexing.
+    if (stru_5B0ED8[list].cnt <= 0) {
+        *oid = obj_get_id(OBJ_HANDLE_NULL);
+        return;
     }
 
     *oid = obj_get_id(sub_4685A0(stru_5B0ED8[list].entries[idx].basic_prototype));
@@ -4189,8 +4203,36 @@ void magictech_component_obj_flag(int64_t obj, int64_t a2, int fld, int a4, int 
             } else if ((a4 & OSF_MIND_CONTROLLED) != 0) {
                 if (a6 != OBJ_HANDLE_NULL) {
                     if (obj_type == OBJ_TYPE_NPC) {
-                        if (player_is_pc_obj(a6)
-                            && (obj_field_int32_get(obj, OBJ_F_SPELL_FLAGS) & OSF_SUMMONED) == 0) {
+                        // CE crash fix: only a PC may gain a mind-controlled follower.
+                        // When the controller (a6) is an NPC — e.g. an enemy necromancer
+                        // casting the reworked Summon Undead — the original code ran
+                        // critter_follow(summon, npc) + ai_set_no_flee, making one NPC lead
+                        // another. The post-cast follower/AI handling assumes a PC leader and
+                        // crashed (this is the "NPC casts Summon Undead -> crash").
+                        //
+                        // An NPC controller is handled two ways:
+                        if (!player_is_pc_obj(a6)) {
+                            int64_t pc_leader = critter_pc_leader_get(a6);
+                            if (pc_leader != OBJ_HANDLE_NULL) {
+                                // Caster is one of the PLAYER'S companions -> the summon
+                                // joins the player's party by following the PC leader (the
+                                // safe, working follower path), so it fights for the player.
+                                obj_field_int32_set(obj, OBJ_F_SPELL_FLAGS, flags);
+                                if (!critter_follow(obj, pc_leader, true)) {
+                                    tig_debug_printf("magictech_component_obj_flag: Error: critter_follow failed!\n");
+                                }
+                                ai_set_no_flee(obj);
+                            } else {
+                                // Free/enemy NPC caster (e.g. an enemy necromancer) -> give the
+                                // summon the caster's faction so it fights the caster's enemies
+                                // (the player). No follower linkage (that crashes for NPC leaders).
+                                critter_faction_set(obj, critter_faction_get(a6));
+                                ai_set_no_flee(obj);
+                            }
+                            return;
+                        }
+
+                        if ((obj_field_int32_get(obj, OBJ_F_SPELL_FLAGS) & OSF_SUMMONED) == 0) {
                             reaction_adj(obj, a6, -50);
                         }
 
@@ -5074,6 +5116,19 @@ bool magictech_invocation_check(MagicTechInvocation* mt_invocation)
     }
 
     if (!sub_456430(mt_invocation->parent_obj.obj, mt_invocation->target_obj.obj, info)) {
+        return false;
+    }
+
+    // UAP (080415): Dweomer Shield and Reflection Shield must not affect
+    // mind-controlled, charmed or summoned creatures. Casting one of these
+    // shields on a temporarily controlled follower used to clear the control's
+    // expiry while leaving the follower bonded, producing the permanent-follower
+    // glitch. Reject the cast outright so neither spell ever lands on them.
+    if ((mt_invocation->spell == SPELL_DWEOMER_SHIELD
+            || mt_invocation->spell == SPELL_REFLECTION_SHIELD)
+        && mt_invocation->target_obj.obj != OBJ_HANDLE_NULL
+        && (obj_field_int32_get(mt_invocation->target_obj.obj, OBJ_F_SPELL_FLAGS)
+                & (OSF_MIND_CONTROLLED | OSF_CHARMED | OSF_SUMMONED)) != 0) {
         return false;
     }
 

@@ -201,7 +201,18 @@
       "Bash(cp -f /d/SteamLibrary/steamapps/common/Arcanum/Arcanum/data/mes/spell.mes '/d/SteamLibrary/steamapps/common/Arcanum/Arcanum/arcanum-ce-dist/packed/Arcanum New Balance/data/mes/spell.mes')",
       "Bash(awk '{print $1}')",
       "Bash(cat data/dlg/30710viktor.dlg)",
-      "Bash(find . -iname \"*viktor*.dlg\")"
+      "Bash(find . -iname \"*viktor*.dlg\")",
+      "Bash(mkdir -p extracted)",
+      "Bash(time \"./UnDAT_MatuX_TMS \\(1\\)/undat.exe\" Arcanum1.dat extracted)",
+      "Bash(sed -i 's/\\\\xe2\\\\x86\\\\x92/->/g' __TRACKED_VAR__/protomerge.py)",
+      "Bash(python __TRACKED_VAR__/protomerge.py)",
+      "Bash(ls -la binkw32.dll bink*.dll)",
+      "Bash(ls *.dll)",
+      "WebFetch(domain:terra-arcanum.com)",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\)\" \"https://terra-arcanum.com/drog/uap.html\" -o /tmp/uap.html)",
+      "Read(//tmp/**)",
+      "Bash(cmake --build out/build/windows-x64/Release --config Release -j)",
+      "Bash(cmake --build out/build/windows-x64 --config Release -j)"
     ]
   }
 }

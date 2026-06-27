@@ -310,6 +310,23 @@ static int blood_magic_hp_cost(int spell)
 void spell_ce_blood_magic_pay(int64_t caster_obj, int hp_cost)
 {
     CombatContext ctx;
+    int cur_hp;
+
+    if (caster_obj == OBJ_HANDLE_NULL) {
+        return;
+    }
+
+    // Blood cost must never be lethal. A low-HP caster (typically an NPC mage with
+    // fewer than 60 HP casting Lifetaker) would otherwise die from the cost *during*
+    // the spell's BEGIN, leaving magictech_process operating on a dead caster -> crash.
+    // Clamp the cost so the caster keeps at least 1 HP.
+    cur_hp = object_hp_current(caster_obj);
+    if (hp_cost >= cur_hp) {
+        hp_cost = cur_hp - 1;
+    }
+    if (hp_cost <= 0) {
+        return;
+    }
 
     sub_4B2210(caster_obj, caster_obj, &ctx);
     ctx.dam[DAMAGE_TYPE_NORMAL] = hp_cost;
@@ -320,6 +337,8 @@ void spell_ce_blood_magic_pay(int64_t caster_obj, int hp_cost)
 
 // Lifetaker drain radius (tiles around the caster). Tunable.
 #define LIFETAKER_DRAIN_RADIUS 8
+// Max enemies drained per tick. Bounds the collected-handle buffer.
+#define LIFETAKER_MAX_TARGETS 64
 
 void spell_ce_lifetaker_drain(int64_t caster_obj)
 {
@@ -327,8 +346,10 @@ void spell_ce_lifetaker_drain(int64_t caster_obj)
     int64_t sec_id;
     int64_t obj;
     int64_t obj_loc;
+    int64_t targets[LIFETAKER_MAX_TARGETS];
+    int target_count = 0;
+    int i;
     FindNode* iter;
-    CombatContext ctx;
     int total_drained = 0;
     int amount;
     int cur_hp;
@@ -342,6 +363,10 @@ void spell_ce_lifetaker_drain(int64_t caster_obj)
     caster_loc = obj_field_int64_get(caster_obj, OBJ_F_LOCATION);
     sec_id = sector_id_from_loc(caster_loc);
 
+    // Phase 1: collect target handles. Do NOT deal damage inside the walk loop —
+    // combat_dmg can kill a critter, which removes it from the sector object list
+    // and invalidates the walk iterator (use-after-free crash). Gather first, then
+    // apply damage after the walk has finished.
     if (!obj_find_walk_first(sec_id, &obj, &iter)) {
         return;
     }
@@ -366,15 +391,45 @@ void spell_ce_lifetaker_drain(int64_t caster_obj)
             continue;
         }
 
-        // Drain a few HP from this enemy (unresistable).
+        targets[target_count++] = obj;
+    } while (obj_find_walk_next(&obj, &iter) && target_count < LIFETAKER_MAX_TARGETS);
+
+    // Phase 2: apply drain to the collected targets. Re-validate each handle —
+    // an earlier drain this tick could have already killed it.
+    //
+    // Drain via DIRECT HP manipulation, NOT combat_dmg. This hook runs inside the
+    // magictech maintenance tick, which itself runs inside the caster's turn and
+    // relies on the global magictech_cur_run_info. combat_dmg triggers the full
+    // combat path (death scripts, AI reactions, faction/XP) which can re-enter
+    // magictech and clobber that global -> crash. It only manifested for NPC
+    // casters because the player never drains while an AI turn owns the global.
+    // A siphon never kills (clamped to leave 1 HP); normal combat finishes enemies.
+    for (i = 0; i < target_count; i++) {
+        int tgt_cur;
+        int tgt_max;
+        int tgt_new;
+
+        obj = targets[i];
+        if (!target_is_alive(obj) || critter_is_dead(obj)) {
+            continue;
+        }
+
+        // Drain a few HP from this enemy.
         amount = random_between(3, 6);
-        sub_4B2210(caster_obj, obj, &ctx);
-        ctx.dam[DAMAGE_TYPE_NORMAL] = amount;
-        ctx.dam_flags |= CDF_IGNORE_RESISTANCE;
-        combat_dmg(&ctx);
+        tgt_cur = object_hp_current(obj);
+        tgt_max = object_hp_max(obj);
+        tgt_new = tgt_cur - amount;
+        if (tgt_new < 1) {
+            tgt_new = 1;            // siphon never kills
+        }
+        amount = tgt_cur - tgt_new; // actual HP removed
+        if (amount <= 0) {
+            continue;
+        }
+        object_hp_damage_set(obj, tgt_max - tgt_new);
         total_drained += amount;
         tb_add(obj, TB_TYPE_RED, "Siphoned!");
-    } while (obj_find_walk_next(&obj, &iter));
+    }
 
     // Heal the caster for the total amount drained this tick.
     if (total_drained > 0) {
@@ -452,6 +507,26 @@ void spell_ce_on_target(int spell, int action, int64_t caster_obj, int64_t targe
     case SPELL_HARM:
         if (IS_BEGIN(action)) {
             harm_add_cooldown(caster_obj);
+        }
+        break;
+    case SPELL_CALL_FOG:
+        // Flood (mod): single-target water sap. Splash always drains a little
+        // fatigue; Constitution can resist the lingering Drench (-2 DX, 6s).
+        if (IS_BEGIN(action)) {
+            int fmax = critter_fatigue_max(target_obj);
+            int fd = critter_fatigue_damage_get(target_obj) + 4;
+            if (fd > fmax) {
+                fd = fmax;
+            }
+            critter_fatigue_damage_set(target_obj, fd);
+
+            int con = stat_level_get(target_obj, STAT_CONSTITUTION);
+            if (random_between(1, 20) > con / 2) {
+                apply_drench(target_obj);
+                tb_add(target_obj, TB_TYPE_RED, "Drenched!");
+            } else {
+                tb_add(target_obj, TB_TYPE_WHITE, "Resisted!");
+            }
         }
         break;
     case SPELL_FIREFLASH:

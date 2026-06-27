@@ -1763,11 +1763,11 @@ int object_get_resistance(int64_t obj, int resistance_type, bool a2)
         }
 
         value = effect_adjust_resistance(obj, resistance_type, value);
-        if (obj_type == OBJ_TYPE_NPC) {
-            if (critter_is_monstrous(obj)) {
-                return value;
-            }
-        }
+
+        // UAP (081004): monstrous critters (monsters, animals, undead, mechanical) are
+        // no longer exempt from the resistance clamp. Vanilla returned early here, letting
+        // them exceed 95% (effectively immune) or go negative; now they fall through to the
+        // shared [0, 95] clamp below, like all other critters.
     }
 
     if (value < 0) {
