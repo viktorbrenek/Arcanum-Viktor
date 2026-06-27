@@ -2004,6 +2004,43 @@ static void magictech_force_dismiss_summons(MagicTechRunInfo* run_info)
     }
 }
 
+// CE: True if `caster` can start maintaining one MORE concentration spell.
+//
+// A critter may maintain at most INT/4 spells at once (sub_450B90); the engine
+// enforces this when a maintained spell is processed (see the count+limit check
+// in magictech_component_obj_flag, ~0x453F.., which rejects the cast if the limit
+// is exceeded). The AI's can-cast test (sub_4AE720) did NOT replicate this, so an
+// NPC that had already used its maintain slot(s) (e.g. on a summon) would commit
+// to another maintained buff (Lizard / Bear God Form), have it silently rejected,
+// and re-issue it every tick forever ("casts, can't transform, keeps trying"). The
+// AI calls this to avoid committing to a maintained spell that won't land.
+bool magictech_caster_can_maintain_another(int64_t caster)
+{
+    int idx;
+    int cnt;
+
+    if (caster == OBJ_HANDLE_NULL) {
+        return true;
+    }
+
+    if (!obj_type_is_critter(obj_field_int32_get(caster, OBJ_F_TYPE))) {
+        return true;
+    }
+
+    cnt = 0;
+    for (idx = 0; idx < 512; idx++) {
+        if ((magictech_run_info[idx].flags & MAGICTECH_RUN_ACTIVE) != 0
+            && (magictech_spells[magictech_run_info[idx].spell].flags & MAGICTECH_IS_TECH) == 0
+            && magictech_run_info[idx].parent_obj.obj == caster
+            && (magictech_run_info[idx].flags & MAGICTECH_RUN_0x04) != 0
+            && magictech_spells[magictech_run_info[idx].spell].maintenance.period > 0) {
+            cnt++;
+        }
+    }
+
+    return cnt < sub_450B90(caster);
+}
+
 // CE: Count the live critters this caster currently has summoned.
 //
 // Enemy NPC summons are faction-allied but NOT party followers (see the
@@ -2029,6 +2066,20 @@ int magictech_caster_live_summon_count(int64_t caster)
         }
 
         if (magictech_run_info[idx].parent_obj.obj != caster) {
+            continue;
+        }
+
+        // CE: Count an IN-FLIGHT summon too. magictech_invocation_run creates the run
+        // synchronously (parent set, action BEGIN, summoned_obj still NULL) the instant
+        // the AI casts, but the creatures only spawn a few ticks later when the cast
+        // animation reaches its release frame. During that window summoned_obj is NULL,
+        // so without this the AI saw "0 summons" every tick and re-cast the summon over
+        // and over (the "summons 4x in a row" bug). Treat an active summon-spell run
+        // still in its BEGIN/cast phase as one summon-in-progress.
+        if (magictech_run_info[idx].summoned_obj == NULL
+            && magictech_run_info[idx].action == MAGICTECH_ACTION_BEGIN
+            && magictech_spells[magictech_run_info[idx].spell].ai.summon != -1) {
+            count++;
             continue;
         }
 

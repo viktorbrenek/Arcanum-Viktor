@@ -2241,8 +2241,30 @@ bool sub_4ABC70(Ai* ai)
 
             mt_ai_create(&magictech_ai, ai->obj, MAGICTECH_AI_ACTION_DEFENSIVE);
             defensive = &(magictech_ai.actions[MAGICTECH_AI_ACTION_DEFENSIVE]);
-            for (src = 0; src < defensive->cnt && dst < (int)(sizeof(self_buffs) / sizeof(self_buffs[0])); src++) {
-                if (sub_4CC2A0(defensive->entries[src].spell) == 0) {
+            {
+                unsigned int self_sf = obj_field_int32_get(ai->obj, OBJ_F_SPELL_FLAGS);
+                unsigned int self_cf = obj_field_int32_get(ai->obj, OBJ_F_CRITTER_FLAGS);
+                for (src = 0; src < defensive->cnt && dst < (int)(sizeof(self_buffs) / sizeof(self_buffs[0])); src++) {
+                    int spell = defensive->entries[src].spell;
+
+                    // Self-target only.
+                    if (sub_4CC2A0(spell) != 0) {
+                        continue;
+                    }
+
+                    // CE: Skip a buff that the caster's CURRENT spell/critter flags would
+                    // make magictech_invocation_check (sub_456430) reject — otherwise the
+                    // AI commits to it (sub_4AE720 doesn't test these), the cast is denied,
+                    // it never applies, and the opening pass re-issues it every tick. This
+                    // is what made a druid in one form (e.g. OSF_BODY_OF_FIRE) spam-cast a
+                    // mutually-exclusive shapeshift (Lizard / Bear God) it could never land.
+                    // (For self-target spells the disallowed-target check uses the caster.)
+                    if ((self_sf & magictech_spells[spell].disallowed_sf) != 0
+                        || (self_sf & magictech_spells[spell].disallowed_tsf) != 0
+                        || (self_cf & magictech_spells[spell].disallowed_tcf) != 0) {
+                        continue;
+                    }
+
                     self_buffs[dst++] = defensive->entries[src];
                 }
             }
@@ -3781,6 +3803,16 @@ int sub_4AE720(int64_t attacker_obj, int64_t item_obj, int64_t target_obj, int s
         }
 
         if (spell_cast_cost(spell, attacker_obj) >= critter_fatigue_current(attacker_obj)) {
+            return 2;
+        }
+
+        // CE: A maintained (concentration) spell will be rejected at cast time if the
+        // caster is already at its maintain limit (INT/4). The engine enforces this,
+        // but without checking it here the AI would commit to e.g. a shapeshift after
+        // already maintaining a summon, have the cast silently denied, and retry it
+        // every tick. Don't offer a maintained spell there's no slot for.
+        if (magictech_spells[spell].maintenance.period > 0
+            && !magictech_caster_can_maintain_another(attacker_obj)) {
             return 2;
         }
 

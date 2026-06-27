@@ -1055,17 +1055,25 @@ void critter_disband_internal(int64_t obj)
             }
         }
 
-        // If we're not at the end of the array, move subsequent items up.
-        if (idx < cnt - 1) {
+        // CE: Only mutate the array if `obj` was actually found in it. The original
+        // code shrank the array (length = cnt - 1) unconditionally — even when the
+        // loop above fell through without a match (idx == cnt) — which silently
+        // dropped the LAST real follower. This happened when disbanding a critter
+        // whose leader handle pointed at the PC but which was no longer in the PC's
+        // follower array (an orphaned summon, e.g. Swarm of Spiders): each such
+        // disband chopped one innocent companion off the end of the party. Guarding
+        // on "found" makes a disband of a non-member a no-op on the array.
+        if (idx < cnt) {
+            // Move subsequent items up over the removed slot.
             while (idx < cnt - 1) {
                 follower_obj = obj_arrayfield_handle_get(leader_obj, OBJ_F_CRITTER_FOLLOWER_IDX, idx + 1);
                 obj_arrayfield_obj_set(leader_obj, OBJ_F_CRITTER_FOLLOWER_IDX, idx, follower_obj);
                 idx++;
             }
-        }
 
-        // Shrink the array.
-        obj_arrayfield_length_set(leader_obj, OBJ_F_CRITTER_FOLLOWER_IDX, cnt - 1);
+            // Shrink the array.
+            obj_arrayfield_length_set(leader_obj, OBJ_F_CRITTER_FOLLOWER_IDX, cnt - 1);
+        }
     }
 
     critter_leader_set(obj, OBJ_HANDLE_NULL);
