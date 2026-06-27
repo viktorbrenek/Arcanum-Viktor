@@ -2004,6 +2004,51 @@ static void magictech_force_dismiss_summons(MagicTechRunInfo* run_info)
     }
 }
 
+// CE: Count the live critters this caster currently has summoned.
+//
+// Enemy NPC summons are faction-allied but NOT party followers (see the
+// OSF_MIND_CONTROLLED handling in magictech_component_obj_flag: linking a summon
+// to an NPC leader crashed, so enemy summons only get the caster's faction). That
+// means critter_num_followers() can't see them, so an NPC summoner would re-cast
+// its (maintained) summon spell on every AI cycle -> summon spam. The AI uses
+// this to suppress re-summoning while a summon is still alive.
+int magictech_caster_live_summon_count(int64_t caster)
+{
+    int idx;
+    int count;
+    MagicTechObjectNode* node;
+
+    if (caster == OBJ_HANDLE_NULL) {
+        return 0;
+    }
+
+    count = 0;
+    for (idx = 0; idx < 512; idx++) {
+        if ((magictech_run_info[idx].flags & MAGICTECH_RUN_ACTIVE) == 0) {
+            continue;
+        }
+
+        if (magictech_run_info[idx].parent_obj.obj != caster) {
+            continue;
+        }
+
+        for (node = magictech_run_info[idx].summoned_obj; node != NULL; node = node->next) {
+            if (node->obj == OBJ_HANDLE_NULL) {
+                continue;
+            }
+            if (!obj_type_is_critter(obj_field_int32_get(node->obj, OBJ_F_TYPE))) {
+                continue;
+            }
+            if (critter_is_dead(node->obj)) {
+                continue;
+            }
+            count++;
+        }
+    }
+
+    return count;
+}
+
 void sub_451070(MagicTechRunInfo* run_info)
 {
     if (magictech_cur_id != -1 && magictech_cur_id != run_info->id) {
@@ -3025,8 +3070,17 @@ void magictech_component_trait(int64_t obj, MagicTechComponentTrait* trait, int 
                 }
             }
 
-            weapon = tig_art_critter_id_weapon_get(art_id);
-            anim = tig_art_id_anim_get(art_id);
+            // CE: Build the monster-form art with a SAFE weapon/anim, not the
+            // ones carried over from the original (humanoid) art. tig_art_monster_id_create
+            // only range-checks the bits — it does NOT verify the art exists, so a
+            // humanoid combat animation index or a drawn-weapon overlay that the
+            // target specie (e.g. wolf) has no frames for yields a valid-looking but
+            // missing art id -> the critter turns invisible. This is why an armed NPC
+            // mid-combat went blank on Lycanthropy while an unarmed, idle PC did not.
+            // Worn items are dropped just above, so weapon 0 is correct; anim 0 is the
+            // base frame every specie has and the anim system re-drives it immediately.
+            weapon = 0;
+            anim = 0;
             rot = tig_art_id_rotation_get(art_id);
 
             if (tig_art_monster_id_create(trait->value, 0, 0, 0, rot, anim, weapon, trait->palette, &art_id) != TIG_OK) {
@@ -3040,7 +3094,40 @@ void magictech_component_trait(int64_t obj, MagicTechComponentTrait* trait, int 
                 && trait->value <= TIG_ART_MONSTER_SPECIE_AIR_ELEMENTAL) {
                 obj_field_int32_set(obj, OBJ_F_CRITTER_FLAGS2, OCF2_AUTO_ANIMATES);
                 obj_field_int32_set(obj, OBJ_F_BLIT_FLAGS, TIG_ART_BLT_BLEND_ADD);
+            } else {
+                // CE: A non-elemental form (wolf/animal etc.) does NOT auto-animate.
+                // The caster is mid-cast when the body swaps: its AG_THROW_SPELL
+                // [_W_CAST_ANIM] goal keeps trying to play the humanoid casting
+                // animation on the new (wolf) body, which has no such frames, so the
+                // goal never completes. The AI gates EVERY action on sub_423300()
+                // being false (no blocking anim goal, see ai.c) — a stuck cast goal
+                // therefore freezes a transformed NPC forever: it won't attack and
+                // won't even react to being hit. Interrupt the stuck casting goals
+                // (deferred — remaining [Begin] spell components still apply this
+                // pass) so the critter drops to idle and the AI is free to act.
+                //
+                // Do NOT add an AG_ANIMATE_LOOP here to "kick" idle: that goal has
+                // field_8 == 0, i.e. it reads as a blocking goal to sub_423300(), so
+                // it would re-freeze the AI. A plain idle critter (no goal) animates
+                // its STAND/fidget normally and the AI runs. (Elementals skip all of
+                // this: OCF2_AUTO_ANIMATES keeps their humanoid cast frames valid.)
+                anim_interrupt_all_goals_of_type(obj, AG_THROW_SPELL_W_CAST_ANIM, -1);
+                anim_interrupt_all_goals_of_type(obj, AG_THROW_SPELL, -1);
+                anim_interrupt_all_goals_of_type(obj, AG_ANIMATE_KNEEL_MAGIC_HANDS, -1);
             }
+
+            // CE: Rebuild the art with the combat-correct weapon overlay. The new
+            // monster body's ATTACK frames only exist for the weapon overlay a real
+            // critter of that species uses in combat (UNARMED, index 1) — NOT the
+            // bare NO_WEAPON (0) the body was created with. If the critter is already
+            // in combat mode when it transforms, combat mode is never re-toggled, so
+            // nothing else applies that overlay, and sub_42B9C0 (attack stage) fails
+            // tig_art_exists() on the missing weapon-0 attack art -> the critter never
+            // swings. sub_465020 sets the right weapon/shield overlay for the current
+            // combat state, exactly like entering combat mode does. Applies to ALL
+            // monster forms (animal AND elemental: Body of Fire/Stone/Air/Water), since
+            // every species' attack frames live under the combat weapon overlay.
+            object_set_current_aid(obj, sub_465020(obj));
         } else {
             sub_452CD0(obj, art_id);
         }
@@ -4228,6 +4315,16 @@ void magictech_component_obj_flag(int64_t obj, int64_t a2, int fld, int a4, int 
                                 // (the player). No follower linkage (that crashes for NPC leaders).
                                 critter_faction_set(obj, critter_faction_get(a6));
                                 ai_set_no_flee(obj);
+
+                                // CE: A faction-allied summon with no leader and no target tends
+                                // to idle until something attacks it. Send it after whatever the
+                                // summoner is currently fighting so it actually joins the attack.
+                                {
+                                    int64_t focus_obj = obj_field_handle_get(a6, OBJ_F_NPC_COMBAT_FOCUS);
+                                    if (focus_obj != OBJ_HANDLE_NULL) {
+                                        ai_attack(obj, focus_obj, LOUDNESS_SILENT, 0);
+                                    }
+                                }
                             }
                             return;
                         }

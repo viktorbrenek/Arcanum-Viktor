@@ -454,6 +454,14 @@ bool ai_heal(Ai* ai)
         return false;
     }
 
+    // CE: A polymorphed critter (Lycanthropy wolf form etc.) is an animal — it must
+    // not cast/heal. Without this an enemy mage that morphs into a wolf would just
+    // force-heal every turn (force-heal triggers out of combat mode) and never melee.
+    // Suppressing magic here lets it fall through to the normal monster melee path.
+    if ((obj_field_int32_get(ai->obj, OBJ_F_SPELL_FLAGS) & OSF_POLYMORPHED) != 0) {
+        return false;
+    }
+
     if (ai->danger_type == AI_DANGER_SOURCE_TYPE_FLEE) {
         return false;
     }
@@ -2186,6 +2194,71 @@ bool sub_4ABC70(Ai* ai)
         return false;
     }
 
+    // CE: A polymorphed critter fights as the animal it became — no spellcasting
+    // (summon/defensive/offensive). See the matching guard in ai_heal.
+    if ((obj_field_int32_get(ai->obj, OBJ_F_SPELL_FLAGS) & OSF_POLYMORPHED) != 0) {
+        return false;
+    }
+
+    // CE: Opening-move buffing. Vanilla only rolls for buffs/summons at a flat
+    // per-tick chance, so an NPC tends to summon or shape-shift randomly mid-fight
+    // (often near death), which looks dumb. Instead, the moment it engages, let it
+    // set up FIRST — summon its minions and cast its self-buffs (Lycanthropy / Body
+    // of X / etc.) — then fight. This runs BEFORE the random cast_chance gate AND
+    // before the follower-conserve short-circuit (sub_4ABE20 returns 0 for a healthy
+    // follower), so PC companions buff/transform at the start of a fight too — not
+    // only once they drop below 50% HP.
+    //
+    // It does NOT spam, because the same guards used later make each thing fire once:
+    //   - summon: blocked while a summon/follower is already alive
+    //   - self-buff: magictech_is_under_influence_of skips an already-active buff, and
+    //     Disallowed_TSF blocks a second shapeshift once polymorphed
+    // Once set up, this finds nothing castable and falls through to normal combat.
+    // Only self-targeted defensive spells (defensive2 == 0) are forced here; tactical
+    // enemy debuffs (defensive2 != 0) stay on the randomized path below.
+    {
+        // 1) Summon minions before engaging.
+        if (critter_num_followers(ai->obj, false) == 0
+            && magictech_caster_live_summon_count(ai->obj) == 0) {
+            mt_ai_create(&magictech_ai, ai->obj, MAGICTECH_AI_ACTION_SUMMON);
+            v3.flags = 0x1;
+            v3.entries = magictech_ai.actions[MAGICTECH_AI_ACTION_SUMMON].entries;
+            v3.cnt = magictech_ai.actions[MAGICTECH_AI_ACTION_SUMMON].cnt;
+            if (sub_4ABF10(ai, &v3)) {
+                mt_ai_destroy(&magictech_ai);
+                return true;
+            }
+            mt_ai_destroy(&magictech_ai);
+        }
+
+        // 2) Cast self-buffs (defensive spells that target self). Copy the self-only
+        //    subset into a local buffer so the shared cached list isn't reordered.
+        {
+            MagicTechAiActionList* defensive;
+            MagicTechAiActionListEntry self_buffs[64];
+            int src;
+            int dst = 0;
+
+            mt_ai_create(&magictech_ai, ai->obj, MAGICTECH_AI_ACTION_DEFENSIVE);
+            defensive = &(magictech_ai.actions[MAGICTECH_AI_ACTION_DEFENSIVE]);
+            for (src = 0; src < defensive->cnt && dst < (int)(sizeof(self_buffs) / sizeof(self_buffs[0])); src++) {
+                if (sub_4CC2A0(defensive->entries[src].spell) == 0) {
+                    self_buffs[dst++] = defensive->entries[src];
+                }
+            }
+            mt_ai_destroy(&magictech_ai);
+
+            if (dst > 0) {
+                v3.flags = 0x4;
+                v3.entries = self_buffs;
+                v3.cnt = dst;
+                if (sub_4ABF10(ai, &v3)) {
+                    return true;
+                }
+            }
+        }
+    }
+
     cast_chance = sub_4ABE20(ai);
 
     // Follower conserve case: `sub_4ABE20` returns 0 when a follower is healthy
@@ -2230,7 +2303,12 @@ bool sub_4ABC70(Ai* ai)
         return false;
     }
 
-    if (critter_num_followers(ai->obj, false) == 0) {
+    // CE: Don't re-summon while a summon is still alive. critter_num_followers
+    // only counts party followers; enemy NPC summons are faction-allied but not
+    // followers, so without the live-summon check an NPC summoner spammed its
+    // (maintained) summon spell every AI cycle. See magictech_caster_live_summon_count.
+    if (critter_num_followers(ai->obj, false) == 0
+        && magictech_caster_live_summon_count(ai->obj) == 0) {
         mt_ai_create(&magictech_ai, ai->obj, MAGICTECH_AI_ACTION_SUMMON);
         v3.flags = 0x1;
         v3.entries = magictech_ai.actions[MAGICTECH_AI_ACTION_SUMMON].entries;
