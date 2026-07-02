@@ -1677,6 +1677,18 @@ int sub_4AABE0(int64_t source_obj, int danger_type, int64_t target_obj, int* sou
         }
     }
 
+    // CE: Torian Kel (skeleton form, name 6697) is a dialog NPC, not a monster —
+    // don't let him commit to fighting the PC unprovoked. Skipped if he's a
+    // recruited follower (so he still fights enemies) or once gv1903 marks him
+    // hostile (quest betrayal). Mirrors the name-6719 guard above.
+    if (danger_type == AI_DANGER_SOURCE_TYPE_COMBAT_FOCUS
+        && obj_field_int32_get(source_obj, OBJ_F_NAME) == 6697
+        && critter_pc_leader_get(source_obj) == OBJ_HANDLE_NULL
+        && script_global_var_get(1903) == 0
+        && obj_field_int32_get(target_obj, OBJ_F_TYPE) == OBJ_TYPE_PC) {
+        danger_type = AI_DANGER_SOURCE_TYPE_NONE;
+    }
+
     if (danger_type == AI_DANGER_SOURCE_TYPE_FLEE
         || danger_type == AI_DANGER_SOURCE_TYPE_SURRENDER) {
         if (ai_float_line_func != NULL

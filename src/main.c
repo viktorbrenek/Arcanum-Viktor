@@ -574,6 +574,56 @@ void main_loop(void)
                             mainmenu_ui_feedback_loading_completed();
                         }
                         break;
+                    case SDL_SCANCODE_F5:
+                        // CE diagnostic: Ctrl+F5 dumps the state of every
+                        // location-gating global flag that the barrier audit
+                        // found is tested by a teleporter but apparently never
+                        // set by any dialog/script (the Qintarra-ward bug class).
+                        // Load a deep save, press Ctrl+F5; the report lands in
+                        // ce_gate_flags.txt next to the exe. No need to visit any
+                        // location. [setter] rows DO have a data setter (controls
+                        // -- if those read 1 the save is genuinely advanced);
+                        // [NO-SET] rows are the suspect barriers.
+                        if (tig_kb_get_modifier(SDL_KMOD_CTRL)) {
+                            static const struct {
+                                int flag;
+                                const char* label;
+                                int has_setter;
+                            } gates[] = {
+                                { 2365, "Qintarra (Glimmering TEL)", 0 },
+                                { 2095, "Wheel Clan entrance", 0 },
+                                { 2651, "Wheel Clan TEL16", 0 },
+                                { 2490, "Iron Clan passage", 0 },
+                                { 2027, "Simeon teleport network", 0 },
+                                { 2728, "Falkins maze", 0 },
+                                { 2100, "Bates sarcophagus", 0 },
+                                { 2455, "Bullor's crate", 0 },
+                                { 2570, "Throw-dung to map 6", 0 },
+                                { 2591, "IOD helm", 0 },
+                                { 2593, "Virgil-leaves tile", 0 },
+                                { 2615, "Master Mage test dungeon", 0 },
+                                { 1024, "Bates gate (control)", 1 },
+                                { 2704, "Qintarra Stillwater KOS (control)", 1 },
+                                { 1084, "Qintarra Queen's chamber (control)", 1 },
+                                { 2146, "Bedokaan prisoner (control)", 1 },
+                            };
+                            FILE* fp = fopen("ce_gate_flags.txt", "w");
+                            if (fp != NULL) {
+                                int i;
+                                fprintf(fp, "=== CE location gate-flag dump ===\n");
+                                fprintf(fp, "flag   value  kind      location\n");
+                                for (i = 0; i < (int)(sizeof(gates) / sizeof(gates[0])); i++) {
+                                    fprintf(fp, "gf%-5d  %d    %-8s  %s\n",
+                                        gates[i].flag,
+                                        script_global_flag_get(gates[i].flag),
+                                        gates[i].has_setter ? "[setter]" : "[NO-SET]",
+                                        gates[i].label);
+                                }
+                                fclose(fp);
+                                tig_debug_printf("CE: gate-flag dump written to ce_gate_flags.txt\n");
+                            }
+                        }
+                        break;
                     case SDL_SCANCODE_F11:
                         if (gamelib_cheat_level_get() >= 3) {
                             for (index = 0; index < SPELL_COUNT; index++) {

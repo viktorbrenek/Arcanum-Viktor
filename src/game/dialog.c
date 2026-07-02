@@ -2056,6 +2056,20 @@ bool sub_415BA0(DialogState* a1, char* a2, int a3)
         }
         case DIALOG_ACTION_QU:
             quest_state_set(a1->pc_obj, value, sub_4167C0(pch), a1->npc_obj);
+            // CE safety net: the Qintarra entry guard (dialog 1082) greets the PC
+            // with "Welcome to the elven city of Qintarra..." and sets quest 1018
+            // ("entered Qintarra"), but vanilla never raises global flag 2365 --
+            // the flag the Glimmering->Qintarra teleporter (script 1643) checks
+            // before dropping its magickal ward. Nothing in the entire dialog/
+            // script database nor the engine ever sets it, so the ward never
+            // lifts and the tree-city is unreachable. Tie the ward to that
+            // welcome: whenever this guard touches quest 1018, raise the flag.
+            // Scoped to dialog 1082 so no other quest-1018 setter is affected;
+            // the Stillwater-massacre KOS path starts at a different line and
+            // never reaches this greeting.
+            if (a1->script_num == 1082 && value == 1018) {
+                script_global_flag_set(2365, 1);
+            }
             break;
         case DIALOG_ACTION_FL:
             a1->num = value;
