@@ -1,12 +1,5 @@
 #include "game/ui.h"
 
-#include "game/script.h"
-
-// CE: global var marking the campaign ending has already played, so it fires at
-// most once per save. See ui_end_game. (CE gv allocation band 1900-1999; 1900-1903
-// taken, 1904 next free per ce-id-allocations.)
-#define VAR_CAMPAIGN_ENDED 1904
-
 // 0x5E8658
 static UiCallbacks ui_callbacks;
 
@@ -232,18 +225,6 @@ void ui_end_death(void)
 // 0x460530
 void ui_end_game(void)
 {
-    // CE: The campaign-ending script (Kerghan's death / the Vendigroth device)
-    // runs SAT_END_GAME_AND_PLAY_SLIDES, which can re-fire on a repeating
-    // trigger. Vanilla didn't care — the ending reset straight to the main menu.
-    // But CE lets you keep playing afterwards (see anim_ui.c END_GAME: award the
-    // Map of the Void and continue instead of gamelib_reset), so a re-firing
-    // trigger looped forever: slides play -> back in the world -> Kerghan is
-    // still there -> the script fires the ending again. Gate it to once per save.
-    if (script_global_var_get(VAR_CAMPAIGN_ENDED) != 0) {
-        return;
-    }
-    script_global_var_set(VAR_CAMPAIGN_ENDED, 1);
-
     if (ui_callbacks.end_game != NULL) {
         ui_callbacks.end_game();
     }

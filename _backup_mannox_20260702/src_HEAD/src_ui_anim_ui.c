@@ -6,8 +6,6 @@
 #include "game/stat.h"
 #include "game/descriptions.h"
 #include "game/item.h"
-#include "game/obj.h"
-#include "game/object.h"
 #include "game/item_orb.h"
 #include "game/mp_utils.h"
 #include "game/gfade.h"
@@ -238,36 +236,6 @@ bool anim_ui_bkg_process_callback(TimeEvent* timeevent)
                 hrp_center(&(modal_info.x), &(modal_info.y));
 
                 tig_window_modal_dialog(&modal_info, &choice);
-
-                // CE: Kerghan is scripted immortal — only the Vendigroth device
-                // "kills" him, and that fires this ending. Because we continue
-                // playing instead of resetting, a still-standing Kerghan would
-                // simply get back up and resume attacking (and could re-run the
-                // whole ending). Remove every Kerghan phase from the world so he
-                // is truly gone once the campaign is completed. Collect first,
-                // then destroy, to avoid mutating the list mid-iteration.
-                {
-                    int64_t kerghans[8];
-                    int kerghan_count = 0;
-                    int64_t obj;
-                    int iter;
-
-                    if (obj_inst_first(&obj, &iter)) {
-                        do {
-                            int desc = obj_field_int32_get(obj, OBJ_F_DESCRIPTION);
-                            if ((desc == BP_KERGHAN_1
-                                    || desc == BP_KERGHAN_2
-                                    || desc == BP_KERGHAN_3)
-                                && kerghan_count < 8) {
-                                kerghans[kerghan_count++] = obj;
-                            }
-                        } while (obj_inst_next(&obj, &iter));
-                    }
-
-                    for (int i = 0; i < kerghan_count; i++) {
-                        object_destroy(kerghans[i]);
-                    }
-                }
 
                 // Let the player continue in their current world
                 tig_debug_printf("EndGame: Continuing to Rift endgame!\n");
