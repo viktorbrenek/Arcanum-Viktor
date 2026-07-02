@@ -390,16 +390,7 @@ void terrain_sector_path(int64_t sector_id, char* path)
 
         to = terrain_base_name(base);
         if (to == NULL) {
-            // CE: Guard against an unresolved terrain base name. The original
-            // code logged the error but still passed the NULL pointer to
-            // strcat, crashing on maps whose sector terrain references a base
-            // index outside the loaded terrain set (e.g. Tsen Ang, base 31).
-            // Write an empty (non-existent) path and bail; every caller falls
-            // back to terrain_fill() to generate default terrain for the
-            // sector, so the map stays enterable instead of hard-crashing.
-            tig_debug_printf("Error: terrain_base_name failed in terrain_sector_path\n  tid: %d  base: %d\n", tid, base);
-            path[0] = '\0';
-            return;
+            tig_debug_printf("Error: terrain_base_name failed in terrain_sector_path\n  tid: %d  base: $d\n", tid);
         }
 
         strcpy(path, "terrain\\");
@@ -413,14 +404,6 @@ void terrain_sector_path(int64_t sector_id, char* path)
             from = terrain_base_name(v1);
             to = terrain_base_name(base);
             v4 = qword_5B9968[15 - v2];
-        }
-
-        // CE: Same guard for the terrain-transition path — either base name
-        // may be NULL if the sector references an unloaded terrain index.
-        if (from == NULL || to == NULL) {
-            tig_debug_printf("Error: terrain_base_name failed (transition) in terrain_sector_path\n  tid: %d  base: %d\n", tid, base);
-            path[0] = '\0';
-            return;
         }
 
         strcpy(path, "terrain\\");

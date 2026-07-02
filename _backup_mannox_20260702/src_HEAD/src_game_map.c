@@ -19,7 +19,6 @@
 #include "game/light_scheme.h"
 #include "game/location.h"
 #include "game/magictech.h"
-#include "game/mannox_vault.h"
 #include "game/mes.h"
 #include "game/obj_file.h"
 #include "game/obj_private.h"
@@ -101,7 +100,6 @@ static bool map_save_objects(void);
 static bool map_save_difs(void);
 static bool map_save_dynamic(void);
 static void map_load_postprocess(void);
-static void map_rarity_postprocess(void);
 static bool map_load_mobile(const char* base_path, const char* save_path);
 static bool map_load_dynamic(const char* name);
 static void map_load_extension(const char* base_path);
@@ -607,25 +605,17 @@ bool map_open(const char* base_path, const char* save_path, bool a3)
         return false;
     }
 
-    // CE: Validate the target map exists BEFORE closing the current map.
-    // Originally map_close() ran first and the directory check came after, so a
-    // teleport to a non-existent map (e.g. a broken teleporter pointing at the
-    // "Unused" placeholder — Ring of Brodar in Roseborough) destroyed the live
-    // map and then failed, leaving the game with NO valid map. Every subsequent
-    // sector_lock then spammed "map is not valid" forever and the game hung
-    // hard. Bailing here keeps the current map intact, so the bad teleport just
-    // aborts and the player stays put instead of freezing.
-    if (!tig_file_is_directory(base_path)) {
-        tig_debug_printf("Error opening map %s: folder does not exist\n", base_path);
-        return false;
-    }
-
     tig_debug_printf("map_open: map_close()...");
     tig_timer_now(&timestamp);
     start_timestamp = timestamp;
     map_close();
     duration = tig_timer_elapsed(timestamp);
     tig_debug_printf("done.  Time (ms): %d\n", duration);
+
+    if (!tig_file_is_directory(base_path)) {
+        tig_debug_printf("Error opening map %s: folder does not exist\n", base_path);
+        return false;
+    }
 
     tig_file_mkdir(save_path);
     if (!a3) {
@@ -807,14 +797,6 @@ bool map_open(const char* base_path, const char* save_path, bool a3)
     dword_5D11E8 = false;
     map_valid = true;
 
-    // CE: Roll NPC/item rarity now that the map is valid and terrain is loaded.
-    // Must run after map_valid = true — critter_rarity_roll's stat recompute
-    // locks map sectors (magic/tech aptitude), which is unsafe during the early
-    // map_load_postprocess pass. See map_rarity_postprocess.
-    if (!map_editor) {
-        map_rarity_postprocess();
-    }
-
     return true;
 }
 
@@ -834,17 +816,6 @@ bool map_open_in_game(int map, bool a2, bool a3)
     }
 
     info = &(map_list_info[map - 1]);
-
-    // CE: The Ring of Brodar / Mannox vault teleporter points at an "Unused"
-    // MapList placeholder (cut content — the interior map was never built).
-    // Intercept it: hand the player Mannox's relics in place and abort the
-    // teleport with the current map fully intact, instead of loading a missing
-    // map (which hung the game). See mannox_vault.c.
-    if (mannox_vault_is_target(info->name)) {
-        mannox_vault_give_reward();
-        return false;
-    }
-
     if (map_valid && !a3) {
         map_flush(0);
     }
@@ -1394,27 +1365,6 @@ void map_load_postprocess(void)
                 obj_field_int32_set(obj, OBJ_F_FLAGS, flags);
             }
 
-        } while (obj_inst_next(&obj, &iter));
-    }
-}
-
-// CE: NPC/item rarity roll pass. Split out of map_load_postprocess because
-// critter_rarity_roll triggers a full stat recalculation (encumbrance ->
-// item_total_weight -> magic/tech aptitude), which locks the critter's map
-// sector. map_load_postprocess runs early in map_open — before terrain_open
-// and before map_valid becomes true — so that sector_lock hit an unloaded map
-// ("Attempt to lock a sector when the map is not valid"), decoding tile id
-// 0xFFFF / base 31 and, on Tsen Ang, aborting the terrain sector load so the
-// map never finished loading (blank terrain, no clickable objects). This pass
-// must run only once the map is fully valid, so map_open calls it after
-// setting map_valid = true. Deliberately NOT invoked from the map_flush path.
-void map_rarity_postprocess(void)
-{
-    int64_t obj;
-    int iter;
-
-    if (obj_inst_first(&obj, &iter)) {
-        do {
             if (obj_field_int32_get(obj, OBJ_F_TYPE) == OBJ_TYPE_NPC) {
                 if ((obj_field_int32_get(obj, OBJ_F_CRITTER_PAD_I_1) & CRITTER_PAD_ROLLED_FLAG) == 0) {
                     critter_rarity_roll(obj);

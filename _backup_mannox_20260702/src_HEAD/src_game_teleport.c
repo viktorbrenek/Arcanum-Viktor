@@ -11,7 +11,6 @@
 #include "game/gsound.h"
 #include "game/light.h"
 #include "game/magictech.h"
-#include "game/mannox_vault.h"
 #include "game/map.h"
 #include "game/obj_private.h"
 #include "game/object.h"
@@ -114,21 +113,6 @@ void teleport_ping(tig_timestamp_t timestamp)
 // 0x4D3380
 bool teleport_do(TeleportData* teleport_data)
 {
-    char* dst_map_name;
-
-    // CE: Mannox vault "stash". The Ring of Brodar vault teleporter targets an
-    // "Unused" placeholder map (cut content). Swallow the teleport entirely,
-    // before any fade-out or queueing, so the player does NOT get pulled into a
-    // transition — they stay exactly where they stand and the relics drop in
-    // place. See mannox_vault.c.
-    if (teleport_data->map > 0
-        && player_is_local_pc_obj(teleport_data->obj)
-        && map_get_name(teleport_data->map, &dst_map_name)
-        && mannox_vault_is_target(dst_map_name)) {
-        mannox_vault_give_reward();
-        return true;
-    }
-
     if (teleport_pending) {
         if ((current_teleport_data.flags & TELEPORT_IS_LOCAL_PC) != 0) {
             return false;

@@ -60,8 +60,6 @@ set(SRCS
     "src/game/endgame_map.h"
     "src/game/player_house.c"
     "src/game/player_house.h"
-    "src/game/mannox_vault.c"
-    "src/game/mannox_vault.h"
     "src/game/curse.c"
     "src/game/curse.h"
     "src/game/damage_type.h"
